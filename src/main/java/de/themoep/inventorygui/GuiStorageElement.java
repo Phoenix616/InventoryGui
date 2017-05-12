@@ -30,7 +30,7 @@ public class GuiStorageElement extends GuiElement {
                 return true;
             }
             ItemStack storageItem = storage.getItem(index);
-            if (click.getEvent().getCurrentItem() == null && storageItem != null || storageItem != null && storageItem.equals(click.getEvent().getCurrentItem())) {
+            if (click.getEvent().getCurrentItem() == null && storageItem != null || storageItem != null && !storageItem.equals(click.getEvent().getCurrentItem())) {
                 click.getEvent().setCancelled(true);
                 click.getGui().draw();
                 return false;
