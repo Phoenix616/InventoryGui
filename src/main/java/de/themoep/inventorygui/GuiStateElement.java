@@ -78,7 +78,7 @@ public class GuiStateElement extends GuiElement {
         throw new IllegalArgumentException("This element does not have the state " + key);
     }
 
-    public abstract class State {
+    public abstract static class State {
         private final String key;
         private final ItemStack item;
         private String[] text;
