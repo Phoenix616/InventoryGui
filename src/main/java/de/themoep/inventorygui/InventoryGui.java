@@ -22,6 +22,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
@@ -293,6 +294,10 @@ public class InventoryGui implements Listener {
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
         if (event.getInventory() == inventory) {
+            if (event.getAction() == InventoryAction.COLLECT_TO_CURSOR) {
+                event.setCancelled(true);
+                return;
+            }
             GuiElement element = getElement(event.getSlot());
             GuiElement.Action action = null;
             if (element != null) {
