@@ -160,8 +160,8 @@ public class InventoryGui implements Listener {
         }
     }
 
-    public void setPlaceHolder(GuiElement element) {
-        addElement(' ', null);
+    public void setPlaceHolder(ItemStack item) {
+        addElement(new GuiElement(' ', item, " "));
     }
 
     private void registerListeners() {
@@ -210,6 +210,9 @@ public class InventoryGui implements Listener {
     public void draw() {
         for (int i = 0; i < inventory.getSize(); i++) {
             GuiElement element = getElement(i);
+            if (element == null) {
+                element = elements.get(' ');
+            }
             if (element != null) {
                 inventory.setItem(i, element.getItem(i));
             }
