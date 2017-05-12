@@ -245,7 +245,7 @@ public class InventoryGui implements Listener {
      * @return      The GuiElement or <tt>null</tt> if the slot is empty/there wasn't one
      */
     private GuiElement getElement(int slot) {
-        return slot < 0 ? null : elements.get(slots[slot]);
+        return slot < 0 || slot >= slots.length ? null : elements.get(slots[slot]);
     }
 
     private void setOwner(InventoryHolder owner) {
