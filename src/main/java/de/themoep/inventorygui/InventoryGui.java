@@ -129,11 +129,11 @@ public class InventoryGui implements Listener {
     }
 
     public void addElement(char slotChar, ItemStack item, GuiElement.Action action) {
-        addElement(new GuiElement(slotChar, item, action));
+        addElement(new GuiStaticElement(slotChar, item, action));
     }
 
     public void addElement(char slotChar, ItemStack item) {
-        addElement(new GuiElement(slotChar, item, null));
+        addElement(new GuiStaticElement(slotChar, item, null));
     }
 
     private void addElement(char slotChar, MaterialData materialData, GuiElement.Action action) {
@@ -165,7 +165,7 @@ public class InventoryGui implements Listener {
      * @param item  The item for the filler element
      */
     public void setFiller(ItemStack item) {
-        addElement(new GuiElement(' ', item, " "));
+        addElement(new GuiStaticElement(' ', item, " "));
     }
 
     /**
