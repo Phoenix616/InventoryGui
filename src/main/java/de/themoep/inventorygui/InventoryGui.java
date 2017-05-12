@@ -293,18 +293,28 @@ public class InventoryGui implements Listener {
 
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
-        if (event.getRawSlot() < event.getInventory().getSize() && inventory.getViewers().contains(event.getWhoClicked())) {
+        if (inventory.getViewers().contains(event.getWhoClicked())) {
             if (event.getAction() == InventoryAction.COLLECT_TO_CURSOR) {
                 event.setCancelled(true);
                 return;
             }
-            GuiElement element = getElement(event.getRawSlot());
-            GuiElement.Action action = null;
-            if (element != null) {
-                action = element.getAction();
+
+            int slot = -1;
+            if (event.getRawSlot() < event.getInventory().getSize()) {
+                slot = event.getRawSlot();
+            } else if (event.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) {
+                slot = event.getInventory().firstEmpty();
             }
-            if (action == null || action.onClick(new GuiElement.Click(this, event.getRawSlot(), element, event.getClick(), event))) {
-                event.setCancelled(true);
+
+            if (slot >= 0) {
+                GuiElement element = getElement(slot);
+                GuiElement.Action action = null;
+                if (element != null) {
+                    action = element.getAction();
+                }
+                if (action == null || action.onClick(new GuiElement.Click(this, slot, element, event.getClick(), event))) {
+                    event.setCancelled(true);
+                }
             }
         }
     }

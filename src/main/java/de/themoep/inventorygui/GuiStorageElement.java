@@ -16,6 +16,7 @@ package de.themoep.inventorygui;
  * along with this program. If not, see <http://mozilla.org/MPL/2.0/>.
  */
 
+import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
@@ -30,12 +31,15 @@ public class GuiStorageElement extends GuiElement {
                 return true;
             }
             ItemStack storageItem = storage.getItem(index);
-            if (click.getEvent().getCurrentItem() == null && storageItem != null || storageItem != null && !storageItem.equals(click.getEvent().getCurrentItem())) {
+            ItemStack movedItem = click.getEvent().getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY
+                    ? click.getEvent().getCurrentItem()
+                    : click.getEvent().getCursor();
+            if (movedItem == null && storageItem != null || storageItem != null && !storageItem.equals(movedItem)) {
                 click.getEvent().setCancelled(true);
                 click.getGui().draw();
                 return false;
             }
-            storage.setItem(index, click.getEvent().getCursor());
+            storage.setItem(index, movedItem);
             return false;
         });
         this.storage = storage;
