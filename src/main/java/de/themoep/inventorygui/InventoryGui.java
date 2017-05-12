@@ -160,8 +160,20 @@ public class InventoryGui implements Listener {
         }
     }
 
+    /**
+     * Set the placeholder element for empty slots
+     * @param item  The item for the placeholder element
+     */
     public void setPlaceHolder(ItemStack item) {
         addElement(new GuiElement(' ', item, " "));
+    }
+
+    /**
+     * Get the placeholder element
+     * @return  The placeholder element for empty slots
+     */
+    public GuiElement getPlaceHolder() {
+        return elements.get(' ');
     }
 
     private void registerListeners() {
@@ -211,7 +223,7 @@ public class InventoryGui implements Listener {
         for (int i = 0; i < inventory.getSize(); i++) {
             GuiElement element = getElement(i);
             if (element == null) {
-                element = elements.get(' ');
+                element = getPlaceHolder();
             }
             if (element != null) {
                 inventory.setItem(i, element.getItem(i));

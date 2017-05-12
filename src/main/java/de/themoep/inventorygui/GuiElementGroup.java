@@ -55,6 +55,10 @@ public class GuiElementGroup extends GuiElement {
         if (index > -1 && index < elements.length) {
             return elements[index];
         }
+        GuiElement last = elements[elements.length - 1];
+        if (last.getSlotChar() == ' ') { // Check if last element in elements array is placeholder
+            return last;
+        }
         return null;
     }
 
