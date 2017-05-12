@@ -19,21 +19,26 @@ package de.themoep.inventorygui;
 import org.bukkit.inventory.ItemStack;
 
 public class GuiStateElement extends GuiElement {
-    private int currentState = 0;
+    private int currentState;
     private final State[] states;
 
-    public GuiStateElement(char slotChar, State... states) {
+    public GuiStateElement(char slotChar, int currentState, State... states) {
         super(slotChar, null);
         if (states.length == 0) {
             throw new IllegalArgumentException("You need to add at least one State!");
         }
+        this.currentState = currentState;
         this.states = states;
 
         setAction(click -> {
             nextState();
-            getState().onChange(click);
+            getState().change.onChange(click);
             return true;
         });
+    }
+
+    public GuiStateElement(char slotChar, State... states) {
+        this(slotChar, 0, states);
     }
 
     /**
@@ -78,12 +83,14 @@ public class GuiStateElement extends GuiElement {
         throw new IllegalArgumentException("This element does not have the state " + key);
     }
 
-    public abstract static class State {
+    public static class State {
+        private final Change change;
         private final String key;
         private final ItemStack item;
         private String[] text;
 
-        public State(String key, ItemStack item, String... text) {
+        public State(Change change, String key, ItemStack item, String... text) {
+            this.change = change;
             this.key = key;
             this.item = item;
             setText(text);
@@ -110,10 +117,13 @@ public class GuiStateElement extends GuiElement {
             return text;
         }
 
-        /**
-         * What should happen when the state changes to this state
-         * @param click The click that triggered this change
-         */
-        public abstract void onChange(Click click);
+        public interface Change {
+
+            /**
+             * What should happen when the state changes to this state
+             * @param click The click that triggered this change
+             */
+            void onChange(Click click);
+        }
     }
 }
