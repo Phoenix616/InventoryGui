@@ -60,11 +60,6 @@ public class GuiStateElement extends GuiElement {
         return getState().getItem();
     }
 
-    @Override
-    public void setText(String... text) {
-        getState().setText(text);
-    }
-
     /**
      * Get the current state of this element
      * @return  The current state of this element
