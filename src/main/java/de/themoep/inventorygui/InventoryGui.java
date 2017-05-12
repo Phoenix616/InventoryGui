@@ -37,7 +37,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -161,18 +160,18 @@ public class InventoryGui implements Listener {
     }
 
     /**
-     * Set the placeholder element for empty slots
-     * @param item  The item for the placeholder element
+     * Set the filler element for empty slots
+     * @param item  The item for the filler element
      */
-    public void setPlaceHolder(ItemStack item) {
+    public void setFiller(ItemStack item) {
         addElement(new GuiElement(' ', item, " "));
     }
 
     /**
-     * Get the placeholder element
-     * @return  The placeholder element for empty slots
+     * Get the filler element
+     * @return  The filler element for empty slots
      */
-    public GuiElement getPlaceHolder() {
+    public GuiElement getFiller() {
         return elements.get(' ');
     }
 
@@ -223,7 +222,7 @@ public class InventoryGui implements Listener {
         for (int i = 0; i < inventory.getSize(); i++) {
             GuiElement element = getElement(i);
             if (element == null) {
-                element = getPlaceHolder();
+                element = getFiller();
             }
             if (element != null) {
                 inventory.setItem(i, element.getItem(i));
