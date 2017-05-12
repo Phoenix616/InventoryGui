@@ -293,17 +293,17 @@ public class InventoryGui implements Listener {
 
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
-        if (event.getInventory() == inventory) {
+        if (event.getView().getTopInventory() == inventory) {
             if (event.getAction() == InventoryAction.COLLECT_TO_CURSOR) {
                 event.setCancelled(true);
                 return;
             }
-            GuiElement element = getElement(event.getSlot());
+            GuiElement element = getElement(event.getRawSlot());
             GuiElement.Action action = null;
             if (element != null) {
                 action = element.getAction();
             }
-            if (action == null || action.onClick(new GuiElement.Click(this, event.getSlot(), element, event.getClick(), event))) {
+            if (action == null || action.onClick(new GuiElement.Click(this, event.getRawSlot(), element, event.getClick(), event))) {
                 event.setCancelled(true);
             }
         }
@@ -311,7 +311,7 @@ public class InventoryGui implements Listener {
 
     @EventHandler
     public void onInventoryDrag(InventoryDragEvent event) {
-        if (event.getInventory() == inventory && containsBelow(event.getRawSlots(), inventory.getSize())) {
+        if (event.getView().getTopInventory() == inventory && containsBelow(event.getRawSlots(), inventory.getSize())) {
             event.setCancelled(true);
         }
     }
@@ -327,7 +327,7 @@ public class InventoryGui implements Listener {
 
     @EventHandler
     public void onInventoryClose(InventoryCloseEvent event) {
-        if (event.getInventory() == inventory) {
+        if (event.getView().getTopInventory() == inventory) {
             if (event.getViewers().size() <= 1) {
                 destroy();
             }
