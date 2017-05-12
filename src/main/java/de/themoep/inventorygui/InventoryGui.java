@@ -337,7 +337,7 @@ public class InventoryGui implements Listener {
     public static void setItemText(ItemStack item, String... text) {
         if (item != null) {
             ItemMeta meta = item.getItemMeta();
-            if (text.length > 0) {
+            if (text != null && text.length > 0) {
                 meta.setDisplayName(text[0]);
                 if (text.length > 1) {
                     meta.setLore(Arrays.asList(Arrays.copyOfRange(text, 1, text.length)));
