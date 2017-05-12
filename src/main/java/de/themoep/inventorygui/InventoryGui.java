@@ -293,7 +293,7 @@ public class InventoryGui implements Listener {
 
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
-        if (event.getView().getTopInventory() == inventory) {
+        if (inventory.getViewers().contains(event.getWhoClicked())) {
             if (event.getAction() == InventoryAction.COLLECT_TO_CURSOR) {
                 event.setCancelled(true);
                 return;
@@ -311,7 +311,7 @@ public class InventoryGui implements Listener {
 
     @EventHandler
     public void onInventoryDrag(InventoryDragEvent event) {
-        if (event.getView().getTopInventory() == inventory && containsBelow(event.getRawSlots(), inventory.getSize())) {
+        if (inventory.getViewers().contains(event.getWhoClicked()) && containsBelow(event.getRawSlots(), inventory.getSize())) {
             event.setCancelled(true);
         }
     }
@@ -327,7 +327,7 @@ public class InventoryGui implements Listener {
 
     @EventHandler
     public void onInventoryClose(InventoryCloseEvent event) {
-        if (event.getView().getTopInventory() == inventory) {
+        if (inventory.getViewers().contains(event.getPlayer())) {
             if (event.getViewers().size() <= 1) {
                 destroy();
             }
