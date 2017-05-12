@@ -32,6 +32,7 @@ public class GuiStateElement extends GuiElement {
 
         setAction(click -> {
             nextState();
+            click.getEvent().setCurrentItem(getState().getItem());
             getState().change.onChange(click);
             return true;
         });
