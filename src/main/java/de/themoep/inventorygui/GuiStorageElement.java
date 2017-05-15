@@ -57,7 +57,10 @@ public class GuiStorageElement extends GuiElement {
                     if (button < 0) {
                         return true;
                     }
-                    movedItem = click.getEvent().getView().getBottomInventory().getItem(HOTBAR_OFFSET + button).clone();
+                    ItemStack hotbarItem = click.getEvent().getView().getBottomInventory().getItem(button);
+                    if (hotbarItem != null) {
+                        movedItem = hotbarItem.clone();
+                    }
                     break;
                 case PICKUP_ONE:
                 case DROP_ONE_SLOT:
