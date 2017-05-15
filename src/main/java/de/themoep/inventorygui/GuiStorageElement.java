@@ -71,11 +71,7 @@ public class GuiStorageElement extends GuiElement {
                     movedItem = click.getEvent().getCurrentItem().clone();
                     movedItem.setAmount(movedItem.getAmount() / 2);
                     break;
-                case PICKUP_SOME:
-                    // WHAT?
-                    break;
                 case PLACE_SOME:
-                    // WHAT?
                     if (click.getEvent().getCurrentItem() == null) {
                         movedItem = click.getEvent().getCursor();
                     } else {
@@ -97,8 +93,8 @@ public class GuiStorageElement extends GuiElement {
                     }
                     break;
                 case PLACE_ALL:
-                    movedItem = click.getEvent().getCurrentItem().clone();
-                    movedItem.setAmount(movedItem.getAmount() + click.getEvent().getCursor().getAmount());
+                    movedItem = click.getEvent().getCursor().clone();
+                    movedItem.setAmount(click.getEvent().getCurrentItem().getAmount() + movedItem.getAmount());
                     break;
                 case PICKUP_ALL:
                 case SWAP_WITH_CURSOR:
