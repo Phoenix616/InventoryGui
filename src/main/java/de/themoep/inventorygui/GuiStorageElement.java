@@ -23,8 +23,6 @@ import org.bukkit.inventory.ItemStack;
 public class GuiStorageElement extends GuiElement {
     private final Inventory storage;
 
-    private static final int HOTBAR_OFFSET = 36; // Magic number, slots before the hotbar starts
-
     public GuiStorageElement(char slotChar, Inventory storage) {
         super(slotChar, null);
         setAction(click -> {
