@@ -105,25 +105,4 @@ public class GuiStaticElement extends GuiElement {
         return number;
     }
 
-    /**
-     * Set the ids of the slots where this element is assigned to
-     * @param slots An array of the slot ids where this element is displayed
-     */
-    public void setSlots(int[] slots) {
-        this.slots = slots;
-    }
-
-    /**
-     * Get the index that this slot has in the list of slots that this element is displayed in
-     * @param slot  The id of the slot
-     * @return      The index in the list of slots that this id has or <tt>-1</tt> if it isn't in that list
-     */
-    public int getSlotIndex(int slot) {
-        for (int i = 0; i < slots.length; i++) {
-            if (slots[i] == slot) {
-                return i;
-            }
-        }
-        return -1;
-    }
 }
