@@ -16,12 +16,14 @@ package de.themoep.inventorygui;
  * along with this program. If not, see <http://mozilla.org/MPL/2.0/>.
  */
 
-import org.bukkit.event.inventory.InventoryAction;
+import org.bukkit.ChatColor;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
 public class GuiStorageElement extends GuiElement {
     private final Inventory storage;
+
+    private static final int HOTBAR_OFFSET = 36; // Magic number, slots before the hotbar starts
 
     public GuiStorageElement(char slotChar, Inventory storage) {
         super(slotChar, null);
@@ -31,13 +33,80 @@ public class GuiStorageElement extends GuiElement {
                 return true;
             }
             ItemStack storageItem = storage.getItem(index);
-            ItemStack movedItem = click.getEvent().getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY
-                    ? click.getEvent().getCurrentItem()
-                    : click.getEvent().getCursor();
-            if (movedItem == null && storageItem != null || storageItem != null && !storageItem.equals(movedItem)) {
+            ItemStack slotItem = click.getEvent().getView().getTopInventory().getItem(click.getSlot());
+            if (storageItem == null && slotItem != null || storageItem != null && !storageItem.equals(slotItem)) {
                 click.getEvent().setCancelled(true);
                 click.getGui().draw();
                 return false;
+            }
+            ItemStack movedItem = null;
+            switch (click.getEvent().getAction()) {
+                case NOTHING:
+                case CLONE_STACK:
+                    return false;
+                case MOVE_TO_OTHER_INVENTORY:
+                    if (click.getEvent().getRawSlot() < click.getEvent().getView().getTopInventory().getSize()) {
+                        movedItem = null;
+                    } else {
+                        movedItem = click.getEvent().getCurrentItem();
+                    }
+                    break;
+                case HOTBAR_MOVE_AND_READD:
+                case HOTBAR_SWAP:
+                    int button = click.getEvent().getHotbarButton();
+                    if (button < 0) {
+                        return true;
+                    }
+                    movedItem = click.getEvent().getView().getBottomInventory().getItem(HOTBAR_OFFSET + button);
+                    break;
+                case PICKUP_ONE:
+                case DROP_ONE_SLOT:
+                    movedItem = click.getEvent().getCurrentItem().clone();
+                    movedItem.setAmount(movedItem.getAmount() - 1);
+                    break;
+                case DROP_ALL_SLOT:
+                    movedItem = null;
+                    break;
+                case PICKUP_HALF:
+                    movedItem = click.getEvent().getCurrentItem().clone();
+                    movedItem.setAmount(movedItem.getAmount() / 2);
+                    break;
+                case PICKUP_SOME:
+                    // WHAT?
+                    break;
+                case PLACE_SOME:
+                    // WHAT?
+                    if (click.getEvent().getCurrentItem() == null) {
+                        movedItem = click.getEvent().getCursor();
+                    } else {
+                        movedItem = click.getEvent().getCurrentItem().clone();
+                        if (movedItem.getAmount() + click.getEvent().getCursor().getAmount() < movedItem.getMaxStackSize()) {
+                            movedItem.setAmount(movedItem.getAmount() + click.getEvent().getCursor().getAmount());
+                        } else {
+                            movedItem.setAmount(movedItem.getMaxStackSize());
+                        }
+                    }
+                    break;
+                case PLACE_ONE:
+                    if (click.getEvent().getCurrentItem() == null) {
+                        movedItem = click.getEvent().getCursor().clone();
+                        movedItem.setAmount(1);
+                    } else {
+                        movedItem = click.getEvent().getCursor().clone();
+                        movedItem.setAmount(click.getEvent().getCurrentItem().getAmount() + 1);
+                    }
+                    break;
+                case PLACE_ALL:
+                    movedItem = click.getEvent().getCurrentItem().clone();
+                    movedItem.setAmount(movedItem.getAmount() + click.getEvent().getCursor().getAmount());
+                    break;
+                case PICKUP_ALL:
+                case SWAP_WITH_CURSOR:
+                    movedItem = click.getEvent().getCursor();
+                    break;
+                default:
+                    click.getEvent().getWhoClicked().sendMessage(ChatColor.RED + "The action " + click.getEvent().getAction() + " is not supported! Sorry about that :(");
+                    return true;
             }
             storage.setItem(index, movedItem);
             return false;
