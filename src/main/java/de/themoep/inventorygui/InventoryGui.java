@@ -300,7 +300,7 @@ public class InventoryGui implements Listener {
             }
 
             int slot = -1;
-            if (event.getRawSlot() < event.getInventory().getSize()) {
+            if (event.getRawSlot() < event.getView().getTopInventory().getSize()) {
                 slot = event.getRawSlot();
             } else if (event.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) {
                 slot = event.getInventory().firstEmpty();
