@@ -18,11 +18,15 @@ package de.themoep.inventorygui;
 
 import org.bukkit.inventory.ItemStack;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 /**
  * Represents a group of multiple elements
  */
 public class GuiElementGroup extends GuiElement {
-    private GuiElement[] elements = new GuiElement[0];
+    private List<GuiElement> elements = new ArrayList<>();
 
     public GuiElementGroup(char slotChar, GuiElement... elements) {
         super(slotChar, null);
@@ -33,7 +37,7 @@ public class GuiElementGroup extends GuiElement {
             }
             return true;
         });
-        this.elements = elements;
+        Collections.addAll(this.elements, elements);
     }
 
     @Override
@@ -45,6 +49,10 @@ public class GuiElementGroup extends GuiElement {
         return null;
     }
 
+    public void addElement(GuiElement element) {
+        elements.add(element);
+    }
+
     /**
      * Get the element in a certain slot
      * @param slot  The slot to get the element for
@@ -52,14 +60,13 @@ public class GuiElementGroup extends GuiElement {
      */
     public GuiElement getElement(int slot) {
         int index = getSlotIndex(slot);
-        if (index > -1 && index < elements.length) {
-            return elements[index];
+        if (index > -1 && index < elements.size()) {
+            return elements.get(index);
         }
-        GuiElement last = elements[elements.length - 1];
+        GuiElement last = elements.get(elements.size() - 1);
         if (last.getSlotChar() == ' ') { // Check if last element in elements array is filler
             return last;
         }
         return null;
     }
-
 }
