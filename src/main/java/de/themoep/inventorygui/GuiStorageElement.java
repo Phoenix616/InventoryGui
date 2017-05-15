@@ -57,7 +57,7 @@ public class GuiStorageElement extends GuiElement {
                     if (button < 0) {
                         return true;
                     }
-                    movedItem = click.getEvent().getView().getBottomInventory().getItem(HOTBAR_OFFSET + button);
+                    movedItem = click.getEvent().getView().getBottomInventory().getItem(HOTBAR_OFFSET + button).clone();
                     break;
                 case PICKUP_ONE:
                 case DROP_ONE_SLOT:
@@ -94,7 +94,9 @@ public class GuiStorageElement extends GuiElement {
                     break;
                 case PLACE_ALL:
                     movedItem = click.getEvent().getCursor().clone();
-                    movedItem.setAmount(click.getEvent().getCurrentItem().getAmount() + movedItem.getAmount());
+                    if (click.getEvent().getCurrentItem() != null && click.getEvent().getCurrentItem().getAmount() > 0) {
+                        movedItem.setAmount(click.getEvent().getCurrentItem().getAmount() + movedItem.getAmount());
+                    }
                     break;
                 case PICKUP_ALL:
                 case SWAP_WITH_CURSOR:
