@@ -217,9 +217,9 @@ public class InventoryGui implements Listener {
 
     public void build(InventoryHolder owner) {
         if (slots.length > inventoryType.getDefaultSize()) {
-            inventory = plugin.getServer().createInventory(owner, slots.length, title);
+            inventory = plugin.getServer().createInventory(null, slots.length, title);
         } else {
-            inventory = plugin.getServer().createInventory(owner, inventoryType, title);
+            inventory = plugin.getServer().createInventory(null, inventoryType, title);
         }
         setOwner(owner);
         registerListeners();
