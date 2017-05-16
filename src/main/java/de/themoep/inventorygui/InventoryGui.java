@@ -19,13 +19,18 @@ package de.themoep.inventorygui;
 import org.bukkit.Material;
 import org.bukkit.block.BlockState;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockDispenseEvent;
+import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
+import org.bukkit.event.inventory.InventoryMoveItemEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
@@ -58,7 +63,7 @@ public class InventoryGui implements Listener {
     private final Map<Character, GuiElement> elements = new HashMap<>();
     private InventoryType inventoryType;
     private Inventory inventory = null;
-    private InventoryHolder owner;
+    private InventoryHolder owner = null;
     private boolean listenersRegistered = false;
 
     public InventoryGui(JavaPlugin plugin, InventoryHolder owner, String title, String[] rows, GuiElement... elements) {
@@ -188,6 +193,10 @@ public class InventoryGui implements Listener {
         InventoryClickEvent.getHandlerList().unregister(this);
         InventoryCloseEvent.getHandlerList().unregister(this);
         InventoryDragEvent.getHandlerList().unregister(this);
+        InventoryMoveItemEvent.getHandlerList().unregister(this);
+        BlockDispenseEvent.getHandlerList().unregister(this);
+        BlockBreakEvent.getHandlerList().unregister(this);
+        EntityDeathEvent.getHandlerList().unregister(this);
     }
 
     /**
@@ -232,9 +241,19 @@ public class InventoryGui implements Listener {
     }
 
     /**
+     * Closes the GUI for everyone viewing it
+     */
+    public void close() {
+        for (HumanEntity viewer : inventory.getViewers()) {
+            viewer.closeInventory();
+        }
+    }
+
+    /**
      * Destroy this GUI. This unregisters all listeners and removes it from the GUI_MAP
      */
     public void destroy() {
+        inventory.clear();
         unregisterListeners();
         removeFromMap();
     }
@@ -317,6 +336,9 @@ public class InventoryGui implements Listener {
                 }
             }
         }
+        if (owner != null && owner.equals(event.getInventory().getHolder())) {
+            draw();
+        }
     }
 
     @EventHandler
@@ -341,6 +363,34 @@ public class InventoryGui implements Listener {
             if (event.getViewers().size() <= 1) {
                 destroy();
             }
+        }
+    }
+
+    @EventHandler
+    public void onInventoryMoveItem(InventoryMoveItemEvent event) {
+        if (owner != null && (owner.equals(event.getSource().getHolder()) || owner.equals(event.getDestination().getHolder()))) {
+            draw();
+        }
+    }
+
+    @EventHandler
+    public void onDispense(BlockDispenseEvent event) {
+        if (owner != null && event.getBlock().getState() instanceof InventoryHolder && owner.equals(event.getBlock().getState())) {
+            draw();
+        }
+    }
+
+    @EventHandler
+    public void onBlockBreak(BlockBreakEvent event) {
+        if (owner != null && event.getBlock().getState() instanceof InventoryHolder && owner.equals(event.getBlock().getState())) {
+            close();
+        }
+    }
+
+    @EventHandler
+    public void onEntityDeath(EntityDeathEvent event) {
+        if (owner != null && event.getEntity() instanceof InventoryHolder && owner.equals(event.getEntity())) {
+            close();
         }
     }
 
