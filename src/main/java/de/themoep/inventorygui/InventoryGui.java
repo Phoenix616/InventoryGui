@@ -335,8 +335,9 @@ public class InventoryGui implements Listener {
                     event.setCancelled(true);
                 }
             }
-        }
-        if (owner != null && owner.equals(event.getInventory().getHolder())) {
+        } else if (owner != null && owner.equals(event.getInventory().getHolder())) {
+            // Click into inventory by same owner but not the inventory of the GUI
+            // Assume that the underlying inventory changed and redraw the GUI
             draw();
         }
     }
