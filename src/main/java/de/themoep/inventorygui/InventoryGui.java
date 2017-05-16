@@ -16,6 +16,7 @@ package de.themoep.inventorygui;
  * along with this program. If not, see <http://mozilla.org/MPL/2.0/>.
  */
 
+import org.apache.commons.lang.StringUtils;
 import org.bukkit.Material;
 import org.bukkit.block.BlockState;
 import org.bukkit.entity.Entity;
@@ -399,9 +400,11 @@ public class InventoryGui implements Listener {
         if (item != null) {
             ItemMeta meta = item.getItemMeta();
             if (text != null && text.length > 0) {
-                meta.setDisplayName(text[0]);
-                if (text.length > 1) {
-                    meta.setLore(Arrays.asList(Arrays.copyOfRange(text, 1, text.length)));
+                String combined = StringUtils.join(text, "\n");
+                String[] lines = combined.split("\n");
+                meta.setDisplayName(lines[0]);
+                if (lines.length > 1) {
+                    meta.setLore(Arrays.asList(Arrays.copyOfRange(lines, 1, lines.length)));
                 } else {
                     meta.setLore(null);
                 }
