@@ -23,6 +23,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockDispenseEvent;
@@ -339,7 +340,7 @@ public class InventoryGui implements Listener {
         } else if (owner != null && owner.equals(event.getInventory().getHolder())) {
             // Click into inventory by same owner but not the inventory of the GUI
             // Assume that the underlying inventory changed and redraw the GUI
-            draw();
+            plugin.getServer().getScheduler().runTask(plugin, this::draw);
         }
     }
 
@@ -359,7 +360,7 @@ public class InventoryGui implements Listener {
         return false;
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.MONITOR)
     public void onInventoryClose(InventoryCloseEvent event) {
         if (inventory.getViewers().contains(event.getPlayer())) {
             if (event.getViewers().size() <= 1) {
@@ -368,28 +369,28 @@ public class InventoryGui implements Listener {
         }
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.MONITOR)
     public void onInventoryMoveItem(InventoryMoveItemEvent event) {
         if (owner != null && (owner.equals(event.getDestination().getHolder()) || owner.equals(event.getSource().getHolder()))) {
-            draw();
+            plugin.getServer().getScheduler().runTask(plugin, this::draw);
         }
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.MONITOR)
     public void onDispense(BlockDispenseEvent event) {
         if (owner != null && owner.equals(event.getBlock().getState())) {
-            draw();
+            plugin.getServer().getScheduler().runTask(plugin, this::draw);
         }
     }
 
-    @EventHandler(ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBlockBreak(BlockBreakEvent event) {
         if (owner != null && owner.equals(event.getBlock().getState())) {
             close();
         }
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.MONITOR)
     public void onEntityDeath(EntityDeathEvent event) {
         if (owner != null && owner.equals(event.getEntity())) {
             close();
