@@ -370,30 +370,28 @@ public class InventoryGui implements Listener {
 
     @EventHandler
     public void onInventoryMoveItem(InventoryMoveItemEvent event) {
-        if (owner != null && owner instanceof BlockState && (
-                ((BlockState) owner).getLocation().equals(event.getDestination().getLocation())
-                        || ((BlockState) owner).getLocation().equals(event.getSource().getLocation()))) {
+        if (owner != null && (owner.equals(event.getDestination().getHolder()) || owner.equals(event.getSource().getHolder()))) {
             draw();
         }
     }
 
     @EventHandler
     public void onDispense(BlockDispenseEvent event) {
-        if (owner != null && owner instanceof BlockState && ((BlockState) owner).getLocation().equals(event.getBlock().getLocation())) {
+        if (owner != null && owner.equals(event.getBlock().getState())) {
             draw();
         }
     }
 
     @EventHandler
     public void onBlockBreak(BlockBreakEvent event) {
-        if (owner != null && owner instanceof BlockState && ((BlockState) owner).getLocation().equals(event.getBlock().getLocation())) {
+        if (owner != null && owner.equals(event.getBlock().getState())) {
             close();
         }
     }
 
     @EventHandler
     public void onEntityDeath(EntityDeathEvent event) {
-        if (owner != null && owner instanceof Entity && ((Entity) owner).getUniqueId().equals(event.getEntity().getUniqueId())) {
+        if (owner != null && owner.equals(event.getEntity())) {
             close();
         }
     }
