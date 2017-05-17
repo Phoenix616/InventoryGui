@@ -370,28 +370,30 @@ public class InventoryGui implements Listener {
 
     @EventHandler
     public void onInventoryMoveItem(InventoryMoveItemEvent event) {
-        if (owner != null && (owner.equals(event.getSource().getHolder()) || owner.equals(event.getDestination().getHolder()))) {
+        if (owner != null && owner instanceof BlockState && (
+                ((BlockState) owner).getLocation().equals(event.getDestination().getLocation())
+                        || ((BlockState) owner).getLocation().equals(event.getSource().getLocation()))) {
             draw();
         }
     }
 
     @EventHandler
     public void onDispense(BlockDispenseEvent event) {
-        if (owner != null && event.getBlock().getState() instanceof InventoryHolder && owner.equals(event.getBlock().getState())) {
+        if (owner != null && owner instanceof BlockState && ((BlockState) owner).getLocation().equals(event.getBlock().getLocation())) {
             draw();
         }
     }
 
     @EventHandler
     public void onBlockBreak(BlockBreakEvent event) {
-        if (owner != null && event.getBlock().getState() instanceof InventoryHolder && owner.equals(event.getBlock().getState())) {
+        if (owner != null && owner instanceof BlockState && ((BlockState) owner).getLocation().equals(event.getBlock().getLocation())) {
             close();
         }
     }
 
     @EventHandler
     public void onEntityDeath(EntityDeathEvent event) {
-        if (owner != null && event.getEntity() instanceof InventoryHolder && owner.equals(event.getEntity())) {
+        if (owner != null && owner instanceof Entity && ((Entity) owner).getUniqueId().equals(event.getEntity().getUniqueId())) {
             close();
         }
     }
