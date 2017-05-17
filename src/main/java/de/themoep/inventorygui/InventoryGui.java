@@ -382,7 +382,7 @@ public class InventoryGui implements Listener {
         }
     }
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
     public void onBlockBreak(BlockBreakEvent event) {
         if (owner != null && owner.equals(event.getBlock().getState())) {
             close();
