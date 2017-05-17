@@ -16,6 +16,9 @@ package de.themoep.inventorygui;
  * along with this program. If not, see <http://mozilla.org/MPL/2.0/>.
  */
 
+import org.bukkit.Sound;
+import org.bukkit.SoundCategory;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 public class GuiStateElement extends GuiElement {
@@ -33,6 +36,10 @@ public class GuiStateElement extends GuiElement {
         setAction(click -> {
             nextState();
             click.getEvent().setCurrentItem(getState().getItem());
+            if (click.getEvent().getWhoClicked() instanceof Player) {
+                Player player = (Player) click.getEvent().getWhoClicked();
+                player.playSound(player.getEyeLocation(), Sound.UI_BUTTON_CLICK, SoundCategory.MASTER, 1, 1);
+            }
             getState().change.onChange(click);
             return true;
         });
