@@ -255,6 +255,7 @@ public class InventoryGui implements Listener {
      * Destroy this GUI. This unregisters all listeners and removes it from the GUI_MAP
      */
     public void destroy() {
+        close();
         inventory.clear();
         unregisterListeners();
         removeFromMap();
@@ -386,14 +387,14 @@ public class InventoryGui implements Listener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBlockBreak(BlockBreakEvent event) {
         if (owner != null && owner.equals(event.getBlock().getState())) {
-            close();
+            destroy();
         }
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onEntityDeath(EntityDeathEvent event) {
         if (owner != null && owner.equals(event.getEntity())) {
-            close();
+            destroy();
         }
     }
 
