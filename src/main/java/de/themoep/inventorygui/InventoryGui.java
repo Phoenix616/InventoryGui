@@ -53,7 +53,7 @@ public class InventoryGui implements Listener {
     private final static int[] ROW_WIDTHS = {3, 5, 9};
     private final static InventoryType[] INVENTORY_TYPES = {
             InventoryType.DROPPER, // 3*3
-            InventoryType.ANVIL, // 5*1
+            InventoryType.HOPPER, // 5*1
             InventoryType.CHEST // 9*x
     };
 
