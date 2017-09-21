@@ -69,4 +69,12 @@ public class GuiElementGroup extends GuiElement {
         }
         return null;
     }
+
+    /**
+     * Get the size of this group
+     * @return  The amount of elements that this group has
+     */
+    public int size() {
+        return elements.size();
+    }
 }
