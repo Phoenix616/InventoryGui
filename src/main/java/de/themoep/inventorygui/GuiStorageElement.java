@@ -26,7 +26,7 @@ public class GuiStorageElement extends GuiElement {
     public GuiStorageElement(char slotChar, Inventory storage) {
         super(slotChar, null);
         setAction(click -> {
-            int index = getSlotIndex(click.getSlot());
+            int index = getSlotIndex(click.getSlot(), click.getGui().getPageNumber());
             if (index == -1 || index >= storage.getSize()) {
                 return true;
             }
@@ -120,5 +120,9 @@ public class GuiStorageElement extends GuiElement {
             return storage.getItem(index);
         }
         return null;
+    }
+
+    public Inventory getStorage() {
+        return storage;
     }
 }

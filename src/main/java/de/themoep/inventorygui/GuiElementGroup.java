@@ -31,7 +31,7 @@ public class GuiElementGroup extends GuiElement {
     public GuiElementGroup(char slotChar, GuiElement... elements) {
         super(slotChar, null);
         setAction(click -> {
-            GuiElement element = getElement(click.getSlot());
+            GuiElement element = getElement(click.getSlot(), click.getGui().getPageNumber());
             if (element != null && element.getAction() != null) {
                 return element.getAction().onClick(click);
             }
@@ -42,7 +42,7 @@ public class GuiElementGroup extends GuiElement {
 
     @Override
     public ItemStack getItem(int slot) {
-        GuiElement element = getElement(slot);
+        GuiElement element = getElement(slot, gui.getPageNumber());
         if (element != null) {
             return element.getItem(slot);
         }
@@ -59,7 +59,17 @@ public class GuiElementGroup extends GuiElement {
      * @return      The GuiElement in that slot or <tt>null</tt>
      */
     public GuiElement getElement(int slot) {
-        int index = getSlotIndex(slot);
+        return getElement(slot, 0);
+    }
+
+    /**
+     * Get the element in a certain slot on a certain page
+     * @param slot          The slot to get the element for
+     * @param pageNumber    The number of the page that the gui is on
+     * @return              The GuiElement in that slot or <tt>null</tt>
+     */
+    public GuiElement getElement(int slot, int pageNumber) {
+        int index = getSlotIndex(slot, pageNumber);
         if (index > -1 && index < elements.size()) {
             return elements.get(index);
         }

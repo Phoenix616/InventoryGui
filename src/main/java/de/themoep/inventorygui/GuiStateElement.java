@@ -31,6 +31,9 @@ public class GuiStateElement extends GuiElement {
             throw new IllegalArgumentException("You need to add at least one State!");
         }
         this.currentState = currentState;
+        for (State state : states) {
+            state.setGui(gui);
+        }
         this.states = states;
 
         setAction(click -> {
@@ -91,12 +94,13 @@ public class GuiStateElement extends GuiElement {
         private final String key;
         private final ItemStack item;
         private String[] text;
+        private InventoryGui gui;
 
         public State(Change change, String key, ItemStack item, String... text) {
             this.change = change;
             this.key = key;
             this.item = item;
-            setText(text);
+            this.text = text;
         }
 
         /**
@@ -105,11 +109,12 @@ public class GuiStateElement extends GuiElement {
          */
         public void setText(String... text) {
             this.text = text;
-            InventoryGui.setItemText(item, text);
         }
 
         public ItemStack getItem() {
-            return item;
+            ItemStack clone = item.clone();
+            gui.setItemText(clone, text);
+            return clone;
         }
 
         public String getKey() {
@@ -118,6 +123,10 @@ public class GuiStateElement extends GuiElement {
 
         public String[] getText() {
             return text;
+        }
+
+        public void setGui(InventoryGui gui) {
+            this.gui = gui;
         }
 
         public interface Change {

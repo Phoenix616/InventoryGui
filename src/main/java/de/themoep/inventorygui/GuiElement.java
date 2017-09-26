@@ -27,6 +27,7 @@ public abstract class GuiElement {
     private final char slotChar;
     private Action action;
     protected int[] slots = new int[0];
+    protected InventoryGui gui;
 
     /**
      * Represents an element in a gui
@@ -55,9 +56,9 @@ public abstract class GuiElement {
     }
 
     /**
-     * Get the item that is displayed by this element
+     * Get the item that is displayed by this element on a certain page
      * @param slot  The slot to get the item for
-     * @return  The ItemStack that is displayed as this element
+     * @return      The ItemStack that is displayed as this element
      */
     public abstract ItemStack getItem(int slot);
 
@@ -91,12 +92,30 @@ public abstract class GuiElement {
      * @return      The index in the list of slots that this id has or <tt>-1</tt> if it isn't in that list
      */
     public int getSlotIndex(int slot) {
+        return getSlotIndex(slot, 0);
+    }
+
+    /**
+     * Get the index that this slot has in the list of slots that this element is displayed in
+     * @param slot          The id of the slot
+     * @param pageNumber    The number of the page that the gui is on
+     * @return              The index in the list of slots that this id has or <tt>-1</tt> if it isn't in that list
+     */
+    public int getSlotIndex(int slot, int pageNumber) {
         for (int i = 0; i < slots.length; i++) {
             if (slots[i] == slot) {
-                return i;
+                return i + slots.length * pageNumber;
             }
         }
         return -1;
+    }
+
+    /**
+     * Set the gui this element belongs to
+     * @param gui   The GUI that this element is in
+     */
+    public void setGui(InventoryGui gui) {
+        this.gui = gui;
     }
 
     public static interface Action {

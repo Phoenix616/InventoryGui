@@ -67,6 +67,8 @@ public class InventoryGui implements Listener {
     private Inventory inventory = null;
     private InventoryHolder owner = null;
     private boolean listenersRegistered = false;
+    private int pageNumber = 0;
+    private int pageAmount = 1;
 
     public InventoryGui(JavaPlugin plugin, InventoryHolder owner, String title, String[] rows, GuiElement... elements) {
         this.plugin = plugin;
@@ -122,6 +124,7 @@ public class InventoryGui implements Listener {
 
     public void addElement(GuiElement element) {
         elements.put(element.getSlotChar(), element);
+        element.setGui(this);
         element.setSlots(getSlots(element.getSlotChar()));
     }
 
@@ -183,6 +186,44 @@ public class InventoryGui implements Listener {
         return elements.get(' ');
     }
 
+    /**
+     * Get the number of the page that this gui is on. zero indexed. Only affects group elements.
+     * @return The page number
+     */
+    public int getPageNumber() {
+        return pageNumber;
+    }
+
+    /**
+     * Set the number of the page that this gui is on. zero indexed. Only affects group elements.
+     */
+    public void setPageNumber(int pageNumber) {
+        this.pageNumber = pageNumber;
+        draw();
+    }
+
+    /**
+     * Get the amount of pages that this GUI has
+     * @return The amount of pages
+     */
+    public int getPageAmount() {
+        return pageAmount;
+    }
+
+    private void calculatePageAmount() {
+        for (GuiElement element : elements.values()) {
+            int amount = 0;
+            if (element instanceof GuiElementGroup) {
+                amount = ((GuiElementGroup) element).size();
+            } else if (element instanceof GuiStorageElement) {
+                amount = ((GuiStorageElement) element).getStorage().getSize();
+            }
+            if (amount > 0 && (pageAmount - 1) * element.slots.length < amount) {
+                pageAmount = (int) Math.ceil(element.slots.length / amount) + 1;
+            }
+        }
+    }
+
     private void registerListeners() {
         if (listenersRegistered) {
             return;
@@ -219,12 +260,13 @@ public class InventoryGui implements Listener {
 
     public void build(InventoryHolder owner) {
         if (slots.length > inventoryType.getDefaultSize()) {
-            inventory = plugin.getServer().createInventory(owner, slots.length, title);
+            inventory = plugin.getServer().createInventory(owner, slots.length, replaceVars(title));
         } else {
-            inventory = plugin.getServer().createInventory(owner, inventoryType, title);
+            inventory = plugin.getServer().createInventory(owner, inventoryType, replaceVars(title));
         }
         setOwner(owner);
         registerListeners();
+        calculatePageAmount();
     }
 
     /**
@@ -404,11 +446,11 @@ public class InventoryGui implements Listener {
         }
     }
 
-    public static void setItemText(ItemStack item, String... text) {
+    public void setItemText(ItemStack item, String... text) {
         if (item != null) {
             ItemMeta meta = item.getItemMeta();
             if (text != null && text.length > 0) {
-                String combined = StringUtils.join(text, "\n");
+                String combined = replaceVars(StringUtils.join(text, "\n"));
                 String[] lines = combined.split("\n");
                 meta.setDisplayName(lines[0]);
                 if (lines.length > 1) {
@@ -421,5 +463,20 @@ public class InventoryGui implements Listener {
             }
             item.setItemMeta(meta);
         }
+    }
+
+    public String replaceVars(String text) {
+        String[] repl = {
+                "plugin", plugin.getName(),
+                "owner", owner.getInventory().getName(),
+                "page", String.valueOf(getPageNumber() + 1),
+                "nextpage", getPageNumber() + 1 < getPageAmount() ? String.valueOf(getPageNumber() + 2) : "none",
+                "prevpage", getPageNumber() > 0 ? String.valueOf(getPageNumber()) : "none",
+                "pages", String.valueOf(getPageAmount())
+        };
+        for (int i = 0; i + 1 < repl.length; i+=2) {
+            text = text.replace("%" + repl[i] + "%", repl[i + 1]);
+        }
+        return text;
     }
 }

@@ -38,8 +38,8 @@ public class GuiStaticElement extends GuiElement {
     public GuiStaticElement(char slotChar, ItemStack item, Action action, String... text) {
         super(slotChar, action);
         this.item = item;
+        this.text = text;
         setAction(action);
-        setText(text);
     }
 
     /**
@@ -59,12 +59,13 @@ public class GuiStaticElement extends GuiElement {
      */
     public void setItem(ItemStack item) {
         this.item = item;
-        setText(getText());
     }
 
     @Override
     public ItemStack getItem(int slot) {
-        return item;
+        ItemStack clone = item.clone();
+        gui.setItemText(clone, text);
+        return clone;
     }
 
     /**
@@ -73,7 +74,6 @@ public class GuiStaticElement extends GuiElement {
      */
     public void setText(String... text) {
         this.text = text;
-        InventoryGui.setItemText(item, text);
     }
 
     /**
