@@ -31,9 +31,6 @@ public class GuiStateElement extends GuiElement {
             throw new IllegalArgumentException("You need to add at least one State!");
         }
         this.currentState = currentState;
-        for (State state : states) {
-            state.setGui(gui);
-        }
         this.states = states;
 
         setAction(click -> {
@@ -69,6 +66,14 @@ public class GuiStateElement extends GuiElement {
     @Override
     public ItemStack getItem(int slot) {
         return getState().getItem();
+    }
+
+    @Override
+    public void setGui(InventoryGui gui) {
+        super.setGui(gui);
+        for (State state : states) {
+            state.setGui(gui);
+        }
     }
 
     /**
