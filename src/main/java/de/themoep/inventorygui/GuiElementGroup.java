@@ -51,6 +51,8 @@ public class GuiElementGroup extends GuiElement {
 
     public void addElement(GuiElement element) {
         elements.add(element);
+        element.setGui(gui);
+        element.setSlots(slots);
     }
 
     /**
