@@ -16,6 +16,7 @@ package de.themoep.inventorygui;
  * along with this program. If not, see <http://mozilla.org/MPL/2.0/>.
  */
 
+import org.apache.commons.lang.Validate;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
@@ -49,7 +50,13 @@ public class GuiElementGroup extends GuiElement {
         return null;
     }
 
-    public void addElement(GuiElement element) {
+    /**
+     * Add an element to this group after this group element has been assigned to a GUI
+     * @param element   The element to add
+     * @throws IllegalArgumentException Thrown if trying to add an element before this group element is assigned to a GUI
+     */
+    public void addElement(GuiElement element) throws IllegalArgumentException {
+        Validate.notNull(gui, "You have to add the group element to the GUI before adding elements to it!");
         elements.add(element);
         element.setGui(gui);
         element.setSlots(slots);
