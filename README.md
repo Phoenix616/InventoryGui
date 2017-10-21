@@ -67,6 +67,7 @@ gui.addElement(new GuiStateElement('z',
                     change.getEvent().getWhoClicked().setFlying(true);
                     change.getEvent().getWhoClicked().sendMessage("You are now flying!");
                 },
+                new ItemStack(Material.WOOL, 1, 5)), // the item to display as an icon
                 "flyingEnabled", // a key to identify this state by
                 ChatColor.GREEN + "Enable flying!", // explanation text what this element does
                 "By clicking here you will start flying"
@@ -76,6 +77,7 @@ gui.addElement(new GuiStateElement('z',
                     change.getEvent().getWhoClicked().setFlying(false);
                     change.getEvent().getWhoClicked().sendMessage("You are no longer flying!");
                 },
+                new ItemStack(Material.WOOL, 1, 14)),
                 "flyingDisabled",
                 ChatColor.RED + "Disable flying!",
                 "By clicking here you will stop flying"
