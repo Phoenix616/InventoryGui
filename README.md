@@ -21,6 +21,9 @@ String[] guiSetup = {
 };
 ```
 
+The GUI supports 3\*3, 5\*1 and 9\*x inventory sizes.
+Sizes that do not match these are getting expanded to the next bigger one.
+
 ### Creating the GUI
 You create GUIs assigned to an InventoryHolder like a Container or a LivingEntity. 
 
