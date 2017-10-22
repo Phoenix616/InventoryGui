@@ -573,9 +573,9 @@ public class InventoryGui implements Listener {
     }
 
     /**
-     * Replace some placeholders in the with values regarding the gui's state.<br />
+     * Replace some placeholders in the with values regarding the gui's state.<br>
      * The placeholders are:
-     * <table>
+     * <table summary="Placeholders that will get replaced">
      *     <tr>
      *         <td><tt>%plugin%</tt></td>
      *         <td>The name of the plugin that this gui is from.</td>

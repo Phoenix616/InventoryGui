@@ -32,15 +32,15 @@ public class GuiStateElement extends GuiElement {
     /**
      * An element that can switch between certain states.
      * @param slotChar      The character to replace in the gui setup string.
-     * @param currentState  The index of the default state.
+     * @param defaultState  The index of the default state.
      * @param states        The list of different {@link State}s that this element can have.
      */
-    public GuiStateElement(char slotChar, int currentState, State... states) {
+    public GuiStateElement(char slotChar, int defaultState, State... states) {
         super(slotChar, null);
         if (states.length == 0) {
             throw new IllegalArgumentException("You need to add at least one State!");
         }
-        this.currentState = currentState;
+        this.currentState = defaultState;
         this.states = states;
 
         setAction(click -> {
@@ -55,10 +55,21 @@ public class GuiStateElement extends GuiElement {
         });
     }
 
-    public GuiStateElement(char slotChar, String key, State... states) {
-        this(slotChar, getStateIndex(key, states), states);
+    /**
+     * An element that can switch between certain states.
+     * @param slotChar      The character to replace in the gui setup string.
+     * @param defaultState  The key of the default state.
+     * @param states        The list of different {@link State}s that this element can have.
+     */
+    public GuiStateElement(char slotChar, String defaultState, State... states) {
+        this(slotChar, getStateIndex(defaultState, states), states);
     }
 
+    /**
+     * An element that can switch between certain states. The first state will be the default one.
+     * @param slotChar      The character to replace in the gui setup string.
+     * @param states        The list of different {@link State}s that this element can have.
+     */
     public GuiStateElement(char slotChar, State... states) {
         this(slotChar, 0, states);
     }

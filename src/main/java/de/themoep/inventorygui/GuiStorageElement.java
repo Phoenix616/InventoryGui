@@ -23,7 +23,7 @@ import org.bukkit.inventory.ItemStack;
 /**
  * This element is used to access an {@link Inventory}. The slots in the inventory are selected
  * by searching through the whole gui the element is in and getting the number of the spot
- * in the character group that this element is in. <br/>
+ * in the character group that this element is in. <br>
  * E.g. if you have five characters called "s" in the gui setup and the second element is
  * accessed by the player then it will translate to the second slot in the inventory.
  */
