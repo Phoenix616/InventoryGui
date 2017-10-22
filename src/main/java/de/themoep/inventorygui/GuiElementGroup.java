@@ -29,6 +29,11 @@ import java.util.List;
 public class GuiElementGroup extends GuiElement {
     private List<GuiElement> elements = new ArrayList<>();
 
+    /**
+     * A group of elements
+     * @param slotChar  The character to replace in the gui setup string
+     * @param elements  The elements in this group
+     */
     public GuiElementGroup(char slotChar, GuiElement... elements) {
         super(slotChar, null);
         setAction(click -> {

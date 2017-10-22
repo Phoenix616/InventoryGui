@@ -48,6 +48,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * The main library class that lets you create and manage your GUIs
+ */
 public class InventoryGui implements Listener {
 
     private final static int[] ROW_WIDTHS = {3, 5, 9};
@@ -70,6 +73,16 @@ public class InventoryGui implements Listener {
     private int pageNumber = 0;
     private int pageAmount = 1;
 
+    /**
+     * Create a new gui with a certain setup and some elements
+     * @param plugin    Your plugin
+     * @param owner     The holder that owns this gui to retrieve it with {@link #get(InventoryHolder)}.
+     *                  Can be <tt>null</tt>.
+     * @param title     The name of the GUI. This will be the title of the inventory.
+     * @param rows      How your rows are setup. Each element is getting assigned to a character.
+     *                  Empty/missing ones get filled with the Filler.
+     * @param elements  The {@link GuiElement}s that the gui should have. You can also use {@link #addElement(GuiElement)} later.
+     */
     public InventoryGui(JavaPlugin plugin, InventoryHolder owner, String title, String[] rows, GuiElement... elements) {
         this.plugin = plugin;
         this.owner = owner;
@@ -113,15 +126,37 @@ public class InventoryGui implements Listener {
         addElements(elements);
     }
 
+    /**
+     * The simplest way to create a new gui. It has no owner and elements are optional.
+     * @param plugin    Your plugin
+     * @param title     The name of the GUI. This will be the title of the inventory.
+     * @param rows      How your rows are setup. Each element is getting assigned to a character.
+     *                  Empty/missing ones get filled with the Filler.
+     * @param elements  The {@link GuiElement}s that the gui should have. You can also use {@link #addElement(GuiElement)} later.
+     */
     public InventoryGui(JavaPlugin plugin, String title, String[] rows, GuiElement... elements) {
         this(plugin, null, title, rows, elements);
     }
 
+    /**
+     * Create a new gui that has no owner with a certain setup and some elements
+     * @param plugin    Your plugin
+     * @param owner     The holder that owns this gui to retrieve it with {@link #get(InventoryHolder)}.
+     *                  Can be <tt>null</tt>.
+     * @param title     The name of the GUI. This will be the title of the inventory.
+     * @param rows      How your rows are setup. Each element is getting assigned to a character.
+     *                  Empty/missing ones get filled with the Filler.
+     * @param elements  The {@link GuiElement}s that the gui should have. You can also use {@link #addElement(GuiElement)} later.
+     */
     public InventoryGui(JavaPlugin plugin, InventoryHolder owner, String title, String[] rows, Collection<GuiElement> elements) {
         this(plugin, owner, title, rows);
         addElements(elements);
     }
 
+    /**
+     * Add an element to the gui
+     * @param element   The {@link GuiElement} to add
+     */
     public void addElement(GuiElement element) {
         elements.put(element.getSlotChar(), element);
         element.setGui(this);
@@ -138,32 +173,70 @@ public class InventoryGui implements Listener {
         return slotList.stream().mapToInt(Integer::intValue).toArray();
     }
 
+    /**
+     * Create and add a {@link GuiStaticElement} in one quick method.
+     * @param slotChar  The character to replace in the gui setup string
+     * @param item      The item that should be displayed
+     * @param action    The {@link de.themoep.inventorygui.GuiElement.Action} to run when the player clicks on this element
+     */
     public void addElement(char slotChar, ItemStack item, GuiElement.Action action) {
         addElement(new GuiStaticElement(slotChar, item, action));
     }
 
+    /**
+     * Create and add a {@link GuiStaticElement} that has no action.
+     * @param slotChar  The character to replace in the gui setup string
+     * @param item      The item that should be displayed
+     */
     public void addElement(char slotChar, ItemStack item) {
         addElement(new GuiStaticElement(slotChar, item, null));
     }
 
-    private void addElement(char slotChar, MaterialData materialData, GuiElement.Action action) {
+    /**
+     * Create and add a {@link GuiStaticElement} in one quick method.
+     * @param slotChar      The character to replace in the gui setup string
+     * @param materialData  The {@link MaterialData} of the item of tihs element
+     * @param action         The {@link de.themoep.inventorygui.GuiElement.Action} to run when the player clicks on this element
+     */
+    public void addElement(char slotChar, MaterialData materialData, GuiElement.Action action) {
         addElement(slotChar, materialData.toItemStack(1), action);
     }
 
+    /**
+     * Create and add a {@link GuiStaticElement}
+     * @param slotChar  The character to replace in the gui setup string
+     * @param material  The {@link Material} that the item should have
+     * @param data      The <tt>byte</tt> representation of the material data of this element
+     * @param action    The {@link GuiElement.Action} to run when the player clicks on this element
+     */
     public void addElement(char slotChar, Material material, byte data, GuiElement.Action action) {
         addElement(slotChar, new MaterialData(material, data), action);
     }
 
+    /**
+     * Create and add a {@link GuiStaticElement}
+     * @param slotChar  The character to replace in the gui setup string
+     * @param material  The {@link Material} that the item should have
+     * @param action    The {@link GuiElement.Action} to run when the player clicks on this element
+     */
     public void addElement(char slotChar, Material material, GuiElement.Action action) {
         addElement(slotChar, material, (byte) 0, action);
     }
 
+    /**
+     * Add multiple elements to the gui
+     * @param elements   The {@link GuiElement}s to add
+     */
     public void addElements(GuiElement... elements) {
         for (GuiElement element : elements) {
             addElement(element);
         }
     }
 
+    /**
+     * Add multiple elements to the gui
+     * @param elements   The {@link GuiElement}s to add
+     */
     public void addElements(Collection<GuiElement> elements) {
         for (GuiElement element : elements) {
             addElement(element);
@@ -254,10 +327,17 @@ public class InventoryGui implements Listener {
         player.openInventory(inventory);
     }
 
+    /**
+     * Build the gui
+     */
     public void build() {
         build(owner);
     }
 
+    /**
+     * Set the gui's owner and build it
+     * @param owner     The {@link InventoryHolder} that owns the gui
+     */
     public void build(InventoryHolder owner) {
         if (slots.length > inventoryType.getDefaultSize()) {
             inventory = plugin.getServer().createInventory(owner, slots.length, replaceVars(title));
@@ -270,7 +350,7 @@ public class InventoryGui implements Listener {
     }
 
     /**
-     * Draw the elements in the inventory
+     * Draw the elements in the inventory. This can be used to manually refresh the gui.
      */
     public void draw() {
         for (int i = 0; i < inventory.getSize(); i++) {
@@ -353,16 +433,24 @@ public class InventoryGui implements Listener {
         return null;
     }
 
+    /**
+     * Get the title of the gui
+     * @return  The title of the gui
+     */
     public String getTitle() {
         return title;
     }
 
+    /**
+     * Set the title of the gui
+     * @param title The {@link String} that should be the title of the gui
+     */
     public void setTitle(String title) {
         this.title = title;
     }
 
     @EventHandler
-    public void onInventoryClick(InventoryClickEvent event) {
+    private void onInventoryClick(InventoryClickEvent event) {
         if (inventory.getViewers().contains(event.getWhoClicked())) {
             if (event.getAction() == InventoryAction.COLLECT_TO_CURSOR) {
                 event.setCancelled(true);
@@ -446,6 +534,12 @@ public class InventoryGui implements Listener {
         }
     }
 
+    /**
+     * Set the text of an item using the display name and the lore.
+     * Also replaces any placeholders in the text.
+     * @param item  The {@link ItemStack} to set the text for
+     * @param text  The text lines to set
+     */
     public void setItemText(ItemStack item, String... text) {
         if (item != null) {
             ItemMeta meta = item.getItemMeta();
@@ -465,10 +559,42 @@ public class InventoryGui implements Listener {
         }
     }
 
+    /**
+     * Replace some placeholders in the with values regarding the gui's state.<br />
+     * The placeholders are:
+     * <table>
+     *     <tr>
+     *         <td><tt>%plugin%</tt></td>
+     *         <td>The name of the plugin that this gui is from.</td>
+     *     </tr>
+     *     <tr>
+     *         <td><tt>%owner%</tt></td>
+     *         <td>The name of the owner of this gui. Will be an empty string when the owner is null.</td>
+     *     </tr>
+     *     <tr>
+     *         <td><tt>%page%</tt></td>
+     *         <td>The current page that this gui is on.</td>
+     *     </tr>
+     *     <tr>
+     *         <td><tt>%nextpage%</tt></td>
+     *         <td>The next page. "none" if there is no next page.</td>
+     *     </tr>
+     *     <tr>
+     *         <td><tt>%prevpage%</tt></td>
+     *         <td>The previous page. "none" if there is no previous page.</td>
+     *     </tr>
+     *     <tr>
+     *         <td><tt>%pages%</tt></td>
+     *         <td>The amount of pages that this gui has.</td>
+     *     </tr>
+     * </table>
+     * @param text  The text to replace the placeholders in
+     * @return      The text with all placeholders replaced
+     */
     public String replaceVars(String text) {
         String[] repl = {
                 "plugin", plugin.getName(),
-                "owner", owner.getInventory().getName(),
+                "owner", owner != null ? owner.getInventory().getName() : "",
                 "page", String.valueOf(getPageNumber() + 1),
                 "nextpage", getPageNumber() + 1 < getPageAmount() ? String.valueOf(getPageNumber() + 2) : "none",
                 "prevpage", getPageNumber() > 0 ? String.valueOf(getPageNumber()) : "none",

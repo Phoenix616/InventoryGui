@@ -16,12 +16,11 @@ package de.themoep.inventorygui;
  * along with this program. If not, see <http://mozilla.org/MPL/2.0/>.
  */
 
-import org.bukkit.event.inventory.ClickType;
-import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 
 /**
- * Represents an element in a gui
+ * Represents a simple element in a gui to which an action can be assigned.
+ * If you want to item to change on click you have to do that yourself.
  */
 public class GuiStaticElement extends GuiElement {
     private ItemStack item;

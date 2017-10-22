@@ -20,13 +20,35 @@ import org.bukkit.ChatColor;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
+/**
+ * This element is used to access an {@link Inventory}. The slots in the inventory are selected
+ * by searching through the whole gui the element is in and getting the number of the spot
+ * in the character group that this element is in. <br/>
+ * E.g. if you have five characters called "s" in the gui setup and the second element is
+ * accessed by the player then it will translate to the second slot in the inventory.
+ */
 public class GuiStorageElement extends GuiElement {
     private final Inventory storage;
 
+    /**
+     * An element used to access an {@link Inventory}.
+     * @param slotChar  The character to replace in the gui setup string.
+     * @param storage   The {@link Inventory} that this element is linked to.
+     */
     public GuiStorageElement(char slotChar, Inventory storage) {
+        this(slotChar, storage, -1);
+    }
+
+    /**
+     * An element used to access a specific slot in an {@link Inventory}.
+     * @param slotChar  The character to replace in the gui setup string.
+     * @param storage   The {@link Inventory} that this element is linked to.
+     * @param invSlot   The index of the slot to access in the {@link Inventory}.
+     */
+    public GuiStorageElement(char slotChar, Inventory storage, int invSlot) {
         super(slotChar, null);
         setAction(click -> {
-            int index = getSlotIndex(click.getSlot(), click.getGui().getPageNumber());
+            int index = invSlot != -1 ? invSlot : getSlotIndex(click.getSlot(), click.getGui().getPageNumber());
             if (index == -1 || index >= storage.getSize()) {
                 return true;
             }
@@ -122,6 +144,10 @@ public class GuiStorageElement extends GuiElement {
         return null;
     }
 
+    /**
+     * Get the {@link Inventory} that this element is linked to.
+     * @return  The {@link Inventory} that this element is linked to.
+     */
     public Inventory getStorage() {
         return storage;
     }

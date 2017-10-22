@@ -21,10 +21,20 @@ import org.bukkit.SoundCategory;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
+/**
+ * An element that can switch between certain states. It automatically handles the switching
+ * of the item in the slot that corresponds to the state that the element is in.
+ */
 public class GuiStateElement extends GuiElement {
     private int currentState;
     private final State[] states;
 
+    /**
+     * An element that can switch between certain states.
+     * @param slotChar      The character to replace in the gui setup string.
+     * @param currentState  The index of the default state.
+     * @param states        The list of different {@link State}s that this element can have.
+     */
     public GuiStateElement(char slotChar, int currentState, State... states) {
         super(slotChar, null);
         if (states.length == 0) {
@@ -43,6 +53,10 @@ public class GuiStateElement extends GuiElement {
             getState().change.onChange(click);
             return true;
         });
+    }
+
+    public GuiStateElement(char slotChar, String key, State... states) {
+        this(slotChar, getStateIndex(key, states), states);
     }
 
     public GuiStateElement(char slotChar, State... states) {
@@ -84,16 +98,34 @@ public class GuiStateElement extends GuiElement {
         return states[currentState];
     }
 
-    public void setState(String key) {
+    /**
+     * Set the current state with the state's key. Does not trigger the state's change.
+     * @param key       The key to search for.
+     * @throws IllegalArgumentException Thrown if there is no state with the provided key.
+     */
+    public void setState(String key) throws IllegalArgumentException {
+        currentState = getStateIndex(key, states);
+    }
+
+    /**
+     * Get the index of a state from a key
+     * @param key       The key to search for.
+     * @param states    The states to search in.
+     * @return          The index of that key in the state array.
+     * @throws IllegalArgumentException Thrown if there is no state with the provided key.
+     */
+    private static int getStateIndex(String key, State[] states) throws IllegalArgumentException {
         for (int i = 0; i < states.length; i++) {
             if (states[i].getKey().equals(key)) {
-                currentState = i;
-                return;
+                return i;
             }
         }
         throw new IllegalArgumentException("This element does not have the state " + key);
     }
 
+    /**
+     * A state that the {@link GuiStateElement} can have.
+     */
     public static class State {
         private final Change change;
         private final String key;
@@ -101,6 +133,13 @@ public class GuiStateElement extends GuiElement {
         private String[] text;
         private InventoryGui gui;
 
+        /**
+         * A state that the {@link GuiStateElement} can have.
+         * @param change    What to do when the state changes
+         * @param key       The state's string key
+         * @param item      The {@link ItemStack} to represent this state
+         * @param text      The text lines that describe this state
+         */
         public State(Change change, String key, ItemStack item, String... text) {
             this.change = change;
             this.key = key;
@@ -110,34 +149,49 @@ public class GuiStateElement extends GuiElement {
 
         /**
          * Set this element's display text. If this is an empty array the item's name will be displayed
-         * @param text  The text to display on this element
+         * @param text  The text lines that describe this state
          */
         public void setText(String... text) {
             this.text = text;
         }
 
+        /**
+         * Get the {@link ItemStack} that represents this state.
+         * @return The {@link ItemStack} that represents this state
+         */
         public ItemStack getItem() {
             ItemStack clone = item.clone();
             gui.setItemText(clone, text);
             return clone;
         }
 
+        /**
+         * Get the string key of the state.
+         * @return The state's string key
+         */
         public String getKey() {
             return key;
         }
 
+        /**
+         * Get the text lines that describe this state.
+         * @return
+         */
         public String[] getText() {
             return text;
         }
 
-        public void setGui(InventoryGui gui) {
+        private void setGui(InventoryGui gui) {
             this.gui = gui;
         }
 
+        /**
+         * Define what should happen when the state of the element' state changes to this state
+         */
         public interface Change {
 
             /**
-             * What should happen when the state changes to this state
+             * What should happen when the element's state changes to this state
              * @param click The click that triggered this change
              */
             void onChange(Click click);

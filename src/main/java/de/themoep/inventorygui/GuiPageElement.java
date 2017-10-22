@@ -21,18 +21,24 @@ import org.bukkit.SoundCategory;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
+/**
+ * This is an element that allows for controlling the pagination of the gui.
+ * <b>Untested und potentially unfinished.</b>
+ */
 public class GuiPageElement extends GuiElement {
     private final ItemStack item;
     private String[] text;
     private PageAction pageAction;
 
+    /**
+     * An element that allows for controlling the pagination of the gui.
+     * @param slotChar      The character to replace in the gui setup string
+     * @param item          The {@link ItemStack} representing this element
+     * @param pageAction    What kind of page action you want to happen when interacting with the element.
+     * @param text          The text lines describing the element and its actions.
+     */
     public GuiPageElement(char slotChar, ItemStack item, PageAction pageAction, String... text) {
-        super(slotChar, null);
-        this.item = item;
-        this.pageAction = pageAction;
-        this.text = text;
-
-        setAction(click -> {
+        super(slotChar, click -> {
             switch (pageAction) {
                 case NEXT:
                     if (click.getGui().getPageNumber() + 1 < click.getGui().getPageAmount()) {
@@ -47,6 +53,9 @@ public class GuiPageElement extends GuiElement {
                 case FIRST:
                     click.getGui().setPageNumber(0);
                     break;
+                case LAST:
+                    click.getGui().setPageNumber(click.getGui().getPageAmount() - 1);
+                    break;
             }
             if (click.getEvent().getWhoClicked() instanceof Player) {
                 Player player = (Player) click.getEvent().getWhoClicked();
@@ -54,6 +63,9 @@ public class GuiPageElement extends GuiElement {
             }
             return true;
         });
+        this.item = item;
+        this.pageAction = pageAction;
+        this.text = text;
     }
 
     @Override
@@ -86,6 +98,7 @@ public class GuiPageElement extends GuiElement {
     private enum PageAction {
         NEXT,
         PREVIOUS,
-        FIRST;
+        FIRST,
+        LAST;
     }
 }
