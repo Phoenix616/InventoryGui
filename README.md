@@ -5,7 +5,7 @@ allows assigning of the GUI to a specific InventoryHolder. Please note that this
 Requires Java 8.
 
 ## Using InventoryGui
-*TODO: Add online JavaDocs. Most of the source is already documented though.*
+Take a look at the examples below to learn how to create a GUI with this library or use the [InventoryGui Javadocs](https://docs.minebench.de/inventorygui/).
 
 ### Defining the GUI setup
 Every line in the array define the line in the inventory chest interface. 
