@@ -63,6 +63,7 @@ public class InventoryGui implements Listener {
     private final static Map<String, InventoryGui> GUI_MAP = new HashMap<>();
 
     private final JavaPlugin plugin;
+    private GuiListener listener = new GuiListener(this);
     private String title;
     private final char[] slots;
     private final Map<Character, GuiElement> elements = new HashMap<>();
@@ -301,18 +302,19 @@ public class InventoryGui implements Listener {
         if (listenersRegistered) {
             return;
         }
-        plugin.getServer().getPluginManager().registerEvents(this, plugin);
+        plugin.getServer().getPluginManager().registerEvents(listener, plugin);
         listenersRegistered = true;
     }
 
     private void unregisterListeners() {
-        InventoryClickEvent.getHandlerList().unregister(this);
-        InventoryCloseEvent.getHandlerList().unregister(this);
-        InventoryDragEvent.getHandlerList().unregister(this);
-        InventoryMoveItemEvent.getHandlerList().unregister(this);
-        BlockDispenseEvent.getHandlerList().unregister(this);
-        BlockBreakEvent.getHandlerList().unregister(this);
-        EntityDeathEvent.getHandlerList().unregister(this);
+        InventoryClickEvent.getHandlerList().unregister(listener);
+        InventoryCloseEvent.getHandlerList().unregister(listener);
+        InventoryDragEvent.getHandlerList().unregister(listener);
+        InventoryMoveItemEvent.getHandlerList().unregister(listener);
+        BlockDispenseEvent.getHandlerList().unregister(listener);
+        BlockBreakEvent.getHandlerList().unregister(listener);
+        EntityDeathEvent.getHandlerList().unregister(listener);
+        listenersRegistered = false;
     }
 
     /**
@@ -449,88 +451,99 @@ public class InventoryGui implements Listener {
         this.title = title;
     }
 
-    @EventHandler
-    private void onInventoryClick(InventoryClickEvent event) {
-        if (inventory.getViewers().contains(event.getWhoClicked())) {
-            if (event.getAction() == InventoryAction.COLLECT_TO_CURSOR) {
-                event.setCancelled(true);
-                return;
-            }
+    /**
+     * All the listeners that InventoryGui needs to work
+     */
+    public class GuiListener implements Listener {
+        private final InventoryGui gui;
 
-            int slot = -1;
-            if (event.getRawSlot() < event.getView().getTopInventory().getSize()) {
-                slot = event.getRawSlot();
-            } else if (event.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) {
-                slot = event.getInventory().firstEmpty();
-            }
+        public GuiListener(InventoryGui gui) {
+            this.gui = gui;
+        }
 
-            if (slot >= 0) {
-                GuiElement element = getElement(slot);
-                GuiElement.Action action = null;
-                if (element != null) {
-                    action = element.getAction();
-                }
-                if (action == null || action.onClick(new GuiElement.Click(this, slot, element, event.getClick(), event))) {
+        @EventHandler
+        private void onInventoryClick(InventoryClickEvent event) {
+            if (inventory.getViewers().contains(event.getWhoClicked())) {
+                if (event.getAction() == InventoryAction.COLLECT_TO_CURSOR) {
                     event.setCancelled(true);
+                    return;
+                }
+
+                int slot = -1;
+                if (event.getRawSlot() < event.getView().getTopInventory().getSize()) {
+                    slot = event.getRawSlot();
+                } else if (event.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) {
+                    slot = event.getInventory().firstEmpty();
+                }
+
+                if (slot >= 0) {
+                    GuiElement element = getElement(slot);
+                    GuiElement.Action action = null;
+                    if (element != null) {
+                        action = element.getAction();
+                    }
+                    if (action == null || action.onClick(new GuiElement.Click(gui, slot, element, event.getClick(), event))) {
+                        event.setCancelled(true);
+                    }
+                }
+            } else if (owner != null && owner.equals(event.getInventory().getHolder())) {
+                // Click into inventory by same owner but not the inventory of the GUI
+                // Assume that the underlying inventory changed and redraw the GUI
+                plugin.getServer().getScheduler().runTask(plugin, gui::draw);
+            }
+        }
+
+        @EventHandler
+        public void onInventoryDrag(InventoryDragEvent event) {
+            if (inventory.getViewers().contains(event.getWhoClicked()) && containsBelow(event.getRawSlots(), inventory.getSize())) {
+                event.setCancelled(true);
+            }
+        }
+
+        private boolean containsBelow(Set<Integer> rawSlots, int maxSlot) {
+            for (int i : rawSlots) {
+                if (i < maxSlot) {
+                    return true;
                 }
             }
-        } else if (owner != null && owner.equals(event.getInventory().getHolder())) {
-            // Click into inventory by same owner but not the inventory of the GUI
-            // Assume that the underlying inventory changed and redraw the GUI
-            plugin.getServer().getScheduler().runTask(plugin, this::draw);
+            return false;
         }
-    }
 
-    @EventHandler
-    public void onInventoryDrag(InventoryDragEvent event) {
-        if (inventory.getViewers().contains(event.getWhoClicked()) && containsBelow(event.getRawSlots(), inventory.getSize())) {
-            event.setCancelled(true);
-        }
-    }
-
-    private boolean containsBelow(Set<Integer> rawSlots, int maxSlot) {
-        for (int i : rawSlots) {
-            if (i < maxSlot) {
-                return true;
+        @EventHandler(priority = EventPriority.MONITOR)
+        public void onInventoryClose(InventoryCloseEvent event) {
+            if (inventory.getViewers().contains(event.getPlayer())) {
+                if (inventory.getViewers().size() <= 1) {
+                    destroy(false);
+                }
             }
         }
-        return false;
-    }
 
-    @EventHandler(priority = EventPriority.MONITOR)
-    public void onInventoryClose(InventoryCloseEvent event) {
-        if (inventory.getViewers().contains(event.getPlayer())) {
-            if (inventory.getViewers().size() <= 1) {
-                destroy(false);
+        @EventHandler(priority = EventPriority.MONITOR)
+        public void onInventoryMoveItem(InventoryMoveItemEvent event) {
+            if (owner != null && (owner.equals(event.getDestination().getHolder()) || owner.equals(event.getSource().getHolder()))) {
+                plugin.getServer().getScheduler().runTask(plugin, gui::draw);
             }
         }
-    }
 
-    @EventHandler(priority = EventPriority.MONITOR)
-    public void onInventoryMoveItem(InventoryMoveItemEvent event) {
-        if (owner != null && (owner.equals(event.getDestination().getHolder()) || owner.equals(event.getSource().getHolder()))) {
-            plugin.getServer().getScheduler().runTask(plugin, this::draw);
+        @EventHandler(priority = EventPriority.MONITOR)
+        public void onDispense(BlockDispenseEvent event) {
+            if (owner != null && owner.equals(event.getBlock().getState())) {
+                plugin.getServer().getScheduler().runTask(plugin, gui::draw);
+            }
         }
-    }
 
-    @EventHandler(priority = EventPriority.MONITOR)
-    public void onDispense(BlockDispenseEvent event) {
-        if (owner != null && owner.equals(event.getBlock().getState())) {
-            plugin.getServer().getScheduler().runTask(plugin, this::draw);
+        @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+        public void onBlockBreak(BlockBreakEvent event) {
+            if (owner != null && owner.equals(event.getBlock().getState())) {
+                destroy();
+            }
         }
-    }
 
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onBlockBreak(BlockBreakEvent event) {
-        if (owner != null && owner.equals(event.getBlock().getState())) {
-            destroy();
-        }
-    }
-
-    @EventHandler(priority = EventPriority.MONITOR)
-    public void onEntityDeath(EntityDeathEvent event) {
-        if (owner != null && owner.equals(event.getEntity())) {
-            destroy();
+        @EventHandler(priority = EventPriority.MONITOR)
+        public void onEntityDeath(EntityDeathEvent event) {
+            if (owner != null && owner.equals(event.getEntity())) {
+                destroy();
+            }
         }
     }
 
