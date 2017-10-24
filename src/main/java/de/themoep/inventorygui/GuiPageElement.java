@@ -95,7 +95,7 @@ public class GuiPageElement extends GuiElement {
         return text;
     }
 
-    private enum PageAction {
+    public enum PageAction {
         NEXT,
         PREVIOUS,
         FIRST,
