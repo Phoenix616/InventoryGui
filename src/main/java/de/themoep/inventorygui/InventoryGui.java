@@ -17,6 +17,7 @@ package de.themoep.inventorygui;
  */
 
 import org.apache.commons.lang.StringUtils;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.SoundCategory;
@@ -43,12 +44,15 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.material.MaterialData;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * The main library class that lets you create and manage your GUIs
@@ -63,6 +67,8 @@ public class InventoryGui implements Listener {
     };
 
     private final static Map<String, InventoryGui> GUI_MAP = new HashMap<>();
+    private final static Map<UUID, ArrayDeque<InventoryGui>> GUI_HISTORY = new HashMap<>();
+    private final static Map<UUID,InventoryGui> GUI_OPEN = new HashMap<>();
 
     private final JavaPlugin plugin;
     private GuiListener listener = new GuiListener(this);
@@ -324,10 +330,34 @@ public class InventoryGui implements Listener {
      * @param player    The Player to show the GUI to
      */
     public void show(Player player) {
+        show(player, true);
+    }
+
+    private void show(Player player, boolean addToHistory) {
         if (inventory == null) {
             build();
         }
         draw();
+        InventoryGui openGui = getOpen(player);
+        if (openGui != this) {
+            if (openGui != null) {
+                // If the player already has a gui open then we assume that the call was from that gui.
+                // In order to not close it in a InventoryClickEvent listener (which will lead to errors)
+                // we delay the opening for one tick to run after it finished processing the event
+                plugin.getServer().getScheduler().runTask(plugin, () -> {
+                    if (addToHistory) {
+                        addHistory(player, openGui);
+                    }
+                    openInventory(player);
+                });
+            } else {
+                openInventory(player);
+            }
+        }
+    }
+
+    private void openInventory(Player player) {
+        player.closeInventory();
         player.openInventory(inventory);
     }
 
@@ -394,6 +424,66 @@ public class InventoryGui implements Listener {
     }
 
     /**
+     * Add a new history entry to the end of the history
+     * @param player    The player to add the history entry for
+     * @param gui       The GUI to add to the history
+     */
+    public static void addHistory(Player player, InventoryGui gui) {
+        GUI_HISTORY.putIfAbsent(player.getUniqueId(), new ArrayDeque<>());
+        Deque<InventoryGui> history = getHistory(player);
+        if (history.peekLast() != gui) {
+            history.add(gui);
+        }
+    }
+
+    /**
+     * Get the history of a player
+     * @param player    The player to get the history for
+     * @return          The history as a deque of InventoryGuis;
+     *                  returns an empty one and not <tt>null</tt>!
+     */
+    public static Deque<InventoryGui> getHistory(Player player) {
+        return GUI_HISTORY.getOrDefault(player.getUniqueId(), new ArrayDeque<>());
+    }
+
+    /**
+     * Go back one entry in the history
+     * @param player    The player to show the previous gui to
+     * @return          <tt>true</tt> if there was a gui to show; <tt>false</tt> if not
+     */
+    public static boolean goBack(Player player) {
+        return goBack(player, false);
+    }
+
+    private static boolean goBack(Player player, boolean closeInventory) {
+        InventoryGui openGui = getOpen(player);
+        if (openGui == null) {
+            return false;
+        }
+        Deque<InventoryGui> history = getHistory(player);
+        if (history.isEmpty()) {
+            if (closeInventory) {
+                player.closeInventory();
+            }
+            return false;
+        }
+        history.removeLast().show(player, false);
+        return true;
+    }
+
+    /**
+     * Clear the history of a player
+     * @param player    The player to clear the history for
+     * @return          The history
+     */
+    public static Deque<InventoryGui> clearHistory(Player player) {
+        if (GUI_HISTORY.containsKey(player.getUniqueId())) {
+            return GUI_HISTORY.remove(player.getUniqueId());
+        }
+        return new ArrayDeque<>();
+    }
+
+    /**
      * Get element in a certain slot
      * @param slot  The slot to get the element from
      * @return      The GuiElement or <tt>null</tt> if the slot is empty/there wasn't one
@@ -435,6 +525,15 @@ public class InventoryGui implements Listener {
             return GUI_MAP.get(((BlockState) holder).getLocation().toString());
         }
         return null;
+    }
+
+    /**
+     * Get the GUI that a player has currently open
+     * @param player    The Player to get the GUI for
+     * @return          The InventoryGui that the player has open
+     */
+    public static InventoryGui getOpen(Player player) {
+        return GUI_OPEN.get(player.getUniqueId());
     }
 
     /**
@@ -527,6 +626,9 @@ public class InventoryGui implements Listener {
             if (inventory.getViewers().contains(event.getPlayer())) {
                 if (inventory.getViewers().size() <= 1) {
                     destroy(false);
+                }
+                if (event.getPlayer() instanceof Player) {
+                    goBack((Player) event.getPlayer(), false);
                 }
             }
         }
