@@ -18,6 +18,8 @@ package de.themoep.inventorygui;
 
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.Material;
+import org.bukkit.Sound;
+import org.bukkit.SoundCategory;
 import org.bukkit.block.BlockState;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.HumanEntity;
@@ -449,6 +451,17 @@ public class InventoryGui implements Listener {
      */
     public void setTitle(String title) {
         this.title = title;
+    }
+
+    /**
+     * Play a click sound e.g. when an element acts as a button
+     */
+    public void playClickSound() {
+        for (HumanEntity humanEntity : inventory.getViewers()) {
+            if (humanEntity instanceof Player) {
+                ((Player) humanEntity).playSound(humanEntity.getEyeLocation(), Sound.UI_BUTTON_CLICK, SoundCategory.MASTER, 1, 1);
+            }
+        }
     }
 
     /**

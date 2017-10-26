@@ -57,10 +57,7 @@ public class GuiPageElement extends GuiElement {
                     click.getGui().setPageNumber(click.getGui().getPageAmount() - 1);
                     break;
             }
-            if (click.getEvent().getWhoClicked() instanceof Player) {
-                Player player = (Player) click.getEvent().getWhoClicked();
-                player.playSound(player.getEyeLocation(), Sound.UI_BUTTON_CLICK, SoundCategory.MASTER, 1, 1);
-            }
+            click.getGui().playClickSound();
             return true;
         });
         this.item = item;
