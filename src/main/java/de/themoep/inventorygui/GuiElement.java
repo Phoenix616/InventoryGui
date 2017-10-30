@@ -79,6 +79,14 @@ public abstract class GuiElement {
     }
 
     /**
+     * Get the indexes of the lots that this element is displayed in
+     * @return An array of the lost indexes
+     */
+    public int[] getSlots() {
+        return slots;
+    }
+
+    /**
      * Set the ids of the slots where this element is assigned to
      * @param slots An array of the slot ids where this element is displayed
      */
