@@ -348,17 +348,12 @@ public class InventoryGui implements Listener {
                     if (addToHistory) {
                         addHistory(player, openGui);
                     }
-                    openInventory(player);
+                    player.openInventory(inventory);
                 });
             } else {
-                openInventory(player);
+                player.openInventory(inventory);
             }
         }
-    }
-
-    private void openInventory(Player player) {
-        player.closeInventory();
-        player.openInventory(inventory);
     }
 
     /**
