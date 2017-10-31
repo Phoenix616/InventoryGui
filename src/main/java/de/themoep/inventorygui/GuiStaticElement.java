@@ -63,7 +63,7 @@ public class GuiStaticElement extends GuiElement {
     @Override
     public ItemStack getItem(int slot) {
         ItemStack clone = item.clone();
-        gui.setItemText(clone, text);
+        gui.setItemText(clone, getText());
         return clone;
     }
 
