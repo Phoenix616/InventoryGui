@@ -21,11 +21,14 @@ import org.bukkit.SoundCategory;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.function.Supplier;
+
 /**
  * An element that can switch between certain states. It automatically handles the switching
  * of the item in the slot that corresponds to the state that the element is in.
  */
 public class GuiStateElement extends GuiElement {
+    private Supplier<Integer> queryState = null;
     private int currentState;
     private final State[] states;
 
@@ -63,6 +66,17 @@ public class GuiStateElement extends GuiElement {
      */
     public GuiStateElement(char slotChar, String defaultState, State... states) {
         this(slotChar, getStateIndex(defaultState, states), states);
+    }
+    
+    /**
+     * An element that can switch between certain states.
+     * @param slotChar      The character to replace in the gui setup string.
+     * @param queryState    Supplier for the current state.
+     * @param states        The list of different {@link State}s that this element can have.
+     */
+    public GuiStateElement(char slotChar, Supplier<String> queryState, State... states) {
+        this(slotChar, queryState.get(), states);
+        this.queryState = () -> getStateIndex(queryState.get(), states);
     }
 
     /**
@@ -106,6 +120,9 @@ public class GuiStateElement extends GuiElement {
      * @return  The current state of this element
      */
     public State getState() {
+        if (queryState != null) {
+            currentState = queryState.get();
+        }
         return states[currentState];
     }
 
