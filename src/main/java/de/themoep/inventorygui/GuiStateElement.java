@@ -16,9 +16,6 @@ package de.themoep.inventorygui;
  * along with this program. If not, see <http://mozilla.org/MPL/2.0/>.
  */
 
-import org.bukkit.Sound;
-import org.bukkit.SoundCategory;
-import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.function.Supplier;
@@ -47,13 +44,10 @@ public class GuiStateElement extends GuiElement {
         this.states = states;
 
         setAction(click -> {
-            nextState();
-            click.getEvent().setCurrentItem(getState().getItem());
-            if (click.getEvent().getWhoClicked() instanceof Player) {
-                Player player = (Player) click.getEvent().getWhoClicked();
-                player.playSound(player.getEyeLocation(), Sound.UI_BUTTON_CLICK, SoundCategory.MASTER, 1, 1);
-            }
-            getState().change.onChange(click);
+            State next = nextState();
+            click.getEvent().setCurrentItem(next.getItem());
+            next.change.onChange(click);
+            click.getGui().playClickSound();
             return true;
         });
     }
@@ -91,15 +85,19 @@ public class GuiStateElement extends GuiElement {
     /**
      * Loop through the states of this element
      */
-    public void nextState() {
+    public State nextState() {
+        queryCurrentState();
         currentState = states.length > currentState + 1 ? currentState + 1 : 0;
+        return states[currentState];
     }
 
     /**
      * Loop through the states of this element backwards
      */
-    public void previousState() {
+    public State previousState() {
+        queryCurrentState();
         currentState = currentState > 0 ? currentState - 1 : states.length - 1;
+        return states[currentState];
     }
 
     @Override
@@ -120,12 +118,19 @@ public class GuiStateElement extends GuiElement {
      * @return  The current state of this element
      */
     public State getState() {
+        queryCurrentState();
+        return states[currentState];
+    }
+    
+    /**
+     * Try to query the current state if there is a query
+     */
+    private void queryCurrentState() {
         if (queryState != null) {
             currentState = queryState.get();
         }
-        return states[currentState];
     }
-
+    
     /**
      * Set the current state with the state's key. Does not trigger the state's change.
      * @param key       The key to search for.
