@@ -41,22 +41,25 @@ public class GuiPageElement extends GuiStaticElement {
             switch (pageAction) {
                 case NEXT:
                     if (click.getGui().getPageNumber() + 1 < click.getGui().getPageAmount()) {
+                        click.getGui().playClickSound();
                         click.getGui().setPageNumber(click.getGui().getPageNumber() + 1);
                     }
                     break;
                 case PREVIOUS:
                     if (click.getGui().getPageNumber() > 0) {
+                        click.getGui().playClickSound();
                         click.getGui().setPageNumber(click.getGui().getPageNumber() - 1);
                     }
                     break;
                 case FIRST:
+                    click.getGui().playClickSound();
                     click.getGui().setPageNumber(0);
                     break;
                 case LAST:
+                    click.getGui().playClickSound();
                     click.getGui().setPageNumber(click.getGui().getPageAmount() - 1);
                     break;
             }
-            click.getGui().playClickSound();
             return true;
         }, text);
         this.pageAction = pageAction;
