@@ -352,8 +352,8 @@ public class InventoryGui implements Listener {
             } else {
                 player.openInventory(inventory);
             }
+            GUI_OPEN.put(player.getUniqueId(), this);
         }
-        GUI_OPEN.put(player.getUniqueId(), this);
     }
 
     /**
@@ -448,19 +448,12 @@ public class InventoryGui implements Listener {
      * @return          <tt>true</tt> if there was a gui to show; <tt>false</tt> if not
      */
     public static boolean goBack(Player player) {
-        return goBack(player, false);
-    }
-
-    private static boolean goBack(Player player, boolean closeInventory) {
         InventoryGui openGui = getOpen(player);
         if (openGui == null) {
             return false;
         }
         Deque<InventoryGui> history = getHistory(player);
         if (history.isEmpty()) {
-            if (closeInventory) {
-                player.closeInventory();
-            }
             return false;
         }
         history.removeLast().show(player, false);
@@ -619,14 +612,13 @@ public class InventoryGui implements Listener {
 
         @EventHandler(priority = EventPriority.MONITOR)
         public void onInventoryClose(InventoryCloseEvent event) {
-            if (inventory.getViewers().contains(event.getPlayer())) {
+            if (event.getInventory().equals(gui.inventory)) {
+                if (event.getPlayer() instanceof Player && getOpen((Player) event.getPlayer()) == gui) {
+                    goBack((Player) event.getPlayer());
+                }
                 if (inventory.getViewers().size() <= 1) {
                     destroy(false);
                 }
-                if (event.getPlayer() instanceof Player) {
-                    goBack((Player) event.getPlayer(), false);
-                }
-                GUI_OPEN.remove(event.getPlayer().getUniqueId());
             }
         }
 
