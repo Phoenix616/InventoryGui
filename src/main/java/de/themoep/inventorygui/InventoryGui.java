@@ -328,11 +328,11 @@ public class InventoryGui implements Listener {
      * Show this GUI to a player
      * @param player    The Player to show the GUI to
      */
-    public void show(Player player) {
+    public void show(HumanEntity player) {
         show(player, true);
     }
 
-    private void show(Player player, boolean addToHistory) {
+    private void show(HumanEntity player, boolean addToHistory) {
         if (inventory == null) {
             build();
         }
@@ -350,6 +350,7 @@ public class InventoryGui implements Listener {
                     player.openInventory(inventory);
                 });
             } else {
+                clearHistory(player);
                 player.openInventory(inventory);
             }
             GUI_OPEN.put(player.getUniqueId(), this);
@@ -410,7 +411,6 @@ public class InventoryGui implements Listener {
     }
 
     private void destroy(boolean closeInventories) {
-        inventory.getViewers().forEach(v -> GUI_OPEN.remove(v.getUniqueId()));
         if (closeInventories) {
             close();
         }
@@ -424,7 +424,7 @@ public class InventoryGui implements Listener {
      * @param player    The player to add the history entry for
      * @param gui       The GUI to add to the history
      */
-    public static void addHistory(Player player, InventoryGui gui) {
+    public static void addHistory(HumanEntity player, InventoryGui gui) {
         GUI_HISTORY.putIfAbsent(player.getUniqueId(), new ArrayDeque<>());
         Deque<InventoryGui> history = getHistory(player);
         if (history.peekLast() != gui) {
@@ -438,7 +438,7 @@ public class InventoryGui implements Listener {
      * @return          The history as a deque of InventoryGuis;
      *                  returns an empty one and not <tt>null</tt>!
      */
-    public static Deque<InventoryGui> getHistory(Player player) {
+    public static Deque<InventoryGui> getHistory(HumanEntity player) {
         return GUI_HISTORY.getOrDefault(player.getUniqueId(), new ArrayDeque<>());
     }
 
@@ -447,7 +447,7 @@ public class InventoryGui implements Listener {
      * @param player    The player to show the previous gui to
      * @return          <tt>true</tt> if there was a gui to show; <tt>false</tt> if not
      */
-    public static boolean goBack(Player player) {
+    public static boolean goBack(HumanEntity player) {
         InventoryGui openGui = getOpen(player);
         if (openGui == null) {
             return false;
@@ -465,7 +465,7 @@ public class InventoryGui implements Listener {
      * @param player    The player to clear the history for
      * @return          The history
      */
-    public static Deque<InventoryGui> clearHistory(Player player) {
+    public static Deque<InventoryGui> clearHistory(HumanEntity player) {
         if (GUI_HISTORY.containsKey(player.getUniqueId())) {
             return GUI_HISTORY.remove(player.getUniqueId());
         }
@@ -521,7 +521,7 @@ public class InventoryGui implements Listener {
      * @param player    The Player to get the GUI for
      * @return          The InventoryGui that the player has open
      */
-    public static InventoryGui getOpen(Player player) {
+    public static InventoryGui getOpen(HumanEntity player) {
         return GUI_OPEN.get(player.getUniqueId());
     }
 
@@ -613,8 +613,10 @@ public class InventoryGui implements Listener {
         @EventHandler(priority = EventPriority.MONITOR)
         public void onInventoryClose(InventoryCloseEvent event) {
             if (event.getInventory().equals(gui.inventory)) {
-                if (event.getPlayer() instanceof Player && getOpen((Player) event.getPlayer()) == gui) {
-                    goBack((Player) event.getPlayer());
+                // go back. that checks if the player is in gui and has history
+                if (!goBack(event.getPlayer())) {
+                    // only unset open if we did not go back
+                    GUI_OPEN.remove(event.getPlayer().getUniqueId(), gui);
                 }
                 if (inventory.getViewers().size() <= 1) {
                     destroy(false);
