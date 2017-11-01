@@ -83,6 +83,9 @@ public class GuiElementGroup extends GuiElement {
      * @return              The GuiElement in that slot or <tt>null</tt>
      */
     public GuiElement getElement(int slot, int pageNumber) {
+        if (elements.isEmpty()) {
+            return null;
+        }
         int index = getSlotIndex(slot, pageNumber);
         if (index > -1 && index < elements.size()) {
             return elements.get(index);
