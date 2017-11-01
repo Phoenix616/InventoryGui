@@ -68,12 +68,16 @@ public class GuiPageElement extends GuiStaticElement {
                 || (pageAction == PageAction.PREVIOUS && gui.getPageNumber() == 0)) {
             return gui.getFiller().getItem(slot);
         }
-        if (pageAction == PageAction.PREVIOUS) {
-            setNumber(gui.getPageNumber() - 1);
-        } else if (pageAction == PageAction.NEXT) {
-            setNumber(gui.getPageNumber() + 1);
-        } else if (pageAction == PageAction.LAST) {
-            setNumber(gui.getPageAmount());
+        try {
+            if (pageAction == PageAction.PREVIOUS) {
+                setNumber(gui.getPageNumber() - 1);
+            } else if (pageAction == PageAction.NEXT) {
+                setNumber(gui.getPageNumber() + 1);
+            } else if (pageAction == PageAction.LAST) {
+                setNumber(gui.getPageAmount());
+            }
+        } catch (IllegalArgumentException e) {
+            // cannot set that item amount/number as it isn't supported in Minecraft
         }
         return super.getItem(slot).clone();
     }
