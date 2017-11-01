@@ -686,35 +686,13 @@ public class InventoryGui implements Listener {
 
     /**
      * Replace some placeholders in the with values regarding the gui's state.<br>
-     * The placeholders are:
-     * <table summary="Placeholders that will get replaced">
-     *     <tbody>
-     *         <tr>
-     *             <td><tt>%plugin%</tt></td>
-     *             <td>The name of the plugin that this gui is from.</td>
-     *         </tr>
-     *         <tr>
-     *             <td><tt>%owner%</tt></td>
-     *             <td>The name of the owner of this gui. Will be an empty string when the owner is null.</td>
-     *         </tr>
-     *         <tr>
-     *             <td><tt>%page%</tt></td>
-     *             <td>The current page that this gui is on.</td>
-     *         </tr>
-     *         <tr>
-     *             <td><tt>%nextpage%</tt></td>
-     *             <td>The next page. "none" if there is no next page.</td>
-     *         </tr>
-     *         <tr>
-     *             <td><tt>%prevpage%</tt></td>
-     *             <td>The previous page. "none" if there is no previous page.</td>
-     *         </tr>
-     *         <tr>
-     *             <td><tt>%pages%</tt></td>
-     *             <td>The amount of pages that this gui has.</td>
-     *         </tr>
-     *     </tbody>
-     * </table>
+     * The placeholders are:<br>
+     * <tt>%plugin%</tt>    - The name of the plugin that this gui is from.<br>
+     * <tt>%owner%</tt>     - The name of the owner of this gui. Will be an empty string when the owner is null.<br>
+     * <tt>%page%</tt>      - The current page that this gui is on.<br>
+     * <tt>%nextpage%</tt>  - The next page. "none" if there is no next page.<br>
+     * <tt>%prevpage%</tt>  - The previous page. "none" if there is no previous page.<br>
+     * <tt>%pages%</tt>     - The amount of pages that this gui has.
      * @param text  The text to replace the placeholders in
      * @return      The text with all placeholders replaced
      */
