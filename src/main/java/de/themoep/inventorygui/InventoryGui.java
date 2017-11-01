@@ -67,7 +67,7 @@ public class InventoryGui implements Listener {
 
     private final static Map<String, InventoryGui> GUI_MAP = new HashMap<>();
     private final static Map<UUID, ArrayDeque<InventoryGui>> GUI_HISTORY = new HashMap<>();
-    private final static Map<UUID,InventoryGui> GUI_OPEN = new HashMap<>();
+    private final static Map<UUID, InventoryGui> GUI_OPEN = new HashMap<>();
 
     private final JavaPlugin plugin;
     private GuiListener listener = new GuiListener(this);
@@ -353,6 +353,7 @@ public class InventoryGui implements Listener {
                 player.openInventory(inventory);
             }
         }
+        GUI_OPEN.put(player.getUniqueId(), this);
     }
 
     /**
@@ -624,6 +625,7 @@ public class InventoryGui implements Listener {
                 if (event.getPlayer() instanceof Player) {
                     goBack((Player) event.getPlayer(), false);
                 }
+                GUI_OPEN.remove(event.getPlayer().getUniqueId());
             }
         }
 
