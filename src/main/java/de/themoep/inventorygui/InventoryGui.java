@@ -300,7 +300,7 @@ public class InventoryGui implements Listener {
                 amount = ((GuiStorageElement) element).getStorage().getSize();
             }
             if (amount > 0 && (pageAmount - 1) * element.slots.length < amount) {
-                pageAmount = (int) Math.ceil(element.slots.length / amount) + 1;
+                pageAmount = (int) Math.ceil(amount / element.slots.length);
             }
         }
     }
