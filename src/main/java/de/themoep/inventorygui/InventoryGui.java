@@ -410,6 +410,7 @@ public class InventoryGui implements Listener {
     }
 
     private void destroy(boolean closeInventories) {
+        inventory.getViewers().forEach(v -> GUI_OPEN.remove(v.getUniqueId()));
         if (closeInventories) {
             close();
         }
