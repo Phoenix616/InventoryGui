@@ -16,18 +16,13 @@ package de.themoep.inventorygui;
  * along with this program. If not, see <http://mozilla.org/MPL/2.0/>.
  */
 
-import org.bukkit.Sound;
-import org.bukkit.SoundCategory;
-import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 /**
  * This is an element that allows for controlling the pagination of the gui.
  * <b>Untested und potentially unfinished.</b>
  */
-public class GuiPageElement extends GuiElement {
-    private final ItemStack item;
-    private String[] text;
+public class GuiPageElement extends GuiStaticElement {
     private PageAction pageAction;
 
     /**
@@ -35,10 +30,14 @@ public class GuiPageElement extends GuiElement {
      * @param slotChar      The character to replace in the gui setup string
      * @param item          The {@link ItemStack} representing this element
      * @param pageAction    What kind of page action you want to happen when interacting with the element.
-     * @param text          The text lines describing the element and its actions.
+     * @param text          The text to display on this element, placeholders are automatically
+     *                      replaced, see {@link InventoryGui#replaceVars(String)} for a list of
+     *                      the placeholder variables. Empty text strings are also filter out, use
+     *                      a single space if you want to add an empty line!<br>
+     *                      If it's not set/empty the item's default name will be used
      */
     public GuiPageElement(char slotChar, ItemStack item, PageAction pageAction, String... text) {
-        super(slotChar, click -> {
+        super(slotChar, item, click -> {
             switch (pageAction) {
                 case NEXT:
                     if (click.getGui().getPageNumber() + 1 < click.getGui().getPageAmount()) {
@@ -59,10 +58,8 @@ public class GuiPageElement extends GuiElement {
             }
             click.getGui().playClickSound();
             return true;
-        });
-        this.item = item;
+        }, text);
         this.pageAction = pageAction;
-        this.text = text;
     }
 
     @Override
@@ -71,25 +68,14 @@ public class GuiPageElement extends GuiElement {
                 || (pageAction == PageAction.PREVIOUS && gui.getPageNumber() == 0)) {
             return gui.getFiller().getItem(slot);
         }
-        ItemStack clone = item.clone();
-        gui.setItemText(clone, text);
-        return clone;
-    }
-
-    /**
-     * Set this element's display text. If this is an empty array the item's name will be displayed
-     * @param text  The text to display on this element
-     */
-    public void setText(String... text) {
-        this.text = text;
-    }
-
-    /**
-     * Get the text that this element displays
-     * @return  The text that is displayed on this element
-     */
-    public String[] getText() {
-        return text;
+        if (pageAction == PageAction.PREVIOUS) {
+            setNumber(gui.getPageNumber() - 1);
+        } else if (pageAction == PageAction.NEXT) {
+            setNumber(gui.getPageNumber() + 1);
+        } else if (pageAction == PageAction.LAST) {
+            setNumber(gui.getPageAmount());
+        }
+        return super.getItem(slot).clone();
     }
 
     public enum PageAction {

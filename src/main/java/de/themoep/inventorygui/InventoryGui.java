@@ -16,8 +16,6 @@ package de.themoep.inventorygui;
  * along with this program. If not, see <http://mozilla.org/MPL/2.0/>.
  */
 
-import org.apache.commons.lang.StringUtils;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.SoundCategory;
@@ -53,6 +51,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * The main library class that lets you create and manage your GUIs
@@ -659,7 +658,8 @@ public class InventoryGui implements Listener {
 
     /**
      * Set the text of an item using the display name and the lore.
-     * Also replaces any placeholders in the text.
+     * Also replaces any placeholders in the text and filters out empty lines.
+     * Use a single space to create an emtpy line.
      * @param item  The {@link ItemStack} to set the text for
      * @param text  The text lines to set
      */
@@ -667,7 +667,9 @@ public class InventoryGui implements Listener {
         if (item != null) {
             ItemMeta meta = item.getItemMeta();
             if (text != null && text.length > 0) {
-                String combined = replaceVars(StringUtils.join(text, "\n"));
+                String combined = replaceVars(Arrays.stream(text)
+                        .filter(s -> !s.isEmpty())
+                        .collect(Collectors.joining("\n")));
                 String[] lines = combined.split("\n");
                 meta.setDisplayName(lines[0]);
                 if (lines.length > 1) {

@@ -29,10 +29,14 @@ public class GuiStaticElement extends GuiElement {
 
     /**
      * Represents an element in a gui
-     * @param slotChar The character to replace in the gui setup string
-     * @param item     The item this element displays
-     * @param action   The action to run when the player clicks on this element
-     * @param text     The text to display on this element, if it's not set/empty the item's default name will be used
+     * @param slotChar  The character to replace in the gui setup string
+     * @param item      The item this element displays
+     * @param action    The action to run when the player clicks on this element
+     * @param text      The text to display on this element, placeholders are automatically
+     *                  replaced, see {@link InventoryGui#replaceVars(String)} for a list of
+     *                  the placeholder variables. Empty text strings are also filter out, use
+     *                  a single space if you want to add an empty line!<br>
+     *                  If it's not set/empty the item's default name will be used
      */
     public GuiStaticElement(char slotChar, ItemStack item, Action action, String... text) {
         super(slotChar, action);
@@ -45,7 +49,11 @@ public class GuiStaticElement extends GuiElement {
      * Represents an element in a gui that doesn't have any action when clicked
      * @param slotChar  The character to replace in the gui setup string
      * @param item      The item this element displays
-     * @param text      The text to display on this element, if it's not set/empty the item's default name will be used
+     * @param text      The text to display on this element, placeholders are automatically
+     *                  replaced, see {@link InventoryGui#replaceVars(String)} for a list of
+     *                  the placeholder variables. Empty text strings are also filter out, use
+     *                  a single space if you want to add an empty line!<br>
+     *                  If it's not set/empty the item's default name will be used
      */
     public GuiStaticElement(char slotChar, ItemStack item, String... text) {
         this(slotChar, item, null, text);
@@ -64,12 +72,19 @@ public class GuiStaticElement extends GuiElement {
     public ItemStack getItem(int slot) {
         ItemStack clone = item.clone();
         gui.setItemText(clone, getText());
+        if (number > 0 && number <= 64) {
+            item.setAmount(number);
+        }
         return clone;
     }
 
     /**
      * Set this element's display text. If this is an empty array the item's name will be displayed
-     * @param text  The text to display on this element
+     * @param text  The text to display on this element, placeholders are automatically
+     *              replaced, see {@link InventoryGui#replaceVars(String)} for a list of
+     *              the placeholder variables. Empty text strings are also filter out, use
+     *              a single space if you want to add an empty line!<br>
+     *              If it's not set/empty the item's default name will be used
      */
     public void setText(String... text) {
         this.text = text;
@@ -93,7 +108,6 @@ public class GuiStaticElement extends GuiElement {
             throw new IllegalArgumentException("Only numbers from 1 to 64 are allowed. (" + number + ")");
         }
         this.number = number;
-        this.item.setAmount(number);
     }
 
     /**
