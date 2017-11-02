@@ -67,7 +67,6 @@ public class InventoryGui implements Listener {
 
     private final static Map<String, InventoryGui> GUI_MAP = new HashMap<>();
     private final static Map<UUID, ArrayDeque<InventoryGui>> GUI_HISTORY = new HashMap<>();
-    private final static Map<UUID, InventoryGui> GUI_OPEN = new HashMap<>();
 
     private final JavaPlugin plugin;
     private GuiListener listener = new GuiListener(this);
@@ -329,10 +328,6 @@ public class InventoryGui implements Listener {
      * @param player    The Player to show the GUI to
      */
     public void show(HumanEntity player) {
-        show(player, true);
-    }
-
-    private void show(HumanEntity player, boolean addToHistory) {
         if (inventory == null) {
             build();
         }
@@ -344,16 +339,14 @@ public class InventoryGui implements Listener {
                 // In order to not close it in a InventoryClickEvent listener (which will lead to errors)
                 // we delay the opening for one tick to run after it finished processing the event
                 plugin.getServer().getScheduler().runTask(plugin, () -> {
-                    if (addToHistory) {
-                        addHistory(player, openGui);
-                    }
+                    addHistory(player, this);
                     player.openInventory(inventory);
                 });
             } else {
                 clearHistory(player);
+                addHistory(player, this);
                 player.openInventory(inventory);
             }
-            GUI_OPEN.put(player.getUniqueId(), this);
         }
     }
 
@@ -448,15 +441,15 @@ public class InventoryGui implements Listener {
      * @return          <tt>true</tt> if there was a gui to show; <tt>false</tt> if not
      */
     public static boolean goBack(HumanEntity player) {
-        InventoryGui openGui = getOpen(player);
-        if (openGui == null) {
-            return false;
-        }
         Deque<InventoryGui> history = getHistory(player);
+        history.removeLast();
         if (history.isEmpty()) {
             return false;
         }
-        history.removeLast().show(player, false);
+        InventoryGui previous = history.peekLast();
+        if (previous != null) {
+            previous.show(player);
+        }
         return true;
     }
 
@@ -522,7 +515,7 @@ public class InventoryGui implements Listener {
      * @return          The InventoryGui that the player has open
      */
     public static InventoryGui getOpen(HumanEntity player) {
-        return GUI_OPEN.get(player.getUniqueId());
+        return getHistory(player).peekLast();
     }
 
     /**
@@ -614,9 +607,8 @@ public class InventoryGui implements Listener {
         public void onInventoryClose(InventoryCloseEvent event) {
             if (event.getInventory().equals(gui.inventory)) {
                 // go back. that checks if the player is in gui and has history
-                if (!goBack(event.getPlayer())) {
-                    // only unset open if we did not go back
-                    GUI_OPEN.remove(event.getPlayer().getUniqueId(), gui);
+                if (getOpen(event.getPlayer()).equals(gui)) {
+                    goBack(event.getPlayer());
                 }
                 if (inventory.getViewers().size() <= 1) {
                     destroy(false);
