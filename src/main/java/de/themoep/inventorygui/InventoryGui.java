@@ -333,7 +333,7 @@ public class InventoryGui implements Listener {
         }
         draw();
         InventoryGui openGui = getOpen(player);
-        if (openGui != this) {
+        if (!this.equals(openGui)) {
             if (openGui != null) {
                 // If the player already has a gui open then we assume that the call was from that gui.
                 // In order to not close it in a InventoryClickEvent listener (which will lead to errors)
@@ -607,7 +607,7 @@ public class InventoryGui implements Listener {
         public void onInventoryClose(InventoryCloseEvent event) {
             if (event.getInventory().equals(gui.inventory)) {
                 // go back. that checks if the player is in gui and has history
-                if (getOpen(event.getPlayer()).equals(gui)) {
+                if (gui.equals(getOpen(event.getPlayer()))) {
                     goBack(event.getPlayer());
                 }
                 if (inventory.getViewers().size() <= 1) {
