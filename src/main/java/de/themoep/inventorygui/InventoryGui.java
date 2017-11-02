@@ -442,7 +442,7 @@ public class InventoryGui implements Listener {
      */
     public static boolean goBack(HumanEntity player) {
         Deque<InventoryGui> history = getHistory(player);
-        history.removeLast();
+        history.pollLast();
         if (history.isEmpty()) {
             return false;
         }
