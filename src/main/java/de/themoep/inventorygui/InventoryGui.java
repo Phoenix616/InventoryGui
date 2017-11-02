@@ -328,13 +328,21 @@ public class InventoryGui implements Listener {
      * @param player    The Player to show the GUI to
      */
     public void show(HumanEntity player) {
+        show(player, true);
+    }
+    
+    /**
+     * Show this GUI to a player
+     * @param player    The Player to show the GUI to
+     * @param checkOpen Whether or not it should check if this gui is already open
+     */
+    public void show(HumanEntity player, boolean checkOpen) {
         if (inventory == null) {
             build();
         }
         draw();
-        InventoryGui openGui = getOpen(player);
-        if (!this.equals(openGui)) {
-            if (openGui != null) {
+        if (!checkOpen || !this.equals(getOpen(player))) {
+            if (player.getOpenInventory().getType() != InventoryType.CRAFTING) {
                 // If the player already has a gui open then we assume that the call was from that gui.
                 // In order to not close it in a InventoryClickEvent listener (which will lead to errors)
                 // we delay the opening for one tick to run after it finished processing the event
@@ -408,6 +416,7 @@ public class InventoryGui implements Listener {
             close();
         }
         inventory.clear();
+        inventory = null;
         unregisterListeners();
         removeFromMap();
     }
@@ -448,7 +457,7 @@ public class InventoryGui implements Listener {
         }
         InventoryGui previous = history.peekLast();
         if (previous != null) {
-            previous.show(player);
+            previous.show(player, false);
         }
         return true;
     }
