@@ -73,7 +73,7 @@ public class GuiStaticElement extends GuiElement {
         ItemStack clone = item.clone();
         gui.setItemText(clone, getText());
         if (number > 0 && number <= 64) {
-            item.setAmount(number);
+            clone.setAmount(number);
         }
         return clone;
     }
