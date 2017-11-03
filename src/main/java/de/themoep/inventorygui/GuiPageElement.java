@@ -77,7 +77,7 @@ public class GuiPageElement extends GuiStaticElement {
             } else if (pageAction == PageAction.NEXT) {
                 setNumber(gui.getPageNumber() + 2);
             } else if (pageAction == PageAction.LAST) {
-                setNumber(gui.getPageAmount() + 1);
+                setNumber(gui.getPageAmount());
             }
         } catch (IllegalArgumentException e) {
             // cannot set that item amount/number as it isn't supported in Minecraft

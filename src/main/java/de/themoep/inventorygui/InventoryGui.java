@@ -337,9 +337,6 @@ public class InventoryGui implements Listener {
      * @param checkOpen Whether or not it should check if this gui is already open
      */
     public void show(HumanEntity player, boolean checkOpen) {
-        if (inventory == null) {
-            build();
-        }
         draw();
         if (!checkOpen || !this.equals(getOpen(player))) {
             if (player.getOpenInventory().getType() != InventoryType.CRAFTING) {
@@ -384,6 +381,11 @@ public class InventoryGui implements Listener {
      * Draw the elements in the inventory. This can be used to manually refresh the gui.
      */
     public void draw() {
+        if (inventory == null) {
+            build();
+        } else {
+            inventory.clear();
+        }
         for (int i = 0; i < inventory.getSize(); i++) {
             GuiElement element = getElement(i);
             if (element == null) {
