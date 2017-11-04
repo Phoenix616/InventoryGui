@@ -409,7 +409,7 @@ public class InventoryGui implements Listener {
      * @param clearHistory  Whether or not to close the GUI completely (by clearing the history)
      */
     public void close(boolean clearHistory) {
-        for (HumanEntity viewer : inventory.getViewers()) {
+        for (HumanEntity viewer : new ArrayList<>(inventory.getViewers())) {
             if (clearHistory) {
                 clearHistory(viewer);
             }
