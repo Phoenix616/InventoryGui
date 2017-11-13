@@ -1,6 +1,8 @@
 # InventoryGui
 A library that simplifies the creation of chest GUIs for Bukkit/Spigot plugins and 
-allows assigning of the GUI to a specific InventoryHolder. Please note that this is **not a plugin!**
+allows assigning of the GUI to a specific InventoryHolder. If you are in need of a GUI for text inputs then take a look at [WesJD](https://github.com/WesJD)'s [AnvilGUI](https://github.com/WesJD/AnvilGUI) library.
+
+Please note that this is **not a plugin!**
 
 Requires Java 8.
 
