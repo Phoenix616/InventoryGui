@@ -51,6 +51,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 /**
@@ -598,8 +599,16 @@ public class InventoryGui implements Listener {
                     if (element != null) {
                         action = element.getAction();
                     }
-                    if (action == null || action.onClick(new GuiElement.Click(gui, slot, element, event.getClick(), event))) {
+                    try {
+                        if (action == null || action.onClick(new GuiElement.Click(gui, slot, element, event.getClick(), event))) {
+                            event.setCancelled(true);
+                        }
+                    } catch (Throwable t) {
                         event.setCancelled(true);
+                        plugin.getLogger().log(Level.SEVERE, "Exception while trying to run action for click on "
+                                + (element != null ? element.getClass().getSimpleName() : "empty element")
+                                + " in slot " + event.getRawSlot() + " of " + gui.getTitle() + " GUI!");
+                        t.printStackTrace();
                     }
                 }
             } else if (owner != null && owner.equals(event.getInventory().getHolder())) {
