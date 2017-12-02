@@ -54,14 +54,28 @@ public class GuiElementGroup extends GuiElement {
         }
         return null;
     }
+    
+    @Override
+    public void setGui(InventoryGui gui) {
+        super.setGui(gui);
+        for (GuiElement element : elements) {
+            element.setGui(gui);
+        }
+    }
+    
+    @Override
+    public void setSlots(int[] slots) {
+        super.setSlots(slots);
+        for (GuiElement element : elements) {
+            element.setSlots(slots);
+        }
+    }
 
     /**
-     * Add an element to this group after this group element has been assigned to a GUI
+     * Add an element to this group
      * @param element   The element to add
-     * @throws IllegalArgumentException Thrown if trying to add an element before this group element is assigned to a GUI
      */
-    public void addElement(GuiElement element) throws IllegalArgumentException {
-        Validate.notNull(gui, "You have to add the group element to the GUI before adding elements to it!");
+    public void addElement(GuiElement element){
         elements.add(element);
         element.setGui(gui);
         element.setSlots(slots);
