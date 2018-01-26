@@ -24,7 +24,7 @@ import org.bukkit.inventory.ItemStack;
  */
 public class GuiStaticElement extends GuiElement {
     private ItemStack item;
-    private int number = 1;
+    private int number;
     private String[] text;
     
     /**
@@ -60,10 +60,7 @@ public class GuiStaticElement extends GuiElement {
      *                  If it's not set/empty the item's default name will be used
      */
     public GuiStaticElement(char slotChar, ItemStack item, Action action, String... text) {
-        super(slotChar, action);
-        this.item = item;
-        this.text = text;
-        setAction(action);
+        this(slotChar, item, 1, action, text);
     }
 
     /**
