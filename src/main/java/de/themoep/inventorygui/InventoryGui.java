@@ -143,7 +143,8 @@ public class InventoryGui implements Listener {
      * @param elements  The {@link GuiElement}s that the gui should have. You can also use {@link #addElement(GuiElement)} later.
      */
     public InventoryGui(JavaPlugin plugin, String title, String[] rows, GuiElement... elements) {
-        this(plugin, null, title, rows, elements);
+        this(plugin, new InventoryGuiHolder(), title, rows, elements);
+        ((InventoryGuiHolder) owner).setGui(this);
     }
 
     /**
@@ -496,8 +497,12 @@ public class InventoryGui implements Listener {
     private GuiElement getElement(int slot) {
         return slot < 0 || slot >= slots.length ? null : elements.get(slots[slot]);
     }
-
-    private void setOwner(InventoryHolder owner) {
+    
+    /**
+     * Set the owner of this GUI. Will remove the previous assignment.
+     * @param owner The owner of the GUI
+     */
+    public void setOwner(InventoryHolder owner) {
         removeFromMap();
         this.owner = owner;
         if (owner instanceof Entity) {
@@ -506,11 +511,24 @@ public class InventoryGui implements Listener {
             GUI_MAP.put(((BlockState) owner).getLocation().toString(), this);
         }
     }
+    
+    /**
+     * Get the owner of this GUI. Will be instance of InventoryGuiHolder if it is a fake one
+     * @return The InventoryHolder of this GUI
+     */
+    public InventoryHolder getOwner() {
+        return owner;
+    }
+    
+    /**
+     * Check whether or not the Owner of this GUI is real or fake
+     * @return <tt>true</tt> if the owner is a real world InventoryHolder; <tt>false</tt> if it is instance of InventoryGuiHolder
+     */
+    public boolean hasRealOwner() {
+        return !(owner instanceof InventoryGuiHolder);
+    }
 
     private void removeFromMap() {
-        if (owner == null) {
-            return;
-        }
         if (owner instanceof Entity) {
             GUI_MAP.remove(((Entity) owner).getUniqueId().toString(), this);
         } else if (owner instanceof BlockState) {
@@ -567,7 +585,15 @@ public class InventoryGui implements Listener {
             }
         }
     }
-
+    
+    /**
+     * Get the inventory. Package scope as it should only be used by InventoryGuiHolder
+     * @return The GUI's generated inventory
+     */
+    Inventory getInventory() {
+        return inventory;
+    }
+    
     /**
      * All the listeners that InventoryGui needs to work
      */
@@ -611,7 +637,7 @@ public class InventoryGui implements Listener {
                         t.printStackTrace();
                     }
                 }
-            } else if (owner != null && owner.equals(event.getInventory().getHolder())) {
+            } else if (hasRealOwner() && owner.equals(event.getInventory().getHolder())) {
                 // Click into inventory by same owner but not the inventory of the GUI
                 // Assume that the underlying inventory changed and redraw the GUI
                 plugin.getServer().getScheduler().runTask(plugin, gui::draw);
@@ -649,33 +675,49 @@ public class InventoryGui implements Listener {
 
         @EventHandler(priority = EventPriority.MONITOR)
         public void onInventoryMoveItem(InventoryMoveItemEvent event) {
-            if (owner != null && (owner.equals(event.getDestination().getHolder()) || owner.equals(event.getSource().getHolder()))) {
+            if (hasRealOwner() && (owner.equals(event.getDestination().getHolder()) || owner.equals(event.getSource().getHolder()))) {
                 plugin.getServer().getScheduler().runTask(plugin, gui::draw);
             }
         }
 
         @EventHandler(priority = EventPriority.MONITOR)
         public void onDispense(BlockDispenseEvent event) {
-            if (owner != null && owner.equals(event.getBlock().getState())) {
+            if (hasRealOwner() && owner.equals(event.getBlock().getState())) {
                 plugin.getServer().getScheduler().runTask(plugin, gui::draw);
             }
         }
 
         @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
         public void onBlockBreak(BlockBreakEvent event) {
-            if (owner != null && owner.equals(event.getBlock().getState())) {
+            if (hasRealOwner() && owner.equals(event.getBlock().getState())) {
                 destroy();
             }
         }
 
         @EventHandler(priority = EventPriority.MONITOR)
         public void onEntityDeath(EntityDeathEvent event) {
-            if (owner != null && owner.equals(event.getEntity())) {
+            if (hasRealOwner() && owner.equals(event.getEntity())) {
                 destroy();
             }
         }
     }
-
+    
+    /**
+     * Fake InventoryHolder for the GUIs
+     */
+    public static class InventoryGuiHolder implements InventoryHolder {
+        private InventoryGui gui;
+        
+        void setGui(InventoryGui gui) {
+            this.gui = gui;
+        }
+        
+        @Override
+        public Inventory getInventory() {
+            return gui.getInventory();
+        }
+    }
+    
     /**
      * Set the text of an item using the display name and the lore.
      * Also replaces any placeholders in the text and filters out empty lines.
@@ -719,7 +761,7 @@ public class InventoryGui implements Listener {
     public String replaceVars(String text) {
         String[] repl = {
                 "plugin", plugin.getName(),
-                "owner", owner != null ? owner.getInventory().getName() : "",
+                "owner", owner.getInventory().getName(),
                 "page", String.valueOf(getPageNumber() + 1),
                 "nextpage", getPageNumber() + 1 < getPageAmount() ? String.valueOf(getPageNumber() + 2) : "none",
                 "prevpage", getPageNumber() > 0 ? String.valueOf(getPageNumber()) : "none",
