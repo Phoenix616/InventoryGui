@@ -314,13 +314,7 @@ public class InventoryGui implements Listener {
     }
 
     private void unregisterListeners() {
-        InventoryClickEvent.getHandlerList().unregister(listener);
-        InventoryCloseEvent.getHandlerList().unregister(listener);
-        InventoryDragEvent.getHandlerList().unregister(listener);
-        InventoryMoveItemEvent.getHandlerList().unregister(listener);
-        BlockDispenseEvent.getHandlerList().unregister(listener);
-        BlockBreakEvent.getHandlerList().unregister(listener);
-        EntityDeathEvent.getHandlerList().unregister(listener);
+        listener.unregister();
         listenersRegistered = false;
     }
 
@@ -605,7 +599,7 @@ public class InventoryGui implements Listener {
 
         @EventHandler
         private void onInventoryClick(InventoryClickEvent event) {
-            if (inventory.getViewers().contains(event.getWhoClicked())) {
+            if (event.getInventory().equals(inventory)) {
                 if (event.getAction() == InventoryAction.COLLECT_TO_CURSOR) {
                     event.setCancelled(true);
                     return;
@@ -645,7 +639,7 @@ public class InventoryGui implements Listener {
 
         @EventHandler
         public void onInventoryDrag(InventoryDragEvent event) {
-            if (inventory.getViewers().contains(event.getWhoClicked()) && containsBelow(event.getRawSlots(), inventory.getSize())) {
+            if (event.getInventory().equals(inventory) && containsBelow(event.getRawSlots(), inventory.getSize())) {
                 event.setCancelled(true);
             }
         }
@@ -698,6 +692,16 @@ public class InventoryGui implements Listener {
             if (hasRealOwner() && owner.equals(event.getEntity())) {
                 destroy();
             }
+        }
+    
+        public void unregister() {
+            InventoryClickEvent.getHandlerList().unregister(this);
+            InventoryDragEvent.getHandlerList().unregister(this);
+            InventoryCloseEvent.getHandlerList().unregister(this);
+            InventoryMoveItemEvent.getHandlerList().unregister(this);
+            BlockDispenseEvent.getHandlerList().unregister(this);
+            BlockBreakEvent.getHandlerList().unregister(this);
+            EntityDeathEvent.getHandlerList().unregister(this);
         }
     }
     
