@@ -143,8 +143,7 @@ public class InventoryGui implements Listener {
      * @param elements  The {@link GuiElement}s that the gui should have. You can also use {@link #addElement(GuiElement)} later.
      */
     public InventoryGui(JavaPlugin plugin, String title, String[] rows, GuiElement... elements) {
-        this(plugin, new InventoryGuiHolder(), title, rows, elements);
-        ((InventoryGuiHolder) owner).setGui(this);
+        this(plugin, null, title, rows, elements);
     }
 
     /**
@@ -370,9 +369,9 @@ public class InventoryGui implements Listener {
      */
     public void build(InventoryHolder owner) {
         if (slots.length > inventoryType.getDefaultSize()) {
-            inventory = plugin.getServer().createInventory(owner, slots.length, replaceVars(title));
+            inventory = plugin.getServer().createInventory(new Holder(this), slots.length, replaceVars(title));
         } else {
-            inventory = plugin.getServer().createInventory(owner, inventoryType, replaceVars(title));
+            inventory = plugin.getServer().createInventory(new Holder(this), inventoryType, replaceVars(title));
         }
         setOwner(owner);
         registerListeners();
@@ -513,7 +512,7 @@ public class InventoryGui implements Listener {
     }
     
     /**
-     * Get the owner of this GUI. Will be instance of InventoryGuiHolder if it is a fake one
+     * Get the owner of this GUI. Will be null if th GUI doesn't have one
      * @return The InventoryHolder of this GUI
      */
     public InventoryHolder getOwner() {
@@ -522,10 +521,10 @@ public class InventoryGui implements Listener {
     
     /**
      * Check whether or not the Owner of this GUI is real or fake
-     * @return <tt>true</tt> if the owner is a real world InventoryHolder; <tt>false</tt> if it is instance of InventoryGuiHolder
+     * @return <tt>true</tt> if the owner is a real world InventoryHolder; <tt>false</tt> if it is null
      */
     public boolean hasRealOwner() {
-        return !(owner instanceof InventoryGuiHolder);
+        return owner != null;
     }
 
     private void removeFromMap() {
@@ -587,7 +586,7 @@ public class InventoryGui implements Listener {
     }
     
     /**
-     * Get the inventory. Package scope as it should only be used by InventoryGuiHolder
+     * Get the inventory. Package scope as it should only be used by InventoryGui.Holder
      * @return The GUI's generated inventory
      */
     Inventory getInventory() {
@@ -705,10 +704,10 @@ public class InventoryGui implements Listener {
     /**
      * Fake InventoryHolder for the GUIs
      */
-    public static class InventoryGuiHolder implements InventoryHolder {
+    public static class Holder implements InventoryHolder {
         private InventoryGui gui;
-        
-        void setGui(InventoryGui gui) {
+    
+        public Holder(InventoryGui gui) {
             this.gui = gui;
         }
         
