@@ -86,6 +86,7 @@ public class InventoryGui implements Listener {
     private boolean listenersRegistered = false;
     private int pageNumber = 0;
     private int pageAmount = 1;
+    private GuiElement.Action outsideAction = null;
 
     /**
      * Create a new gui with a certain setup and some elements
@@ -526,7 +527,23 @@ public class InventoryGui implements Listener {
     public boolean hasRealOwner() {
         return owner != null;
     }
-
+    
+    /**
+     * Get the Action that is run when clicked outside of the inventory
+     * @return  The Action for when the player clicks outside the inventory; can be null
+     */
+    public GuiElement.Action getOutsideAction() {
+        return outsideAction;
+    }
+    
+    /**
+     * Set the Action that is run when clicked outside of the inventory
+     * @param outsideAction The Action for when the player clicks outside the inventory; can be null
+     */
+    public void setOutsideAction(GuiElement.Action outsideAction) {
+        this.outsideAction = outsideAction;
+    }
+    
     private void removeFromMap() {
         if (owner instanceof Entity) {
             GUI_MAP.remove(((Entity) owner).getUniqueId().toString(), this);
@@ -617,24 +634,27 @@ public class InventoryGui implements Listener {
                 } else if (event.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) {
                     slot = event.getInventory().firstEmpty();
                 }
-
+    
+                GuiElement.Action action = null;
+                GuiElement element = null;
                 if (slot >= 0) {
-                    GuiElement element = getElement(slot);
-                    GuiElement.Action action = null;
+                    element = getElement(slot);
                     if (element != null) {
                         action = element.getAction();
                     }
-                    try {
-                        if (action == null || action.onClick(new GuiElement.Click(gui, slot, element, event.getClick(), event))) {
-                            event.setCancelled(true);
-                        }
-                    } catch (Throwable t) {
+                } else if (slot == -999) {
+                    action = outsideAction;
+                }
+                try {
+                    if (action == null || action.onClick(new GuiElement.Click(gui, slot, element, event.getClick(), event))) {
                         event.setCancelled(true);
-                        plugin.getLogger().log(Level.SEVERE, "Exception while trying to run action for click on "
-                                + (element != null ? element.getClass().getSimpleName() : "empty element")
-                                + " in slot " + event.getRawSlot() + " of " + gui.getTitle() + " GUI!");
-                        t.printStackTrace();
                     }
+                } catch (Throwable t) {
+                    event.setCancelled(true);
+                    plugin.getLogger().log(Level.SEVERE, "Exception while trying to run action for click on "
+                            + (element != null ? element.getClass().getSimpleName() : "empty element")
+                            + " in slot " + event.getRawSlot() + " of " + gui.getTitle() + " GUI!");
+                    t.printStackTrace();
                 }
             } else if (hasRealOwner() && owner.equals(event.getInventory().getHolder())) {
                 // Click into inventory by same owner but not the inventory of the GUI
