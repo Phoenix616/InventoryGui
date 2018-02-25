@@ -25,6 +25,7 @@ package de.themoep.inventorygui;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -84,6 +85,26 @@ public class GuiElementGroup extends GuiElement {
         elements.add(element);
         element.setGui(gui);
         element.setSlots(slots);
+    }
+    
+    /**
+     * Add elements to this group
+     * @param elements  The elements to add
+     */
+    public void addElements(GuiElement... elements){
+        for (GuiElement element : elements) {
+            addElement(element);
+        }
+    }
+    
+    /**
+     * Add elements to this group
+     * @param elements  The elements to add
+     */
+    public void addElements(Collection<GuiElement> elements){
+        for (GuiElement element : elements) {
+            addElement(element);
+        }
     }
 
     /**
