@@ -87,6 +87,7 @@ public class InventoryGui implements Listener {
     private int pageNumber = 0;
     private int pageAmount = 1;
     private GuiElement.Action outsideAction = null;
+    private boolean backOnClose = true;
 
     /**
      * Create a new gui with a certain setup and some elements
@@ -544,6 +545,22 @@ public class InventoryGui implements Listener {
         this.outsideAction = outsideAction;
     }
     
+    /**
+     * Get whether or not this GUI tries to go back to the previous one on close (default: true)
+     * @return true if it goes back; false if not
+     */
+    public boolean isBackOnClose() {
+        return backOnClose;
+    }
+    
+    /**
+     * Set whether or not this GUI tries to go back to the previous one on close
+     * @param backOnClose true if it should go back; false if not
+     */
+    public void setBackOnClose(boolean backOnClose) {
+        this.backOnClose = backOnClose;
+    }
+    
     private void removeFromMap() {
         if (owner instanceof Entity) {
             GUI_MAP.remove(((Entity) owner).getUniqueId().toString(), this);
@@ -683,7 +700,7 @@ public class InventoryGui implements Listener {
         public void onInventoryClose(InventoryCloseEvent event) {
             if (event.getInventory().equals(gui.inventory)) {
                 // go back. that checks if the player is in gui and has history
-                if (gui.equals(getOpen(event.getPlayer()))) {
+                if (backOnClose && gui.equals(getOpen(event.getPlayer()))) {
                     goBack(event.getPlayer());
                 }
                 if (inventory.getViewers().size() <= 1) {
