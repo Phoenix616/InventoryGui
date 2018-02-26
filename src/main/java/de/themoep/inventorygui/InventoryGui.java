@@ -24,7 +24,6 @@ package de.themoep.inventorygui;
 
 import org.bukkit.Material;
 import org.bukkit.Sound;
-import org.bukkit.SoundCategory;
 import org.bukkit.block.BlockState;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.HumanEntity;
@@ -71,6 +70,7 @@ public class InventoryGui implements Listener {
             InventoryType.HOPPER, // 5*1
             InventoryType.CHEST // 9*x
     };
+    private final static Sound CLICK_SOUND;
 
     private final static Map<String, InventoryGui> GUI_MAP = new HashMap<>();
     private final static Map<UUID, ArrayDeque<InventoryGui>> GUI_HISTORY = new HashMap<>();
@@ -88,6 +88,27 @@ public class InventoryGui implements Listener {
     private int pageAmount = 1;
     private GuiElement.Action outsideAction = null;
     private boolean backOnClose = true;
+    
+    static {
+        // Sound names changed, make it compatible with both versions
+        Sound clickSound = null;
+        String[] clickSounds = {"UI_BUTTON_CLICK", "CLICK"};
+        for (String s : clickSounds) {
+            try {
+                clickSound = Sound.valueOf(s.toUpperCase());
+                break;
+            } catch (IllegalArgumentException ignored) {}
+        }
+        if (clickSound == null) {
+            for (Sound sound : Sound.values()) {
+                if (sound.name().contains("CLICK")) {
+                    clickSound = sound;
+                    break;
+                }
+            }
+        }
+        CLICK_SOUND = clickSound;
+    }
 
     /**
      * Create a new gui with a certain setup and some elements
@@ -614,7 +635,7 @@ public class InventoryGui implements Listener {
     public void playClickSound() {
         for (HumanEntity humanEntity : inventory.getViewers()) {
             if (humanEntity instanceof Player) {
-                ((Player) humanEntity).playSound(humanEntity.getEyeLocation(), Sound.UI_BUTTON_CLICK, SoundCategory.MASTER, 1, 1);
+                ((Player) humanEntity).playSound(humanEntity.getEyeLocation(), CLICK_SOUND, 1, 1);
             }
         }
     }
