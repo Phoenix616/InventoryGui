@@ -28,7 +28,7 @@ import org.bukkit.inventory.ItemStack;
  * This is an element that allows for controlling the pagination of the gui.
  * <b>Untested und potentially unfinished.</b>
  */
-public class GuiPageElement extends GuiStaticElement {
+public class GuiPageElement extends StaticGuiElement {
     private PageAction pageAction;
 
     /**

@@ -26,9 +26,9 @@ import org.bukkit.inventory.ItemStack;
 
 /**
  * Represents a simple element in a gui to which an action can be assigned.
- * If you want to item to change on click you have to do that yourself.
+ * If you want the item to change on click you have to do that yourself.
  */
-public class GuiStaticElement extends GuiElement {
+public class StaticGuiElement extends GuiElement {
     private ItemStack item;
     private int number;
     private String[] text;
@@ -46,12 +46,11 @@ public class GuiStaticElement extends GuiElement {
      *                  If it's not set/empty the item's default name will be used
      * @throws IllegalArgumentException If the number is below 1 or above the max stack count (currently 64)
      */
-    public GuiStaticElement(char slotChar, ItemStack item, int number, Action action, String... text) throws IllegalArgumentException {
+    public StaticGuiElement(char slotChar, ItemStack item, int number, Action action, String... text) throws IllegalArgumentException {
         super(slotChar, action);
         this.item = item;
         this.text = text;
         setNumber(number);
-        setAction(action);
     }
     
     /**
@@ -65,7 +64,7 @@ public class GuiStaticElement extends GuiElement {
      *                  a single space if you want to add an empty line!<br>
      *                  If it's not set/empty the item's default name will be used
      */
-    public GuiStaticElement(char slotChar, ItemStack item, Action action, String... text) {
+    public StaticGuiElement(char slotChar, ItemStack item, Action action, String... text) {
         this(slotChar, item, 1, action, text);
     }
 
@@ -79,7 +78,7 @@ public class GuiStaticElement extends GuiElement {
      *                  a single space if you want to add an empty line!<br>
      *                  If it's not set/empty the item's default name will be used
      */
-    public GuiStaticElement(char slotChar, ItemStack item, String... text) {
+    public StaticGuiElement(char slotChar, ItemStack item, String... text) {
         this(slotChar, item, null, text);
     }
 

@@ -211,26 +211,26 @@ public class InventoryGui implements Listener {
     }
 
     /**
-     * Create and add a {@link GuiStaticElement} in one quick method.
+     * Create and add a {@link StaticGuiElement} in one quick method.
      * @param slotChar  The character to replace in the gui setup string
      * @param item      The item that should be displayed
      * @param action    The {@link de.themoep.inventorygui.GuiElement.Action} to run when the player clicks on this element
      */
     public void addElement(char slotChar, ItemStack item, GuiElement.Action action) {
-        addElement(new GuiStaticElement(slotChar, item, action));
+        addElement(new StaticGuiElement(slotChar, item, action));
     }
 
     /**
-     * Create and add a {@link GuiStaticElement} that has no action.
+     * Create and add a {@link StaticGuiElement} that has no action.
      * @param slotChar  The character to replace in the gui setup string
      * @param item      The item that should be displayed
      */
     public void addElement(char slotChar, ItemStack item) {
-        addElement(new GuiStaticElement(slotChar, item, null));
+        addElement(new StaticGuiElement(slotChar, item, null));
     }
 
     /**
-     * Create and add a {@link GuiStaticElement} in one quick method.
+     * Create and add a {@link StaticGuiElement} in one quick method.
      * @param slotChar      The character to replace in the gui setup string
      * @param materialData  The {@link MaterialData} of the item of tihs element
      * @param action         The {@link de.themoep.inventorygui.GuiElement.Action} to run when the player clicks on this element
@@ -240,7 +240,7 @@ public class InventoryGui implements Listener {
     }
 
     /**
-     * Create and add a {@link GuiStaticElement}
+     * Create and add a {@link StaticGuiElement}
      * @param slotChar  The character to replace in the gui setup string
      * @param material  The {@link Material} that the item should have
      * @param data      The <tt>byte</tt> representation of the material data of this element
@@ -251,7 +251,7 @@ public class InventoryGui implements Listener {
     }
 
     /**
-     * Create and add a {@link GuiStaticElement}
+     * Create and add a {@link StaticGuiElement}
      * @param slotChar  The character to replace in the gui setup string
      * @param material  The {@link Material} that the item should have
      * @param action    The {@link GuiElement.Action} to run when the player clicks on this element
@@ -285,7 +285,7 @@ public class InventoryGui implements Listener {
      * @param item  The item for the filler element
      */
     public void setFiller(ItemStack item) {
-        addElement(new GuiStaticElement(' ', item, " "));
+        addElement(new StaticGuiElement(' ', item, " "));
     }
 
     /**
