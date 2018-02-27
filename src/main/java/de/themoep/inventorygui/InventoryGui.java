@@ -818,6 +818,7 @@ public class InventoryGui implements Listener {
      * The placeholders are:<br>
      * <tt>%plugin%</tt>    - The name of the plugin that this gui is from.<br>
      * <tt>%owner%</tt>     - The name of the owner of this gui. Will be an empty string when the owner is null.<br>
+     * <tt>%title%</tt>     - The title of this GUI.<br>
      * <tt>%page%</tt>      - The current page that this gui is on.<br>
      * <tt>%nextpage%</tt>  - The next page. "none" if there is no next page.<br>
      * <tt>%prevpage%</tt>  - The previous page. "none" if there is no previous page.<br>
@@ -828,7 +829,8 @@ public class InventoryGui implements Listener {
     public String replaceVars(String text) {
         String[] repl = {
                 "plugin", plugin.getName(),
-                "owner", owner.getInventory().getName(),
+                "owner", owner != null ? getInventory().getName() : "",
+                "title", title,
                 "page", String.valueOf(getPageNumber() + 1),
                 "nextpage", getPageNumber() + 1 < getPageAmount() ? String.valueOf(getPageNumber() + 2) : "none",
                 "prevpage", getPageNumber() > 0 ? String.valueOf(getPageNumber()) : "none",
