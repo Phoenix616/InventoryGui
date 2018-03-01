@@ -70,6 +70,14 @@ public class DynamicGuiElement extends GuiElement {
     }
     
     @Override
+    public void setGui(InventoryGui gui) {
+        super.setGui(gui);
+        if (cachedElement != null) {
+            cachedElement.setGui(gui);
+        }
+    }
+    
+    @Override
     public ItemStack getItem(int slot) {
         update(false);
         if (cachedElement != null) {
