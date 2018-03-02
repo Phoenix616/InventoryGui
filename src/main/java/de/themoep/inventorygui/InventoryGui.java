@@ -783,6 +783,10 @@ public class InventoryGui implements Listener {
         public Inventory getInventory() {
             return gui.getInventory();
         }
+        
+        public InventoryGui getGui() {
+            return gui;
+        }
     }
     
     public static interface CloseAction {
