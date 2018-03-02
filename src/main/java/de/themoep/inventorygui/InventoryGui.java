@@ -682,6 +682,10 @@ public class InventoryGui implements Listener {
                     }
                 } else if (slot == -999) {
                     action = outsideAction;
+                } else {
+                    // Click was neither for the top inventory or outside
+                    // E.g. click is in the bottom inventory
+                    return;
                 }
                 try {
                     if (action == null || action.onClick(new GuiElement.Click(gui, slot, element, event.getClick(), event))) {
