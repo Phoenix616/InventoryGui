@@ -868,7 +868,7 @@ public class InventoryGui implements Listener {
     public String replaceVars(String text) {
         String[] repl = {
                 "plugin", plugin.getName(),
-                "owner", owner != null ? getInventory().getName() : "",
+                "owner", owner != null ? owner.getInventory().getName() : "",
                 "title", title,
                 "page", String.valueOf(getPageNumber() + 1),
                 "nextpage", getPageNumber() + 1 < getPageAmount() ? String.valueOf(getPageNumber() + 2) : "none",
