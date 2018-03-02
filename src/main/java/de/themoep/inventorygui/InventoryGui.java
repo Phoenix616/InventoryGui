@@ -87,7 +87,7 @@ public class InventoryGui implements Listener {
     private int pageNumber = 0;
     private int pageAmount = 1;
     private GuiElement.Action outsideAction = null;
-    private boolean backOnClose = true;
+    private CloseAction closeAction = close -> true;
     
     static {
         // Sound names changed, make it compatible with both versions
@@ -567,19 +567,19 @@ public class InventoryGui implements Listener {
     }
     
     /**
-     * Get whether or not this GUI tries to go back to the previous one on close (default: true)
-     * @return true if it goes back; false if not
+     * Get the action that is run when this GUI is closed
+     * @return The action for when the player closes this inventory; can be null
      */
-    public boolean isBackOnClose() {
-        return backOnClose;
+    public CloseAction getCloseAction() {
+        return closeAction;
     }
     
     /**
-     * Set whether or not this GUI tries to go back to the previous one on close
-     * @param backOnClose true if it should go back; false if not
+     * Set the action that is run when this GUI is closed; it should return true if the GUI should go back
+     * @param closeAction The action for when the player closes this inventory; can be null
      */
-    public void setBackOnClose(boolean backOnClose) {
-        this.backOnClose = backOnClose;
+    public void setCloseAction(CloseAction closeAction) {
+        this.closeAction = closeAction;
     }
     
     private void removeFromMap() {
@@ -721,7 +721,7 @@ public class InventoryGui implements Listener {
         public void onInventoryClose(InventoryCloseEvent event) {
             if (event.getInventory().equals(gui.inventory)) {
                 // go back. that checks if the player is in gui and has history
-                if (backOnClose && gui.equals(getOpen(event.getPlayer()))) {
+                if ((closeAction == null || closeAction.onClose(new Close(event.getPlayer(), gui, event))) && gui.equals(getOpen(event.getPlayer()))) {
                     goBack(event.getPlayer());
                 }
                 if (inventory.getViewers().size() <= 1) {
@@ -782,6 +782,41 @@ public class InventoryGui implements Listener {
         @Override
         public Inventory getInventory() {
             return gui.getInventory();
+        }
+    }
+    
+    public static interface CloseAction {
+        
+        /**
+         * Executed when a player closes a GUI inventory
+         * @param close The close object holding information about this close
+         * @return Whether or not the close should go back or not
+         */
+        boolean onClose(Close close);
+        
+    }
+    
+    private static class Close {
+        private final HumanEntity player;
+        private final InventoryGui gui;
+        private final InventoryCloseEvent event;
+    
+        public Close(HumanEntity player, InventoryGui gui, InventoryCloseEvent event) {
+            this.player = player;
+            this.gui = gui;
+            this.event = event;
+        }
+    
+        public HumanEntity getPlayer() {
+            return player;
+        }
+    
+        public InventoryGui getGui() {
+            return gui;
+        }
+    
+        public InventoryCloseEvent getEvent() {
+            return event;
         }
     }
     
