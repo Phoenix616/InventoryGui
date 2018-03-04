@@ -804,7 +804,7 @@ public class InventoryGui implements Listener {
         
     }
     
-    private static class Close {
+    public static class Close {
         private final HumanEntity player;
         private final InventoryGui gui;
         private final InventoryCloseEvent event;
