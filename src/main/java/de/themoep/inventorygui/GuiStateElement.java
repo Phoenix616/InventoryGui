@@ -178,8 +178,8 @@ public class GuiStateElement extends GuiElement {
          * @param key       The state's string key
          * @param item      The {@link ItemStack} to represent this state
          * @param text      The text to display on this element, placeholders are automatically
-         *                  replaced, see {@link InventoryGui#replaceVars(String)} for a list of
-         *                  the placeholder variables. Empty text strings are also filter out, use
+         *                  replaced, see {@link InventoryGui#replaceVars} for a list of the
+         *                  placeholder variables. Empty text strings are also filter out, use
          *                  a single space if you want to add an empty line!<br>
          *                  If it's not set/empty the item's default name will be used
          */
@@ -193,8 +193,8 @@ public class GuiStateElement extends GuiElement {
         /**
          * Set this element's display text. If this is an empty array the item's name will be displayed
          * @param text  The text to display on this element, placeholders are automatically
-         *              replaced, see {@link InventoryGui#replaceVars(String)} for a list of
-         *              the placeholder variables. Empty text strings are also filter out, use
+         *              replaced, see {@link InventoryGui#replaceVars} for a list of the
+         *              placeholder variables. Empty text strings are also filter out, use
          *              a single space if you want to add an empty line!<br>
          *              If it's not set/empty the item's default name will be used
          */

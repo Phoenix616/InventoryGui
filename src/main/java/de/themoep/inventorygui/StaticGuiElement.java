@@ -40,8 +40,8 @@ public class StaticGuiElement extends GuiElement {
      * @param number    The number, 1 will not display the number
      * @param action    The action to run when the player clicks on this element
      * @param text      The text to display on this element, placeholders are automatically
-     *                  replaced, see {@link InventoryGui#replaceVars(String)} for a list of
-     *                  the placeholder variables. Empty text strings are also filter out, use
+     *                  replaced, see {@link InventoryGui#replaceVars} for a list of the
+     *                  placeholder variables. Empty text strings are also filter out, use
      *                  a single space if you want to add an empty line!<br>
      *                  If it's not set/empty the item's default name will be used
      * @throws IllegalArgumentException If the number is below 1 or above the max stack count (currently 64)
@@ -59,8 +59,8 @@ public class StaticGuiElement extends GuiElement {
      * @param item      The item this element displays
      * @param action    The action to run when the player clicks on this element
      * @param text      The text to display on this element, placeholders are automatically
-     *                  replaced, see {@link InventoryGui#replaceVars(String)} for a list of
-     *                  the placeholder variables. Empty text strings are also filter out, use
+     *                  replaced, see {@link InventoryGui#replaceVars} for a list of the
+     *                  placeholder variables. Empty text strings are also filter out, use
      *                  a single space if you want to add an empty line!<br>
      *                  If it's not set/empty the item's default name will be used
      */
@@ -73,8 +73,8 @@ public class StaticGuiElement extends GuiElement {
      * @param slotChar  The character to replace in the gui setup string
      * @param item      The item this element displays
      * @param text      The text to display on this element, placeholders are automatically
-     *                  replaced, see {@link InventoryGui#replaceVars(String)} for a list of
-     *                  the placeholder variables. Empty text strings are also filter out, use
+     *                  replaced, see {@link InventoryGui#replaceVars} for a list of the
+     *                  placeholder variables. Empty text strings are also filter out, use
      *                  a single space if you want to add an empty line!<br>
      *                  If it's not set/empty the item's default name will be used
      */
@@ -104,8 +104,8 @@ public class StaticGuiElement extends GuiElement {
     /**
      * Set this element's display text. If this is an empty array the item's name will be displayed
      * @param text  The text to display on this element, placeholders are automatically
-     *              replaced, see {@link InventoryGui#replaceVars(String)} for a list of
-     *              the placeholder variables. Empty text strings are also filter out, use
+     *              replaced, see {@link InventoryGui#replaceVars} for a list of the
+     *              placeholder variables. Empty text strings are also filter out, use
      *              a single space if you want to add an empty line!<br>
      *              If it's not set/empty the item's default name will be used
      */

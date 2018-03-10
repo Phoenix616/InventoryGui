@@ -37,8 +37,8 @@ public class GuiPageElement extends StaticGuiElement {
      * @param item          The {@link ItemStack} representing this element
      * @param pageAction    What kind of page action you want to happen when interacting with the element.
      * @param text          The text to display on this element, placeholders are automatically
-     *                      replaced, see {@link InventoryGui#replaceVars(String)} for a list of
-     *                      the placeholder variables. Empty text strings are also filter out, use
+     *                      replaced, see {@link InventoryGui#replaceVars} for a list of the
+     *                      placeholder variables. Empty text strings are also filter out, use
      *                      a single space if you want to add an empty line!<br>
      *                      If it's not set/empty the item's default name will be used
      */
