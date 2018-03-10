@@ -34,7 +34,8 @@ import java.util.List;
  */
 public class GuiElementGroup extends GuiElement {
     private List<GuiElement> elements = new ArrayList<>();
-
+    private GuiElement filler = null;
+    
     /**
      * A group of elements
      * @param slotChar  The character to replace in the gui setup string
@@ -130,11 +131,31 @@ public class GuiElementGroup extends GuiElement {
         if (index > -1 && index < elements.size()) {
             return elements.get(index);
         }
-        GuiElement last = elements.get(elements.size() - 1);
-        if (last.getSlotChar() == ' ') { // Check if last element in elements array is filler
-            return last;
-        }
-        return null;
+        return filler;
+    }
+    
+    /**
+     * Set the filler element for empty slots
+     * @param item The item for the filler element
+     */
+    public void setFiller(ItemStack item) {
+        filler = new StaticGuiElement(' ', item, " ");
+    }
+    
+    /**
+     * Set the filler element for empty slots
+     * @param filler The item for the filler element
+     */
+    public void setFiller(GuiElement filler) {
+        this.filler = filler;
+    }
+    
+    /**
+     * Get the filler element
+     * @return The filler element
+     */
+    public GuiElement getFiller() {
+        return filler;
     }
 
     /**
