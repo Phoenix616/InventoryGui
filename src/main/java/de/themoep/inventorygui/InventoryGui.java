@@ -22,6 +22,7 @@ package de.themoep.inventorygui;
  * SOFTWARE.
  */
 
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.block.BlockState;
@@ -857,7 +858,7 @@ public class InventoryGui implements Listener {
     }
 
     /**
-     * Replace some placeholders in the with values regarding the gui's state.<br>
+     * Replace some placeholders in the with values regarding the gui's state. Replaced color codes.<br>
      * The placeholders are:<br>
      * <tt>%plugin%</tt>    - The name of the plugin that this gui is from.<br>
      * <tt>%owner%</tt>     - The name of the owner of this gui. Will be an empty string when the owner is null.<br>
@@ -866,10 +867,14 @@ public class InventoryGui implements Listener {
      * <tt>%nextpage%</tt>  - The next page. "none" if there is no next page.<br>
      * <tt>%prevpage%</tt>  - The previous page. "none" if there is no previous page.<br>
      * <tt>%pages%</tt>     - The amount of pages that this gui has.
-     * @param text  The text to replace the placeholders in
+     * @param text          The text to replace the placeholders in
+     * @param replacements  Additional repplacements. i = placeholder, i+1 = replacements
      * @return      The text with all placeholders replaced
      */
-    public String replaceVars(String text) {
+    public String replaceVars(String text, String... replacements) {
+        for (int i = 0; i + 1 < replacements.length; i+=2) {
+            text = text.replace("%" + replacements[i] + "%", replacements[i + 1]);
+        }
         String[] repl = {
                 "plugin", plugin.getName(),
                 "owner", owner != null ? owner.getInventory().getName() : "",
@@ -882,6 +887,6 @@ public class InventoryGui implements Listener {
         for (int i = 0; i + 1 < repl.length; i+=2) {
             text = text.replace("%" + repl[i] + "%", repl[i + 1]);
         }
-        return text;
+        return ChatColor.translateAlternateColorCodes('&', text);
     }
 }
