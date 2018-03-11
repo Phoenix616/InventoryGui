@@ -87,6 +87,7 @@ public class GuiPageElement extends StaticGuiElement {
             }
         } catch (IllegalArgumentException e) {
             // cannot set that item amount/number as it isn't supported in Minecraft
+            setNumber(1);
         }
         return super.getItem(slot).clone();
     }
