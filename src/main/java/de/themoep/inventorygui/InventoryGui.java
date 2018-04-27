@@ -839,21 +839,23 @@ public class InventoryGui implements Listener {
     public void setItemText(ItemStack item, String... text) {
         if (item != null) {
             ItemMeta meta = item.getItemMeta();
-            if (text != null && text.length > 0) {
-                String combined = replaceVars(Arrays.stream(text)
-                        .filter(s -> !s.isEmpty())
-                        .collect(Collectors.joining("\n")));
-                String[] lines = combined.split("\n");
-                meta.setDisplayName(lines[0]);
-                if (lines.length > 1) {
-                    meta.setLore(Arrays.asList(Arrays.copyOfRange(lines, 1, lines.length)));
+            if (meta != null) {
+                if (text != null && text.length > 0) {
+                    String combined = replaceVars(Arrays.stream(text)
+                            .filter(s -> !s.isEmpty())
+                            .collect(Collectors.joining("\n")));
+                    String[] lines = combined.split("\n");
+                    meta.setDisplayName(lines[0]);
+                    if (lines.length > 1) {
+                        meta.setLore(Arrays.asList(Arrays.copyOfRange(lines, 1, lines.length)));
+                    } else {
+                        meta.setLore(null);
+                    }
                 } else {
-                    meta.setLore(null);
+                    meta.setDisplayName(null);
                 }
-            } else {
-                meta.setDisplayName(null);
+                item.setItemMeta(meta);
             }
-            item.setItemMeta(meta);
         }
     }
 
