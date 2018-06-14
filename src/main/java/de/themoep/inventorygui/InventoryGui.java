@@ -901,6 +901,10 @@ public class InventoryGui implements Listener {
         boolean itemInGui = false;
         for (int i = 0; i < click.getEvent().getView().getTopInventory().getSize(); i++) {
             if (i != click.getEvent().getRawSlot()) {
+                ItemStack viewItem = click.getEvent().getView().getTopInventory().getItem(i);
+                if (newCursor.isSimilar(viewItem)) {
+                    itemInGui = true;
+                }
                 GuiElement element = getElement(i);
                 if (element instanceof GuiStorageElement) {
                     GuiStorageElement storageElement = (GuiStorageElement) element;
@@ -910,7 +914,6 @@ public class InventoryGui implements Listener {
                             otherStorageItem = null;
                         }
                         storageElement.setStorageItem(i, otherStorageItem);
-                        itemInGui = true;
                         if (newCursor.getAmount() == newCursor.getMaxStackSize()) {
                             break;
                         }
