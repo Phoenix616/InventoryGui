@@ -78,7 +78,8 @@ public abstract class GuiElement {
 
     /**
      * Set the action that is executed when clicking on this element
-     * @param action    The action to run
+     * @param action    The action to run. The {@link Action#onClick} method should
+     *                  return whether or not the click event should be cancelled
      */
     public void setAction(Action action) {
         this.action = action;

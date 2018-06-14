@@ -517,7 +517,7 @@ public class InventoryGui implements Listener {
      * @param slot  The slot to get the element from
      * @return      The GuiElement or <tt>null</tt> if the slot is empty/there wasn't one
      */
-    private GuiElement getElement(int slot) {
+    public GuiElement getElement(int slot) {
         return slot < 0 || slot >= slots.length ? null : elements.get(slots[slot]);
     }
     
@@ -661,11 +661,7 @@ public class InventoryGui implements Listener {
 
         @EventHandler
         private void onInventoryClick(InventoryClickEvent event) {
-            if (event.getInventory().equals(inventory)) {
-                if (event.getAction() == InventoryAction.COLLECT_TO_CURSOR) {
-                    event.setCancelled(true);
-                    return;
-                }
+            if (event.getInventory().hashCode() == inventory.hashCode()) {
 
                 int slot = -1;
                 if (event.getRawSlot() < event.getView().getTopInventory().getSize()) {
@@ -686,6 +682,9 @@ public class InventoryGui implements Listener {
                 } else {
                     // Click was neither for the top inventory or outside
                     // E.g. click is in the bottom inventory
+                    if (event.getAction() == InventoryAction.COLLECT_TO_CURSOR) {
+                        simulateCollectToCursor(new GuiElement.Click(gui, slot, null, event.getClick(), event));
+                    }
                     return;
                 }
                 try {
@@ -890,5 +889,77 @@ public class InventoryGui implements Listener {
             text = text.replace("%" + repl[i] + "%", repl[i + 1]);
         }
         return ChatColor.translateAlternateColorCodes('&', text);
+    }
+    
+    /**
+     * Simulate the collecting to the cursor while respecting elements that can't be modified
+     * @param click The click that startet it all
+     */
+    void simulateCollectToCursor(GuiElement.Click click) {
+        ItemStack newCursor = click.getEvent().getCursor().clone();
+    
+        boolean itemInGui = false;
+        for (int i = 0; i < click.getEvent().getView().getTopInventory().getSize(); i++) {
+            if (i != click.getEvent().getRawSlot()) {
+                GuiElement element = getElement(i);
+                if (element instanceof GuiStorageElement) {
+                    GuiStorageElement storageElement = (GuiStorageElement) element;
+                    ItemStack otherStorageItem = storageElement.getStorageItem(i);
+                    if (addToStack(newCursor, otherStorageItem)) {
+                        if (otherStorageItem.getAmount() == 0) {
+                            otherStorageItem = null;
+                        }
+                        storageElement.setStorageItem(i, otherStorageItem);
+                        itemInGui = true;
+                        if (newCursor.getAmount() == newCursor.getMaxStackSize()) {
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    
+        if (itemInGui) {
+            click.getEvent().setCurrentItem(null);
+            click.getEvent().setCancelled(true);
+        
+            if (click.getElement() instanceof GuiStorageElement) {
+                ((GuiStorageElement) click.getElement()).setStorageItem(click.getSlot(), null);
+            }
+    
+            if (newCursor.getAmount() < newCursor.getMaxStackSize()) {
+                Inventory bottomInventory = click.getEvent().getView().getBottomInventory();
+                for (ItemStack bottomIem : bottomInventory) {
+                    if (addToStack(newCursor, bottomIem)) {
+                        if (newCursor.getAmount() == newCursor.getMaxStackSize()) {
+                            break;
+                        }
+                    }
+                }
+            }
+            click.getEvent().setCursor(newCursor);
+            draw();
+        }
+    }
+    
+    /**
+     * Add items to a stack up to the max stack size
+     * @param item  The base item
+     * @param add   The item stack to add
+     * @return <tt>true</tt> if the stack is finished; <tt>false</tt> if these stacks can't be merged
+     */
+    private static boolean addToStack(ItemStack item, ItemStack add) {
+        if (item.isSimilar(add)) {
+            int newAmount = item.getAmount() + add.getAmount();
+            if (newAmount >= item.getMaxStackSize()) {
+                item.setAmount(item.getMaxStackSize());
+                add.setAmount(newAmount - item.getAmount());
+            } else {
+                item.setAmount(newAmount);
+                add.setAmount(0);
+            }
+            return true;
+        }
+        return false;
     }
 }

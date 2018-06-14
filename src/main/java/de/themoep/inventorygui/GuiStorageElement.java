@@ -23,6 +23,7 @@ package de.themoep.inventorygui;
  */
 
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
@@ -35,7 +36,9 @@ import org.bukkit.inventory.ItemStack;
  */
 public class GuiStorageElement extends GuiElement {
     private final Inventory storage;
-
+    private final int invSlot;
+    private Runnable applyStorage;
+    
     /**
      * An element used to access an {@link Inventory}.
      * @param slotChar  The character to replace in the gui setup string.
@@ -44,7 +47,17 @@ public class GuiStorageElement extends GuiElement {
     public GuiStorageElement(char slotChar, Inventory storage) {
         this(slotChar, storage, -1);
     }
-
+    
+    /**
+     * An element used to access an {@link Inventory}.
+     * @param slotChar      The character to replace in the gui setup string.
+     * @param storage        The {@link Inventory} that this element is linked to.
+     * @param applyStorage  Apply the storage that this element represents.
+     */
+    public GuiStorageElement(char slotChar, Inventory storage, Runnable applyStorage) {
+        this(slotChar, storage, -1, applyStorage);
+    }
+    
     /**
      * An element used to access a specific slot in an {@link Inventory}.
      * @param slotChar  The character to replace in the gui setup string.
@@ -52,18 +65,32 @@ public class GuiStorageElement extends GuiElement {
      * @param invSlot   The index of the slot to access in the {@link Inventory}.
      */
     public GuiStorageElement(char slotChar, Inventory storage, int invSlot) {
+        this(slotChar, storage, invSlot, null);
+    }
+    
+    /**
+     * An element used to access a specific slot in an {@link Inventory}.
+     * @param slotChar      The character to replace in the gui setup string.
+     * @param storage       The {@link Inventory} that this element is linked to.
+     * @param invSlot       The index of the slot to access in the {@link Inventory}.
+     * @param applyStorage  Apply the storage that this element represents.
+     *                      Can be null if the storage is directly linked.
+     */
+    public GuiStorageElement(char slotChar, Inventory storage, int invSlot, Runnable applyStorage) {
         super(slotChar, null);
+        this.invSlot = invSlot;
+        this.applyStorage = applyStorage;
         setAction(click -> {
-            int index = invSlot != -1 ? invSlot : getSlotIndex(click.getSlot(), click.getGui().getPageNumber());
-            if (index == -1 || index >= storage.getSize()) {
+            if (getStorageSlot(click.getSlot()) < 0) {
                 return true;
             }
-            ItemStack storageItem = storage.getItem(index);
+            ItemStack storageItem = getStorageItem(click.getSlot());
             ItemStack slotItem = click.getEvent().getView().getTopInventory().getItem(click.getSlot());
-            if (storageItem == null && slotItem != null || storageItem != null && !storageItem.equals(slotItem)) {
-                click.getEvent().setCancelled(true);
-                click.getGui().draw();
-                return false;
+            if (slotItem == null && storageItem != null && storageItem.getType() != Material.AIR
+                    || storageItem == null && slotItem != null && slotItem.getType() != Material.AIR
+                    || storageItem != null && !storageItem.equals(slotItem)) {
+                gui.draw();
+                return true;
             }
             ItemStack movedItem = null;
             switch (click.getEvent().getAction()) {
@@ -131,16 +158,23 @@ public class GuiStorageElement extends GuiElement {
                 case SWAP_WITH_CURSOR:
                     movedItem = click.getEvent().getCursor();
                     break;
+                case COLLECT_TO_CURSOR:
+                    if (click.getEvent().getCursor() == null
+                            || click.getEvent().getCurrentItem() != null && click.getEvent().getCurrentItem().getType() != Material.AIR) {
+                        return true;
+                    }
+                    gui.simulateCollectToCursor(click);
+                    break;
                 default:
                     click.getEvent().getWhoClicked().sendMessage(ChatColor.RED + "The action " + click.getEvent().getAction() + " is not supported! Sorry about that :(");
                     return true;
             }
-            storage.setItem(index, movedItem);
+            setStorageItem(click.getSlot(), movedItem);
             return false;
         });
         this.storage = storage;
     }
-
+    
     @Override
     public ItemStack getItem(int slot) {
         int index = getSlotIndex(slot);
@@ -156,5 +190,49 @@ public class GuiStorageElement extends GuiElement {
      */
     public Inventory getStorage() {
         return storage;
+    }
+    
+    /**
+     * Get the storage slot index that corresponds to the InventoryGui slot
+     * @param slot  The slot in the GUI
+     * @return      The index of the storage slot or <tt>-1</tt> if it's outside the storage
+     */
+    private int getStorageSlot(int slot) {
+        int index = invSlot != -1 ? invSlot : getSlotIndex(slot, gui.getPageNumber());
+        if (index < 0 || index >= storage.getSize()) {
+            return -1;
+        }
+        return index;
+    }
+    
+    /**
+     * Get the item in the storage that corresponds to the InventoryGui slot
+     * @param slot  The slot in the GUI
+     * @return      The {@link ItemStack} or <tt>null</tt> if the slot is outside of the item's size
+     */
+    public ItemStack getStorageItem(int slot) {
+        int index = getStorageSlot(slot);
+        if (index == -1) {
+            return null;
+        }
+        return storage.getItem(index);
+    }
+    
+    /**
+     * Set the item in the storage that corresponds to the InventoryGui slot
+     * @param slot  The slot in the GUI
+     * @param item  The {@link ItemStack} to set
+     * @return      <tt>true</tt> if the item was set; <tt>false</tt> if the slot was outside of this storage
+     */
+    public boolean setStorageItem(int slot, ItemStack item) {
+        int index = getStorageSlot(slot);
+        if (index == -1) {
+            return false;
+        }
+        storage.setItem(index, item);
+        if (applyStorage != null) {
+            applyStorage.run();
+        }
+        return true;
     }
 }
