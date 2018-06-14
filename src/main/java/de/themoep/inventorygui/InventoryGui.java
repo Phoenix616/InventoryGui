@@ -661,7 +661,7 @@ public class InventoryGui implements Listener {
 
         @EventHandler
         private void onInventoryClick(InventoryClickEvent event) {
-            if (event.getInventory().hashCode() == inventory.hashCode()) {
+            if (event.getInventory().equals(inventory)) {
 
                 int slot = -1;
                 if (event.getRawSlot() < event.getView().getTopInventory().getSize()) {
@@ -723,7 +723,7 @@ public class InventoryGui implements Listener {
 
         @EventHandler(priority = EventPriority.MONITOR)
         public void onInventoryClose(InventoryCloseEvent event) {
-            if (event.getInventory().equals(gui.inventory)) {
+            if (event.getInventory().equals(inventory)) {
                 // go back. that checks if the player is in gui and has history
                 if ((closeAction == null || closeAction.onClose(new Close(event.getPlayer(), gui, event))) && gui.equals(getOpen(event.getPlayer()))) {
                     goBack(event.getPlayer());
