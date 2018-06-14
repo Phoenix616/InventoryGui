@@ -54,6 +54,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -705,20 +706,47 @@ public class InventoryGui implements Listener {
             }
         }
 
-        @EventHandler
+        @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
         public void onInventoryDrag(InventoryDragEvent event) {
-            if (event.getInventory().equals(inventory) && containsBelow(event.getRawSlots(), inventory.getSize())) {
-                event.setCancelled(true);
-            }
-        }
-
-        private boolean containsBelow(Set<Integer> rawSlots, int maxSlot) {
-            for (int i : rawSlots) {
-                if (i < maxSlot) {
-                    return true;
+            if (event.getInventory().equals(inventory)) {
+                int rest = 0;
+                Set<Integer> resetSlots = new HashSet<>();
+                for (Map.Entry<Integer, ItemStack> items : event.getNewItems().entrySet()) {
+                    if (items.getKey() < inventory.getSize()) {
+                        GuiElement element = getElement(items.getKey());
+                        if (element instanceof GuiStorageElement) {
+                            ((GuiStorageElement) element).setStorageItem(items.getKey(), items.getValue());
+                        } else {
+                            rest += items.getValue().getAmount();
+                            //items.getValue().setAmount(0); // can't change resulting items :/
+                            resetSlots.add(items.getKey()); // reset them manually
+                        }
+                    }
+                }
+                
+                plugin.getServer().getScheduler().runTask(plugin, () -> {
+                    for (int i : resetSlots) {
+                        event.getView().getTopInventory().setItem(i, null);
+                    }
+                });
+                
+                if (rest > 0) {
+                    if (!event.getCursor().isSimilar(event.getOldCursor())) {
+                        event.setCursor(event.getOldCursor());
+                    }
+                    int newCursorAmount = event.getCursor().getAmount() + rest;
+                    if (newCursorAmount <= event.getCursor().getMaxStackSize()) {
+                        event.getCursor().setAmount(newCursorAmount);
+                    } else {
+                        event.getCursor().setAmount(event.getCursor().getMaxStackSize());
+                        ItemStack add = event.getCursor().clone();
+                        add.setAmount(newCursorAmount - add.getMaxStackSize());
+                        for (ItemStack drop : event.getWhoClicked().getInventory().addItem(add).values()) {
+                            event.getWhoClicked().getLocation().getWorld().dropItem(event.getWhoClicked().getLocation(), drop);
+                        }
+                    }
                 }
             }
-            return false;
         }
 
         @EventHandler(priority = EventPriority.MONITOR)
