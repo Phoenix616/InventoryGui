@@ -164,7 +164,7 @@ public class GuiStorageElement extends GuiElement {
                     click.getEvent().getWhoClicked().sendMessage(ChatColor.RED + "The action " + click.getEvent().getAction() + " is not supported! Sorry about that :(");
                     return true;
             }
-            return setStorageItem(click.getSlot(), movedItem);
+            return !setStorageItem(click.getSlot(), movedItem);
         });
         this.storage = storage;
     }
