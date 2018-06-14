@@ -27,6 +27,8 @@ import org.bukkit.Material;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.function.Function;
+
 /**
  * This element is used to access an {@link Inventory}. The slots in the inventory are selected
  * by searching through the whole gui the element is in and getting the number of the spot
@@ -38,6 +40,7 @@ public class GuiStorageElement extends GuiElement {
     private final Inventory storage;
     private final int invSlot;
     private Runnable applyStorage;
+    private Function<ValidatorInfo, Boolean> itemValidator;
     
     /**
      * An element used to access an {@link Inventory}.
@@ -49,23 +52,13 @@ public class GuiStorageElement extends GuiElement {
     }
     
     /**
-     * An element used to access an {@link Inventory}.
-     * @param slotChar      The character to replace in the gui setup string.
-     * @param storage        The {@link Inventory} that this element is linked to.
-     * @param applyStorage  Apply the storage that this element represents.
-     */
-    public GuiStorageElement(char slotChar, Inventory storage, Runnable applyStorage) {
-        this(slotChar, storage, -1, applyStorage);
-    }
-    
-    /**
      * An element used to access a specific slot in an {@link Inventory}.
      * @param slotChar  The character to replace in the gui setup string.
      * @param storage   The {@link Inventory} that this element is linked to.
      * @param invSlot   The index of the slot to access in the {@link Inventory}.
      */
     public GuiStorageElement(char slotChar, Inventory storage, int invSlot) {
-        this(slotChar, storage, invSlot, null);
+        this(slotChar, storage, invSlot, null, null);
     }
     
     /**
@@ -74,12 +67,14 @@ public class GuiStorageElement extends GuiElement {
      * @param storage       The {@link Inventory} that this element is linked to.
      * @param invSlot       The index of the slot to access in the {@link Inventory}.
      * @param applyStorage  Apply the storage that this element represents.
+     * @param itemValidator Should return <tt>false</tt> for items that should not work in that slot
      *                      Can be null if the storage is directly linked.
      */
-    public GuiStorageElement(char slotChar, Inventory storage, int invSlot, Runnable applyStorage) {
+    public GuiStorageElement(char slotChar, Inventory storage, int invSlot, Runnable applyStorage, Function<ValidatorInfo, Boolean> itemValidator) {
         super(slotChar, null);
         this.invSlot = invSlot;
         this.applyStorage = applyStorage;
+        this.itemValidator = itemValidator;
         setAction(click -> {
             if (getStorageSlot(click.getSlot()) < 0) {
                 return true;
@@ -164,13 +159,12 @@ public class GuiStorageElement extends GuiElement {
                         return true;
                     }
                     gui.simulateCollectToCursor(click);
-                    break;
+                    return false;
                 default:
                     click.getEvent().getWhoClicked().sendMessage(ChatColor.RED + "The action " + click.getEvent().getAction() + " is not supported! Sorry about that :(");
                     return true;
             }
-            setStorageItem(click.getSlot(), movedItem);
-            return false;
+            return setStorageItem(click.getSlot(), movedItem);
         });
         this.storage = storage;
     }
@@ -219,7 +213,7 @@ public class GuiStorageElement extends GuiElement {
     }
     
     /**
-     * Set the item in the storage that corresponds to the InventoryGui slot
+     * Set the item in the storage that corresponds to the InventoryGui slot.
      * @param slot  The slot in the GUI
      * @param item  The {@link ItemStack} to set
      * @return      <tt>true</tt> if the item was set; <tt>false</tt> if the slot was outside of this storage
@@ -229,10 +223,81 @@ public class GuiStorageElement extends GuiElement {
         if (index == -1) {
             return false;
         }
+        if (!validateItem(slot, item)) {
+            return false;
+        }
         storage.setItem(index, item);
         if (applyStorage != null) {
             applyStorage.run();
         }
         return true;
+    }
+    
+    /**
+     * Get the runnable that applies the storage
+     * @return The storage applying runnable; might be null
+     */
+    public Runnable getApplyStorage() {
+        return applyStorage;
+    }
+    
+    /**
+     * Set what should be done to apply the storage.
+     * Not necessary if the storage is directly backed by a real inventory.
+     * @param applyStorage  How to apply the storage; can be null if nothing should be done
+     */
+    public void setApplyStorage(Runnable applyStorage) {
+        this.applyStorage = applyStorage;
+    }
+    
+    /**
+     * Get the item validator
+     * @return  The item validator
+     */
+    public Function<ValidatorInfo, Boolean> getItemValidator() {
+        return itemValidator;
+    }
+    
+    /**
+     * Set a function that can validate whether or not an item can fit in the slot
+     * @param itemValidator The item validator that takes a {@link ValidatorInfo} and returns <tt>true</tt> for items that
+     *                      should and <tt>false</tt> for items that should not work in that slot
+     */
+    public void setItemValidator(Function<ValidatorInfo, Boolean> itemValidator) {
+        this.itemValidator = itemValidator;
+    }
+    
+    /**
+     * Validate whether or not an item can be put in a slot with the item validator set in {@link #setItemValidator(Function)}
+     * @param slot  The slot the item should be tested for
+     * @param item  The item to test
+     * @return      <tt>true</tt> for items that should and <tt>false</tt> for items that should not work in that slot
+     */
+    public boolean validateItem(int slot, ItemStack item) {
+        return itemValidator == null || itemValidator.apply(new ValidatorInfo(this, slot, item));
+    }
+    
+    public static class ValidatorInfo {
+        private final GuiElement element;
+        private final int slot;
+        private final ItemStack item;
+    
+        public ValidatorInfo(GuiElement element, int slot, ItemStack item) {
+            this.item = item;
+            this.slot = slot;
+            this.element = element;
+        }
+    
+        public GuiElement getElement() {
+            return element;
+        }
+    
+        public int getSlot() {
+            return slot;
+        }
+    
+        public ItemStack getItem() {
+            return item;
+        }
     }
 }

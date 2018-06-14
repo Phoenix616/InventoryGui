@@ -714,9 +714,8 @@ public class InventoryGui implements Listener {
                 for (Map.Entry<Integer, ItemStack> items : event.getNewItems().entrySet()) {
                     if (items.getKey() < inventory.getSize()) {
                         GuiElement element = getElement(items.getKey());
-                        if (element instanceof GuiStorageElement) {
-                            ((GuiStorageElement) element).setStorageItem(items.getKey(), items.getValue());
-                        } else {
+                        if (element instanceof GuiStorageElement
+                                && !((GuiStorageElement) element).setStorageItem(items.getKey(), items.getValue())) {
                             rest += items.getValue().getAmount();
                             //items.getValue().setAmount(0); // can't change resulting items :/
                             resetSlots.add(items.getKey()); // reset them manually
