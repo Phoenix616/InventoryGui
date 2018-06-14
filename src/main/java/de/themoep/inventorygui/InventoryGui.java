@@ -88,7 +88,7 @@ public class InventoryGui implements Listener {
     private boolean listenersRegistered = false;
     private int pageNumber = 0;
     private int pageAmount = 1;
-    private GuiElement.Action outsideAction = null;
+    private GuiElement.Action outsideAction = click -> false;
     private CloseAction closeAction = close -> true;
     
     static {
