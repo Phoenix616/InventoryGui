@@ -730,7 +730,7 @@ public class InventoryGui implements Listener {
                 });
                 
                 if (rest > 0) {
-                    if (!event.getCursor().isSimilar(event.getOldCursor())) {
+                    if (!event.getOldCursor().isSimilar(event.getCursor())) {
                         event.setCursor(event.getOldCursor());
                     }
                     int newCursorAmount = event.getCursor().getAmount() + rest;
