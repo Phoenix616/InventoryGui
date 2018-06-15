@@ -77,17 +77,12 @@ public class GuiPageElement extends StaticGuiElement {
                 || (pageAction == PageAction.PREVIOUS && gui.getPageNumber() == 0)) {
             return gui.getFiller().getItem(slot);
         }
-        try {
-            if (pageAction == PageAction.PREVIOUS) {
-                setNumber(gui.getPageNumber());
-            } else if (pageAction == PageAction.NEXT) {
-                setNumber(gui.getPageNumber() + 2);
-            } else if (pageAction == PageAction.LAST) {
-                setNumber(gui.getPageAmount());
-            }
-        } catch (IllegalArgumentException e) {
-            // cannot set that item amount/number as it isn't supported in Minecraft
-            setNumber(1);
+        if (pageAction == PageAction.PREVIOUS) {
+            setNumber(gui.getPageNumber());
+        } else if (pageAction == PageAction.NEXT) {
+            setNumber(gui.getPageNumber() + 2);
+        } else if (pageAction == PageAction.LAST) {
+            setNumber(gui.getPageAmount());
         }
         return super.getItem(slot).clone();
     }

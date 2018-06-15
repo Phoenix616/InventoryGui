@@ -124,13 +124,15 @@ public class StaticGuiElement extends GuiElement {
     /**
      * Set the number that this element should display (via the Item's amount)
      * @param number    The number, 1 will not display the number
-     * @throws IllegalArgumentException If the number is below 1 or above the max stack count (currently 64)
+     * @return          <tt>true</tt> if the number was set; <tt>false</tt> if it was below 1 or above 64
      */
-    public void setNumber(int number) throws IllegalArgumentException {
+    public boolean setNumber(int number) {
         if (number < 1 || number > 64) {
-            throw new IllegalArgumentException("Only numbers from 1 to 64 are allowed. (" + number + ")");
+            this.number = 1;
+            return false;
         }
         this.number = number;
+        return true;
     }
 
     /**
