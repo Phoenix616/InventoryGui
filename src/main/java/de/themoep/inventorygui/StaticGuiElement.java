@@ -91,6 +91,15 @@ public class StaticGuiElement extends GuiElement {
         this.item = item;
     }
 
+    /**
+     * Get the raw item displayed by this element which was passed to the constructor or set with {@link #setItem(ItemStack)}.
+     * This item will not have the amount or text applied! Use {@link #getItem(int)} for that!
+     * @return  The raw item
+     */
+    public ItemStack getRawItem() {
+        return item;
+    }
+
     @Override
     public ItemStack getItem(int slot) {
         ItemStack clone = item.clone();
