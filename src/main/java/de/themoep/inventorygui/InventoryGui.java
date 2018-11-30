@@ -877,8 +877,6 @@ public class InventoryGui implements Listener {
                     } else {
                         meta.setLore(null);
                     }
-                } else {
-                    meta.setDisplayName(null);
                 }
                 item.setItemMeta(meta);
             }
