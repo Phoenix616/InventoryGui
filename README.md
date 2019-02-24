@@ -17,9 +17,9 @@ Any empty slot will be filled with a filler character that you can also define y
 
 ```java
 String[] guiSetup = {
-    "         ",
     "  s i z  ",
-    "         "
+    "  ggggg  ",
+    "  fpdnl  "
 };
 ```
 
@@ -33,7 +33,7 @@ If the holder is `null` then you are not able to retrieve the GUI by the holder 
 
 ```java
 InventoryGui gui = new InventoryGui(yourPlugin, theInventoryHolder, guiTitle, guiSetup);
-gui.setFiller(new ItemStack(Material.STAINED_GLASS_PANE, 1, 15)); // fill the empty slots with this
+gui.setFiller(new ItemStack(Material.GRAY_STAINED_GLASS, 1)); // fill the empty slots with this
 ```
 
 ### Adding to the GUI
@@ -42,9 +42,10 @@ With these elements you define the actions that should happen when the player in
 E.g. you can run some code when the player clicks it. Some elements (like the state one) have predefined
 actions that happen when they are clicked. (e.g. toggling between the possible states)
 
+#### Static Element
+A simple, static element that runs some action when it is clicked.
 ```java
-// A simple, static element that runs some action when it is clicked
-gui.addElement(new GuiStaticElement('s',
+gui.addElement(new StaticGuiElement('s',
         new ItemStack(Material.REDSTONE),
         click -> {
             if (click.getEvent().getWhoClicked().getName().equals("Redstone") {
@@ -58,14 +59,18 @@ gui.addElement(new GuiStaticElement('s',
         "any additional ones as the lore!",
         "Any text the ItemStack had will be overwritten."
 )); 
-
-// Element that directly accesses the holder inventory
-// If the element is displayed only in one slot it will show the first item in the inventory.
-// In two slots the first two and so one.
+```
+#### Storage Element
+An Element that directly accesses the holder inventory.
+If the element is displayed only in one slot it will show the first item in the inventory.
+In two slots the first two and so on.
+```java
 gui.addElement(new GuiStorageElement('i', theInventoryHolder.getInventory()));
-
-// An element that can have certain states that trigger some code when changed to
-// and automatically changes the ItemStack icon
+```
+#### State Element
+An element that can have certain states that trigger some coe when changed to.
+and automatically changes the ItemStack icon.
+```java
 gui.addElement(new GuiStateElement('z', 
         new GuiStateElement.State(
                 change -> {
@@ -87,12 +92,53 @@ gui.addElement(new GuiStateElement('z',
                 ChatColor.RED + "Disable flying!",
                 "By clicking here you will stop flying"
         )
-        // ... you can define as many states as you want, they will cycle through on each click
-        // you can also set the state directly via setState(String key)
-));            
+));
 ```
-The library includes some additional element types: `GuiElementGroup` and `GuiPageElement`.
-These are currently in testing and their API subject to change.
+... you can define as many states as you want, they will cycle through on each click
+you can also set the state directly via `GuiStateElement#setState(String key)`
+
+#### Dynamic Element
+You can also dynamically load elements each time the GUI is re-drawn. E.g. when you want to cache GUIs but not the 
+text of some buttons or dynamically change them while they are open without closing and reopening them.
+Dynamic elements just return one of the other elements that should be displayed each time `InventoryGui#draw` is called.
+The slot character for the returned element doesn't really play a role, it is recommended to set it to
+the DynamicGuiElement's slot character though.
+```java
+gui.addElement(new DynamicGuiElement('d', () -> {
+    return new StaticGuiElement('d', new ItemStack (Material.CLOCK), "Update time: " + new SimpleDateFormat("HH:mm:ss").format(new Date()));
+}));
+```
+If you want to change the content of a DynamicGuiElement after a player click on it just call `InventoryGui#draw` in the action of the supplied element.
+
+#### Element Group
+A group can contain multiple different elements and if there are more elements in the group than display slot you can use the GuiPageElement to switch between pages.
+
+```java
+GuiElementGroup group = new GuiElementGroup();
+for (String text : texts) {
+    // Add an element to the group
+    // Elements are in the order they got added to the group and don't need to have the same type.
+    group.addElement((new StaticGuiElement('e', new ItemStack(Material.DIRT), text);
+}
+gui.addElement(group);
+```
+##### Pagination
+It will automatically detect GuiElementGroup elements with more elements in them than available slots with that cahracter in the GUI and go to the according page on click. (depending on type)
+There are also some pagination specific placeholders available for the element descriptions.
+
+```java
+// First page
+gui.addElement(new GuiPageElement('f', new ItemStack(Material.ARROW), PageAction.FIRST, "Go to first page (current: %page%)"));
+
+// Previous page
+gui.addElement(new GuiPageElement('p', new ItemStack(Material.SIGN), PageAction.PREVIOUS, "Go to previous page (%prevpage%)"));
+
+// Next page
+gui.addElement(new GuiPageElement('n', new ItemStack(Material.SIGN), PageAction.NEXT, "Go to next page (%nextpage%)"));
+
+// Last page
+gui.addElement(new GuiPageElement('l', new ItemStack(Material.ARROW), PageAction.LAST, "Go to last page (%pages%)"));
+```
 
 ### Retrieving and showing the GUI
 After you have created the GUI you can retrieve it with the original holder and show it to a player.
