@@ -68,7 +68,7 @@ In two slots the first two and so on.
 gui.addElement(new GuiStorageElement('i', theInventoryHolder.getInventory()));
 ```
 #### State Element
-An element that can have certain states that trigger some coe when changed to.
+An element that can have certain states that trigger some code when changed to.
 and automatically changes the ItemStack icon.
 ```java
 gui.addElement(new GuiStateElement('z', 
