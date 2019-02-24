@@ -123,7 +123,7 @@ for (String text : texts) {
 gui.addElement(group);
 ```
 ##### Pagination
-It will automatically detect GuiElementGroup elements with more elements in them than available slots with that cahracter in the GUI and go to the according page on click. (depending on type)
+It will automatically detect GuiElementGroup elements with more elements in them than available slots with that character in the GUI and go to the according page on click. (depending on type)
 There are also some pagination specific placeholders available for the element descriptions.
 
 ```java
