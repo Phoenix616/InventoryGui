@@ -121,6 +121,7 @@ public class InventoryGui implements Listener {
      * @param rows      How your rows are setup. Each element is getting assigned to a character.
      *                  Empty/missing ones get filled with the Filler.
      * @param elements  The {@link GuiElement}s that the gui should have. You can also use {@link #addElement(GuiElement)} later.
+     * @throws IllegalArgumentException Thrown when the provided rows cannot be matched to an InventoryType
      */
     public InventoryGui(JavaPlugin plugin, InventoryHolder owner, String title, String[] rows, GuiElement... elements) {
         this.plugin = plugin;
@@ -141,6 +142,9 @@ public class InventoryGui implements Listener {
                 inventoryType = INVENTORY_TYPES[i];
                 break;
             }
+        }
+        if (inventoryType == null) {
+            throw new IllegalArgumentException("Could not match row setup to an inventory type!");
         }
 
         StringBuilder slotsBuilder = new StringBuilder();
@@ -172,6 +176,7 @@ public class InventoryGui implements Listener {
      * @param rows      How your rows are setup. Each element is getting assigned to a character.
      *                  Empty/missing ones get filled with the Filler.
      * @param elements  The {@link GuiElement}s that the gui should have. You can also use {@link #addElement(GuiElement)} later.
+     * @throws IllegalArgumentException Thrown when the provided rows cannot be matched to an InventoryType
      */
     public InventoryGui(JavaPlugin plugin, String title, String[] rows, GuiElement... elements) {
         this(plugin, null, title, rows, elements);
@@ -186,6 +191,7 @@ public class InventoryGui implements Listener {
      * @param rows      How your rows are setup. Each element is getting assigned to a character.
      *                  Empty/missing ones get filled with the Filler.
      * @param elements  The {@link GuiElement}s that the gui should have. You can also use {@link #addElement(GuiElement)} later.
+     * @throws IllegalArgumentException Thrown when the provided rows cannot be matched to an InventoryType
      */
     public InventoryGui(JavaPlugin plugin, InventoryHolder owner, String title, String[] rows, Collection<GuiElement> elements) {
         this(plugin, owner, title, rows);
