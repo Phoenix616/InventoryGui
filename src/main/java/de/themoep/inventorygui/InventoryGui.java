@@ -736,10 +736,12 @@ public class InventoryGui implements Listener {
                 });
                 
                 if (rest > 0) {
+                    int cursorAmount = event.getCursor().getAmount();
                     if (!event.getOldCursor().isSimilar(event.getCursor())) {
                         event.setCursor(event.getOldCursor());
+                        cursorAmount = 0;
                     }
-                    int newCursorAmount = event.getCursor().getAmount() + rest;
+                    int newCursorAmount = cursorAmount + rest;
                     if (newCursorAmount <= event.getCursor().getMaxStackSize()) {
                         event.getCursor().setAmount(newCursorAmount);
                     } else {
