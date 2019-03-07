@@ -745,9 +745,12 @@ public class InventoryGui implements Listener {
                     } else {
                         event.getCursor().setAmount(event.getCursor().getMaxStackSize());
                         ItemStack add = event.getCursor().clone();
-                        add.setAmount(newCursorAmount - add.getMaxStackSize());
-                        for (ItemStack drop : event.getWhoClicked().getInventory().addItem(add).values()) {
-                            event.getWhoClicked().getLocation().getWorld().dropItem(event.getWhoClicked().getLocation(), drop);
+                        int addAmount = newCursorAmount - event.getCursor().getMaxStackSize();
+                        if (addAmount > 0) {
+                            add.setAmount(addAmount);
+                            for (ItemStack drop : event.getWhoClicked().getInventory().addItem(add).values()) {
+                                event.getWhoClicked().getLocation().getWorld().dropItem(event.getWhoClicked().getLocation(), drop);
+                            }
                         }
                     }
                 }
