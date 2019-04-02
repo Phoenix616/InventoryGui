@@ -223,18 +223,28 @@ public class InventoryGui implements Listener {
      * @param slotChar  The character to replace in the gui setup string
      * @param item      The item that should be displayed
      * @param action    The {@link de.themoep.inventorygui.GuiElement.Action} to run when the player clicks on this element
+     * @param text      The text to display on this element, placeholders are automatically
+     *                  replaced, see {@link InventoryGui#replaceVars} for a list of the
+     *                  placeholder variables. Empty text strings are also filter out, use
+     *                  a single space if you want to add an empty line!<br>
+     *                  If it's not set/empty the item's default name will be used
      */
-    public void addElement(char slotChar, ItemStack item, GuiElement.Action action) {
-        addElement(new StaticGuiElement(slotChar, item, action));
+    public void addElement(char slotChar, ItemStack item, GuiElement.Action action, String... text) {
+        addElement(new StaticGuiElement(slotChar, item, action, text));
     }
 
     /**
      * Create and add a {@link StaticGuiElement} that has no action.
      * @param slotChar  The character to replace in the gui setup string
      * @param item      The item that should be displayed
+     * @param text      The text to display on this element, placeholders are automatically
+     *                  replaced, see {@link InventoryGui#replaceVars} for a list of the
+     *                  placeholder variables. Empty text strings are also filter out, use
+     *                  a single space if you want to add an empty line!<br>
+     *                  If it's not set/empty the item's default name will be used
      */
-    public void addElement(char slotChar, ItemStack item) {
-        addElement(new StaticGuiElement(slotChar, item, null));
+    public void addElement(char slotChar, ItemStack item, String... text) {
+        addElement(new StaticGuiElement(slotChar, item, null, text));
     }
 
     /**
@@ -242,9 +252,14 @@ public class InventoryGui implements Listener {
      * @param slotChar      The character to replace in the gui setup string
      * @param materialData  The {@link MaterialData} of the item of tihs element
      * @param action         The {@link de.themoep.inventorygui.GuiElement.Action} to run when the player clicks on this element
+     * @param text      The text to display on this element, placeholders are automatically
+     *                  replaced, see {@link InventoryGui#replaceVars} for a list of the
+     *                  placeholder variables. Empty text strings are also filter out, use
+     *                  a single space if you want to add an empty line!<br>
+     *                  If it's not set/empty the item's default name will be used
      */
-    public void addElement(char slotChar, MaterialData materialData, GuiElement.Action action) {
-        addElement(slotChar, materialData.toItemStack(1), action);
+    public void addElement(char slotChar, MaterialData materialData, GuiElement.Action action, String... text) {
+        addElement(slotChar, materialData.toItemStack(1), action, text);
     }
 
     /**
@@ -253,9 +268,14 @@ public class InventoryGui implements Listener {
      * @param material  The {@link Material} that the item should have
      * @param data      The <tt>byte</tt> representation of the material data of this element
      * @param action    The {@link GuiElement.Action} to run when the player clicks on this element
+     * @param text      The text to display on this element, placeholders are automatically
+     *                  replaced, see {@link InventoryGui#replaceVars} for a list of the
+     *                  placeholder variables. Empty text strings are also filter out, use
+     *                  a single space if you want to add an empty line!<br>
+     *                  If it's not set/empty the item's default name will be used
      */
-    public void addElement(char slotChar, Material material, byte data, GuiElement.Action action) {
-        addElement(slotChar, new MaterialData(material, data), action);
+    public void addElement(char slotChar, Material material, byte data, GuiElement.Action action, String... text) {
+        addElement(slotChar, new MaterialData(material, data), action, text);
     }
 
     /**
@@ -263,9 +283,14 @@ public class InventoryGui implements Listener {
      * @param slotChar  The character to replace in the gui setup string
      * @param material  The {@link Material} that the item should have
      * @param action    The {@link GuiElement.Action} to run when the player clicks on this element
+     * @param text      The text to display on this element, placeholders are automatically
+     *                  replaced, see {@link InventoryGui#replaceVars} for a list of the
+     *                  placeholder variables. Empty text strings are also filter out, use
+     *                  a single space if you want to add an empty line!<br>
+     *                  If it's not set/empty the item's default name will be used
      */
-    public void addElement(char slotChar, Material material, GuiElement.Action action) {
-        addElement(slotChar, material, (byte) 0, action);
+    public void addElement(char slotChar, Material material, GuiElement.Action action, String... text) {
+        addElement(slotChar, material, (byte) 0, action, text);
     }
 
     /**
