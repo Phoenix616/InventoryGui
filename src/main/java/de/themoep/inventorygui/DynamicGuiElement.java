@@ -51,7 +51,9 @@ public class DynamicGuiElement extends GuiElement {
     public void update() {
         lastCached = System.currentTimeMillis();
         cachedElement = query.get();
-        cachedElement.setGui(gui);
+        if (cachedElement != null) {
+            cachedElement.setGui(gui);
+        }
     }
     
     @Override
@@ -65,13 +67,13 @@ public class DynamicGuiElement extends GuiElement {
     @Override
     public ItemStack getItem(int slot) {
         update();
-        return getCachedElement().getItem(slot);
+        return cachedElement != null ? cachedElement.getItem(slot) : null;
     }
     
     @Override
     public Action getAction() {
         update();
-        return getCachedElement().getAction();
+        return cachedElement != null ? cachedElement.getAction() : null;
     }
     
     /**
