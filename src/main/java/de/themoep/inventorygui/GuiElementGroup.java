@@ -68,6 +68,9 @@ public class GuiElementGroup extends GuiElement {
         for (GuiElement element : elements) {
             element.setGui(gui);
         }
+        if (filler != null) {
+            filler.setGui(gui);
+        }
     }
     
     @Override
@@ -140,6 +143,7 @@ public class GuiElementGroup extends GuiElement {
      */
     public void setFiller(ItemStack item) {
         filler = new StaticGuiElement(' ', item, " ");
+        filler.setGui(gui);
     }
     
     /**
