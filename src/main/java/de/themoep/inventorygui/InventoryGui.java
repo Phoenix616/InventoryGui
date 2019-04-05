@@ -788,8 +788,12 @@ public class InventoryGui implements Listener {
         public void onInventoryClose(InventoryCloseEvent event) {
             if (event.getInventory().equals(inventory)) {
                 // go back. that checks if the player is in gui and has history
-                if ((closeAction == null || closeAction.onClose(new Close(event.getPlayer(), gui, event))) && gui.equals(getOpen(event.getPlayer()))) {
-                    goBack(event.getPlayer());
+                if (gui.equals(getOpen(event.getPlayer()))) {
+                    if (closeAction == null || closeAction.onClose(new Close(event.getPlayer(), gui, event))) {
+                        goBack(event.getPlayer());
+                    } else {
+                        clearHistory(event.getPlayer());
+                    }
                 }
                 if (inventory.getViewers().size() <= 1) {
                     destroy(false);
