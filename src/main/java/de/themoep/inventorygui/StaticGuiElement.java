@@ -102,6 +102,9 @@ public class StaticGuiElement extends GuiElement {
 
     @Override
     public ItemStack getItem(int slot) {
+        if (item == null) {
+            return null;
+        }
         ItemStack clone = item.clone();
         gui.setItemText(clone, getText());
         if (number > 0 && number <= 64) {
