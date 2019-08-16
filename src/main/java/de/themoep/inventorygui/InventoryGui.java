@@ -936,7 +936,7 @@ public class InventoryGui implements Listener {
      */
     public String replaceVars(String text, String... replacements) {
         for (int i = 0; i + 1 < replacements.length; i+=2) {
-            text = text.replace("%" + replacements[i] + "%", replacements[i + 1]);
+            text = text.replace("%" + replacements[i] + "%", replacements[i + 1] != null ? replacements[i + 1] : "null");
         }
         String[] repl = {
                 "plugin", plugin.getName(),
@@ -948,7 +948,7 @@ public class InventoryGui implements Listener {
                 "pages", String.valueOf(getPageAmount())
         };
         for (int i = 0; i + 1 < repl.length; i+=2) {
-            text = text.replace("%" + repl[i] + "%", repl[i + 1]);
+            text = text.replace("%" + repl[i] + "%", repl[i + 1] != null ? repl[i + 1] : "");
         }
         return ChatColor.translateAlternateColorCodes('&', text);
     }
