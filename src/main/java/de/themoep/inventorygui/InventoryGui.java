@@ -60,6 +60,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Level;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -77,6 +79,8 @@ public class InventoryGui implements Listener {
 
     private final static Map<String, InventoryGui> GUI_MAP = new HashMap<>();
     private final static Map<UUID, ArrayDeque<InventoryGui>> GUI_HISTORY = new HashMap<>();
+
+    private final static Map<String, Pattern> PATTERN_CACHE = new HashMap<>();
 
     private final JavaPlugin plugin;
     private GuiListener listener = new GuiListener(this);
@@ -935,10 +939,7 @@ public class InventoryGui implements Listener {
      * @return      The text with all placeholders replaced
      */
     public String replaceVars(String text, String... replacements) {
-        for (int i = 0; i + 1 < replacements.length; i+=2) {
-            text = text.replace("%" + replacements[i] + "%", replacements[i + 1] != null ? replacements[i + 1] : "null");
-        }
-        String[] repl = {
+        text = replace(replace(text, replacements),
                 "plugin", plugin.getName(),
                 "owner", owner instanceof Nameable ? ((Nameable) owner).getCustomName() : "",
                 "title", title,
@@ -946,11 +947,29 @@ public class InventoryGui implements Listener {
                 "nextpage", getPageNumber() + 1 < getPageAmount() ? String.valueOf(getPageNumber() + 2) : "none",
                 "prevpage", getPageNumber() > 0 ? String.valueOf(getPageNumber()) : "none",
                 "pages", String.valueOf(getPageAmount())
-        };
-        for (int i = 0; i + 1 < repl.length; i+=2) {
-            text = text.replace("%" + repl[i] + "%", repl[i + 1] != null ? repl[i + 1] : "");
-        }
+        );
         return ChatColor.translateAlternateColorCodes('&', text);
+    }
+
+    /**
+     * Replace placeholders in a string
+     * @param string        The string to replace in
+     * @param replacements  What to replace the placeholders with. The n-th index is the placeholder, the n+1-th the value.
+     * @return The string with all placeholders replaced (using the configured placeholder prefix and suffix)
+     */
+    private String replace(String string, String... replacements) {
+        for (int i = 0; i + 1 < replacements.length; i+=2) {
+            if (replacements[i] == null) {
+                continue;
+            }
+            String placeholder = "%" + replacements[i] + "%";
+            Pattern pattern = PATTERN_CACHE.get(placeholder);
+            if (pattern == null) {
+                PATTERN_CACHE.put(placeholder, pattern = Pattern.compile(placeholder, Pattern.LITERAL));
+            }
+            string = pattern.matcher(string).replaceAll(Matcher.quoteReplacement(replacements[i+1] != null ? replacements[i+1] : "null"));
+        }
+        return string;
     }
     
     /**
