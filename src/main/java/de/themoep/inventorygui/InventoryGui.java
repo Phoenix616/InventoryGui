@@ -399,7 +399,7 @@ public class InventoryGui implements Listener {
      * @param checkOpen Whether or not it should check if this gui is already open
      */
     public void show(HumanEntity player, boolean checkOpen) {
-        draw();
+        draw(player);
         if (!checkOpen || !this.equals(getOpen(player))) {
             if (player.getOpenInventory().getType() != InventoryType.CRAFTING) {
                 // If the player already has a gui open then we assume that the call was from that gui.
@@ -443,6 +443,18 @@ public class InventoryGui implements Listener {
      * Draw the elements in the inventory. This can be used to manually refresh the gui.
      */
     public void draw() {
+        if (!getInventory().getViewers().isEmpty()) {
+            draw(getInventory().getViewers().get(0));
+        } else {
+            draw(null);
+        }
+    }
+
+    /**
+     * Draw the elements in the inventory. This can be used to manually refresh the gui.
+     * @param who For who to draw the GUI
+     */
+    public void draw(HumanEntity who) {
         if (inventory == null) {
             build();
         } else {
@@ -454,7 +466,7 @@ public class InventoryGui implements Listener {
                 element = getFiller();
             }
             if (element != null) {
-                inventory.setItem(i, element.getItem(i));
+                inventory.setItem(i, element.getItem(who, i));
             }
         }
     }
@@ -712,7 +724,7 @@ public class InventoryGui implements Listener {
                 if (slot >= 0) {
                     element = getElement(slot);
                     if (element != null) {
-                        action = element.getAction();
+                        action = element.getAction(event.getWhoClicked());
                     }
                 } else if (slot == -999) {
                     action = outsideAction;
@@ -738,7 +750,7 @@ public class InventoryGui implements Listener {
             } else if (hasRealOwner() && owner.equals(event.getInventory().getHolder())) {
                 // Click into inventory by same owner but not the inventory of the GUI
                 // Assume that the underlying inventory changed and redraw the GUI
-                plugin.getServer().getScheduler().runTask(plugin, gui::draw);
+                plugin.getServer().getScheduler().runTask(plugin, (Runnable) gui::draw);
             }
         }
 
@@ -809,14 +821,14 @@ public class InventoryGui implements Listener {
         @EventHandler(priority = EventPriority.MONITOR)
         public void onInventoryMoveItem(InventoryMoveItemEvent event) {
             if (hasRealOwner() && (owner.equals(event.getDestination().getHolder()) || owner.equals(event.getSource().getHolder()))) {
-                plugin.getServer().getScheduler().runTask(plugin, gui::draw);
+                plugin.getServer().getScheduler().runTask(plugin, (Runnable) gui::draw);
             }
         }
 
         @EventHandler(priority = EventPriority.MONITOR)
         public void onDispense(BlockDispenseEvent event) {
             if (hasRealOwner() && owner.equals(event.getBlock().getState())) {
-                plugin.getServer().getScheduler().runTask(plugin, gui::draw);
+                plugin.getServer().getScheduler().runTask(plugin, (Runnable) gui::draw);
             }
         }
 

@@ -22,15 +22,17 @@ package de.themoep.inventorygui;
  * SOFTWARE.
  */
 
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
  * Represents an element in a gui that will query all it's data when drawn.
  */
 public class DynamicGuiElement extends GuiElement {
-    private Supplier<GuiElement> query;
+    private Function<HumanEntity, GuiElement> query;
     private GuiElement cachedElement;
     private long lastCached = 0;
     
@@ -40,17 +42,34 @@ public class DynamicGuiElement extends GuiElement {
      * @param query     Query the element data, this should return an element with the information
      */
     public DynamicGuiElement(char slotChar, Supplier<GuiElement> query) {
+        this(slotChar, (h) -> query.get());
+    }
+
+    /**
+     * Represents an element in a gui that will query all it's data when drawn.
+     * @param slotChar  The character to replace in the gui setup string
+     * @param query     Query the element data, this should return an element with the information and handle null players properly
+     */
+    public DynamicGuiElement(char slotChar, Function<HumanEntity, GuiElement> query) {
         super(slotChar);
         this.query = query;
-        update();
     }
     
     /**
      * Query this element's state even if it shouldn't be done yet
+     * @deprecated Use {@link #update(HumanEntity)}
      */
+    @Deprecated
     public void update() {
+        update(null);
+    }
+
+    /**
+     * Query this element's state even if it shouldn't be done yet
+     */
+    public void update(HumanEntity player) {
         lastCached = System.currentTimeMillis();
-        cachedElement = query.get();
+        cachedElement = query.apply(player);
         if (cachedElement != null) {
             cachedElement.setGui(gui);
             cachedElement.setSlots(slots);
@@ -66,22 +85,22 @@ public class DynamicGuiElement extends GuiElement {
     }
     
     @Override
-    public ItemStack getItem(int slot) {
-        update();
-        return cachedElement != null ? cachedElement.getItem(slot) : null;
+    public ItemStack getItem(HumanEntity who, int slot) {
+        update(who);
+        return cachedElement != null ? cachedElement.getItem(who, slot) : null;
     }
     
     @Override
-    public Action getAction() {
-        update();
-        return cachedElement != null ? cachedElement.getAction() : null;
+    public Action getAction(HumanEntity who) {
+        update(who);
+        return cachedElement != null ? cachedElement.getAction(who) : null;
     }
     
     /**
      * Get the supplier for this element's content
      * @return The supplier query
      */
-    public Supplier<GuiElement> getQuery() {
+    public Function<HumanEntity, GuiElement> getQuery() {
         return query;
     }
     
@@ -89,17 +108,18 @@ public class DynamicGuiElement extends GuiElement {
      * Set the supplier for this element's content
      * @param query The supplier query to set
      */
-    public void setQuery(Supplier<GuiElement> query) {
+    public void setQuery(Function<HumanEntity, GuiElement> query) {
         this.query = query;
     }
     
     /**
      * Get the cached element, creates a new one if there is none
+     * @param who The player to get the element for
      * @return The element that is currently cached
      */
-    public GuiElement getCachedElement() {
+    public GuiElement getCachedElement(HumanEntity who) {
         if (cachedElement == null) {
-            update();
+            update(who);
         }
         return cachedElement;
     }

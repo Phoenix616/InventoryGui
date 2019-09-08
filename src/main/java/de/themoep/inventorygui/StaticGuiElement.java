@@ -22,6 +22,7 @@ package de.themoep.inventorygui;
  * SOFTWARE.
  */
 
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.inventory.ItemStack;
 
 /**
@@ -101,7 +102,7 @@ public class StaticGuiElement extends GuiElement {
     }
 
     @Override
-    public ItemStack getItem(int slot) {
+    public ItemStack getItem(HumanEntity who, int slot) {
         if (item == null) {
             return null;
         }

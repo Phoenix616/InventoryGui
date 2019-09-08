@@ -22,6 +22,7 @@ package de.themoep.inventorygui;
  * SOFTWARE.
  */
 
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
@@ -63,16 +64,18 @@ public abstract class GuiElement {
 
     /**
      * Get the item that is displayed by this element on a certain page
+     * @param who   The player who views the page
      * @param slot  The slot to get the item for
      * @return      The ItemStack that is displayed as this element
      */
-    public abstract ItemStack getItem(int slot);
+    public abstract ItemStack getItem(HumanEntity who, int slot);
 
     /**
      * Get the action that is executed when clicking on this element
+     * @param who   The player who views the page
      * @return      The action to run
      */
-    public Action getAction() {
+    public Action getAction(HumanEntity who) {
         return action;
     }
 

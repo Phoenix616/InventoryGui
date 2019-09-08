@@ -24,6 +24,7 @@ package de.themoep.inventorygui;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
@@ -84,7 +85,7 @@ public class GuiStorageElement extends GuiElement {
             if (slotItem == null && storageItem != null && storageItem.getType() != Material.AIR
                     || storageItem == null && slotItem != null && slotItem.getType() != Material.AIR
                     || storageItem != null && !storageItem.equals(slotItem)) {
-                gui.draw();
+                gui.draw(click.getEvent().getWhoClicked());
                 return true;
             }
             ItemStack movedItem = null;
@@ -170,7 +171,7 @@ public class GuiStorageElement extends GuiElement {
     }
     
     @Override
-    public ItemStack getItem(int slot) {
+    public ItemStack getItem(HumanEntity who, int slot) {
         int index = getSlotIndex(slot);
         if (index > -1 && index < storage.getSize()) {
             return storage.getItem(index);

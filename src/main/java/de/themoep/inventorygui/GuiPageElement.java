@@ -22,6 +22,7 @@ package de.themoep.inventorygui;
  * SOFTWARE.
  */
 
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.inventory.ItemStack;
 
 /**
@@ -72,10 +73,10 @@ public class GuiPageElement extends StaticGuiElement {
     }
 
     @Override
-    public ItemStack getItem(int slot) {
+    public ItemStack getItem(HumanEntity who, int slot) {
         if ((pageAction == PageAction.NEXT && gui.getPageNumber() + 1 >= gui.getPageAmount())
                 || (pageAction == PageAction.PREVIOUS && gui.getPageNumber() == 0)) {
-            return gui.getFiller().getItem(slot);
+            return gui.getFiller().getItem(who, slot);
         }
         if (pageAction == PageAction.PREVIOUS) {
             setNumber(gui.getPageNumber());
@@ -84,7 +85,7 @@ public class GuiPageElement extends StaticGuiElement {
         } else if (pageAction == PageAction.LAST) {
             setNumber(gui.getPageAmount());
         }
-        return super.getItem(slot).clone();
+        return super.getItem(who, slot).clone();
     }
 
     public enum PageAction {

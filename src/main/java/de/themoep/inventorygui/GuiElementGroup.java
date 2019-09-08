@@ -22,6 +22,7 @@ package de.themoep.inventorygui;
  * SOFTWARE.
  */
 
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
@@ -45,8 +46,8 @@ public class GuiElementGroup extends GuiElement {
         super(slotChar, null);
         setAction(click -> {
             GuiElement element = getElement(click.getSlot(), click.getGui().getPageNumber());
-            if (element != null && element.getAction() != null) {
-                return element.getAction().onClick(click);
+            if (element != null && element.getAction(click.getEvent().getWhoClicked()) != null) {
+                return element.getAction(click.getEvent().getWhoClicked()).onClick(click);
             }
             return true;
         });
@@ -54,10 +55,10 @@ public class GuiElementGroup extends GuiElement {
     }
 
     @Override
-    public ItemStack getItem(int slot) {
+    public ItemStack getItem(HumanEntity who, int slot) {
         GuiElement element = getElement(slot, gui.getPageNumber());
         if (element != null) {
-            return element.getItem(slot);
+            return element.getItem(who, slot);
         }
         return null;
     }
