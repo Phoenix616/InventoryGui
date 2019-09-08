@@ -53,6 +53,7 @@ public class DynamicGuiElement extends GuiElement {
         cachedElement = query.get();
         if (cachedElement != null) {
             cachedElement.setGui(gui);
+            cachedElement.setSlots(slots);
         }
     }
     
