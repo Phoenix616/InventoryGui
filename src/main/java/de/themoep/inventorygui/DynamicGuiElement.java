@@ -64,6 +64,7 @@ public class DynamicGuiElement extends GuiElement {
 
     /**
      * Query this element's state even if it shouldn't be done yet
+     * @param player The player for whom to update the element
      * @deprecated This element no longer supports caching, use {@link #queryElement(HumanEntity)} to query the element
      */
     @Deprecated

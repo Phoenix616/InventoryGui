@@ -41,7 +41,7 @@ public class StaticGuiElement extends GuiElement {
      * @param number    The number, 1 will not display the number
      * @param action    The action to run when the player clicks on this element
      * @param text      The text to display on this element, placeholders are automatically
-     *                  replaced, see {@link InventoryGui#replaceVars} for a list of the
+     *                  replaced, see {@link InventoryGui#replace} for a list of the
      *                  placeholder variables. Empty text strings are also filter out, use
      *                  a single space if you want to add an empty line!<br>
      *                  If it's not set/empty the item's default name will be used
@@ -94,7 +94,7 @@ public class StaticGuiElement extends GuiElement {
 
     /**
      * Get the raw item displayed by this element which was passed to the constructor or set with {@link #setItem(ItemStack)}.
-     * This item will not have the amount or text applied! Use {@link #getItem(int)} for that!
+     * This item will not have the amount or text applied! Use {@link #getItem(HumanEntity, int)} for that!
      * @return  The raw item
      */
     public ItemStack getRawItem() {

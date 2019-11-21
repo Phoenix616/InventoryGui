@@ -91,6 +91,7 @@ public class GuiStateElement extends GuiElement {
 
     /**
      * Loop through the states of this element
+     * @return The new state (next one to the old)
      */
     public State nextState() {
         queryCurrentState();
@@ -100,6 +101,7 @@ public class GuiStateElement extends GuiElement {
 
     /**
      * Loop through the states of this element backwards
+     * @return The new state (previous one to the old)
      */
     public State previousState() {
         queryCurrentState();
@@ -223,7 +225,7 @@ public class GuiStateElement extends GuiElement {
 
         /**
          * Get the text lines that describe this state.
-         * @return
+         * @return The text lines for this state
          */
         public String[] getText() {
             return text;

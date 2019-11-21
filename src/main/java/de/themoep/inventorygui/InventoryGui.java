@@ -345,6 +345,7 @@ public class InventoryGui implements Listener {
 
     /**
      * Set the number of the page that this gui is on. zero indexed. Only affects group elements.
+     * @param pageNumber The page number to set
      */
     public void setPageNumber(int pageNumber) {
         this.pageNumber = pageNumber;
