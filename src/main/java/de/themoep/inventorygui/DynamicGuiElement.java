@@ -33,8 +33,6 @@ import java.util.function.Supplier;
  */
 public class DynamicGuiElement extends GuiElement {
     private Function<HumanEntity, GuiElement> query;
-    private GuiElement cachedElement;
-    private long lastCached = 0;
     
     /**
      * Represents an element in a gui that will query all it's data when drawn.
@@ -66,34 +64,28 @@ public class DynamicGuiElement extends GuiElement {
 
     /**
      * Query this element's state even if it shouldn't be done yet
+     * @deprecated This element no longer supports caching, use {@link #queryElement(HumanEntity)} to query the element
      */
+    @Deprecated
     public void update(HumanEntity player) {
-        lastCached = System.currentTimeMillis();
-        cachedElement = query.apply(player);
-        if (cachedElement != null) {
-            cachedElement.setGui(gui);
-            cachedElement.setSlots(slots);
-        }
+
     }
     
     @Override
     public void setGui(InventoryGui gui) {
         super.setGui(gui);
-        if (cachedElement != null) {
-            cachedElement.setGui(gui);
-        }
     }
     
     @Override
     public ItemStack getItem(HumanEntity who, int slot) {
-        update(who);
-        return cachedElement != null ? cachedElement.getItem(who, slot) : null;
+        GuiElement element = queryElement(who);
+        return element != null ? element.getItem(who, slot) : null;
     }
     
     @Override
     public Action getAction(HumanEntity who) {
-        update(who);
-        return cachedElement != null ? cachedElement.getAction(who) : null;
+        GuiElement element = queryElement(who);
+        return element != null ? element.getAction(who) : null;
     }
     
     /**
@@ -111,24 +103,42 @@ public class DynamicGuiElement extends GuiElement {
     public void setQuery(Function<HumanEntity, GuiElement> query) {
         this.query = query;
     }
+
+    /**
+     * Query the element for a player
+     * @param who The player
+     * @return The GuiElement or null
+     */
+    public GuiElement queryElement(HumanEntity who) {
+        GuiElement element = getQuery().apply(who);
+        if (element != null) {
+            element.setGui(gui);
+            element.setSlots(slots);
+        }
+        return element;
+    }
     
     /**
      * Get the cached element, creates a new one if there is none
      * @param who The player to get the element for
      * @return The element that is currently cached
+     * @deprecated  Caching is no longer supported by this class, this method will now only return the actual element
+     *              that the query provides. Use {@link #queryElement(HumanEntity)} as a more stable alternative.
+     *              Caching might be re-added as a separate element class if there is a demand
      */
+    @Deprecated
     public GuiElement getCachedElement(HumanEntity who) {
-        if (cachedElement == null) {
-            update(who);
-        }
-        return cachedElement;
+        return queryElement(who);
     }
     
     /**
      * Get the time at which this element was last cached
      * @return  The timestamp from when it was last cached
+     * @deprecated  Caching is no longer supported by this class, this method will now only return the current time stamp.
+     *              Caching might be re-added as a separate element class if there is a demand
      */
+    @Deprecated
     public long getLastCached() {
-        return lastCached;
+        return System.currentTimeMillis();
     }
 }
