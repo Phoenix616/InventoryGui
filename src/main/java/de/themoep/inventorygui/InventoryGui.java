@@ -56,6 +56,7 @@ import java.util.Collection;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -88,7 +89,7 @@ public class InventoryGui implements Listener {
     private final char[] slots;
     private final Map<Character, GuiElement> elements = new HashMap<>();
     private InventoryType inventoryType;
-    private Inventory inventory = null;
+    private Map<UUID, Inventory> inventories = new LinkedHashMap<>();
     private InventoryHolder owner = null;
     private boolean listenersRegistered = false;
     private int pageNumber = 0;
@@ -406,13 +407,19 @@ public class InventoryGui implements Listener {
                 // In order to not close it in a InventoryClickEvent listener (which will lead to errors)
                 // we delay the opening for one tick to run after it finished processing the event
                 plugin.getServer().getScheduler().runTask(plugin, () -> {
-                    addHistory(player, this);
-                    player.openInventory(inventory);
+                    Inventory inventory = getInventory(player);
+                    if (inventory != null) {
+                        addHistory(player, this);
+                        player.openInventory(inventory);
+                    }
                 });
             } else {
-                clearHistory(player);
-                addHistory(player, this);
-                player.openInventory(inventory);
+                Inventory inventory = getInventory(player);
+                if (inventory != null) {
+                    clearHistory(player);
+                    addHistory(player, this);
+                    player.openInventory(inventory);
+                }
             }
         }
     }
@@ -429,11 +436,6 @@ public class InventoryGui implements Listener {
      * @param owner     The {@link InventoryHolder} that owns the gui
      */
     public void build(InventoryHolder owner) {
-        if (slots.length != inventoryType.getDefaultSize()) {
-            inventory = plugin.getServer().createInventory(new Holder(this), slots.length, replaceVars(title));
-        } else {
-            inventory = plugin.getServer().createInventory(new Holder(this), inventoryType, replaceVars(title));
-        }
         setOwner(owner);
         registerListeners();
         calculatePageAmount();
@@ -443,10 +445,11 @@ public class InventoryGui implements Listener {
      * Draw the elements in the inventory. This can be used to manually refresh the gui.
      */
     public void draw() {
-        if (!getInventory().getViewers().isEmpty()) {
-            draw(getInventory().getViewers().get(0));
-        } else {
-            draw(null);
+        for (UUID playerId : inventories.keySet()) {
+            Player player = plugin.getServer().getPlayer(playerId);
+            if (player != null) {
+                draw(player);
+            }
         }
     }
 
@@ -455,8 +458,14 @@ public class InventoryGui implements Listener {
      * @param who For who to draw the GUI
      */
     public void draw(HumanEntity who) {
+        Inventory inventory = getInventory(who);
         if (inventory == null) {
-            build();
+            if (slots.length != inventoryType.getDefaultSize()) {
+                inventory = plugin.getServer().createInventory(new Holder(this), slots.length, replaceVars(title));
+            } else {
+                inventory = plugin.getServer().createInventory(new Holder(this), inventoryType, replaceVars(title));
+            }
+            inventories.put(who != null ? who.getUniqueId() : null, inventory);
         } else {
             inventory.clear();
         }
@@ -469,6 +478,7 @@ public class InventoryGui implements Listener {
                 inventory.setItem(i, element.getItem(who, i));
             }
         }
+        registerListeners();
     }
 
     /**
@@ -483,11 +493,13 @@ public class InventoryGui implements Listener {
      * @param clearHistory  Whether or not to close the GUI completely (by clearing the history)
      */
     public void close(boolean clearHistory) {
-        for (HumanEntity viewer : new ArrayList<>(inventory.getViewers())) {
-            if (clearHistory) {
-                clearHistory(viewer);
+        for (Inventory inventory : inventories.values()) {
+            for (HumanEntity viewer : new ArrayList<>(inventory.getViewers())) {
+                if (clearHistory) {
+                    clearHistory(viewer);
+                }
+                viewer.closeInventory();
             }
-            viewer.closeInventory();
         }
     }
 
@@ -502,8 +514,10 @@ public class InventoryGui implements Listener {
         if (closeInventories) {
             close();
         }
-        inventory.clear();
-        inventory = null;
+        for (Inventory inventory : inventories.values()) {
+            inventory.clear();
+        }
+        inventories.clear();
         unregisterListeners();
         removeFromMap();
     }
@@ -683,9 +697,11 @@ public class InventoryGui implements Listener {
      * Play a click sound e.g. when an element acts as a button
      */
     public void playClickSound() {
-        for (HumanEntity humanEntity : inventory.getViewers()) {
-            if (humanEntity instanceof Player) {
-                ((Player) humanEntity).playSound(humanEntity.getEyeLocation(), CLICK_SOUND, 1, 1);
+        for (Inventory inventory : inventories.values()) {
+            for (HumanEntity humanEntity : inventory.getViewers()) {
+                if (humanEntity instanceof Player) {
+                    ((Player) humanEntity).playSound(humanEntity.getEyeLocation(), CLICK_SOUND, 1, 1);
+                }
             }
         }
     }
@@ -695,7 +711,16 @@ public class InventoryGui implements Listener {
      * @return The GUI's generated inventory
      */
     Inventory getInventory() {
-        return inventory;
+        return getInventory(null);
+    }
+
+    /**
+     * Get the inventory of a certain player
+     * @param who The player, if null it will try to return the inventory created first or null if none was created
+     * @return The GUI's generated inventory, null if none was found
+     */
+    private Inventory getInventory(HumanEntity who) {
+        return who != null ? inventories.get(who.getUniqueId()) : (inventories.isEmpty() ? null : inventories.values().iterator().next());
     }
     
     /**
@@ -710,7 +735,7 @@ public class InventoryGui implements Listener {
 
         @EventHandler
         private void onInventoryClick(InventoryClickEvent event) {
-            if (event.getInventory().equals(inventory)) {
+            if (event.getInventory().equals(getInventory(event.getWhoClicked()))) {
 
                 int slot = -1;
                 if (event.getRawSlot() < event.getView().getTopInventory().getSize()) {
@@ -740,6 +765,17 @@ public class InventoryGui implements Listener {
                     if (action == null || action.onClick(new GuiElement.Click(gui, slot, element, event.getClick(), event))) {
                         event.setCancelled(true);
                     }
+                    if (action != null) {
+                        // Let's assume something changed and re-draw all currently shown inventories
+                        for (UUID playerId : inventories.keySet()) {
+                            if (!event.getWhoClicked().getUniqueId().equals(playerId)) {
+                                Player player = plugin.getServer().getPlayer(playerId);
+                                if (player != null) {
+                                    draw(player);
+                                }
+                            }
+                        }
+                    }
                 } catch (Throwable t) {
                     event.setCancelled(true);
                     plugin.getLogger().log(Level.SEVERE, "Exception while trying to run action for click on "
@@ -756,6 +792,7 @@ public class InventoryGui implements Listener {
 
         @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
         public void onInventoryDrag(InventoryDragEvent event) {
+            Inventory inventory = getInventory(event.getWhoClicked());
             if (event.getInventory().equals(inventory)) {
                 int rest = 0;
                 Set<Integer> resetSlots = new HashSet<>();
@@ -803,6 +840,7 @@ public class InventoryGui implements Listener {
 
         @EventHandler(priority = EventPriority.MONITOR)
         public void onInventoryClose(InventoryCloseEvent event) {
+            Inventory inventory = getInventory(event.getPlayer());
             if (event.getInventory().equals(inventory)) {
                 // go back. that checks if the player is in gui and has history
                 if (gui.equals(getOpen(event.getPlayer()))) {
