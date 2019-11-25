@@ -851,8 +851,16 @@ public class InventoryGui implements Listener {
                         clearHistory(event.getPlayer());
                     }
                 }
-                if (inventory.getViewers().size() <= 1) {
+                if (inventories.size() <= 1) {
                     destroy(false);
+                } else {
+                    inventory.clear();
+                    for (HumanEntity viewer : inventory.getViewers()) {
+                        if (viewer != event.getPlayer()) {
+                            viewer.closeInventory();
+                        }
+                    }
+                    inventories.remove(event.getPlayer().getUniqueId());
                 }
             }
         }
