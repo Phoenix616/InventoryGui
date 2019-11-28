@@ -461,6 +461,7 @@ public class InventoryGui implements Listener {
     public void draw(HumanEntity who) {
         Inventory inventory = getInventory(who);
         if (inventory == null) {
+            build();
             if (slots.length != inventoryType.getDefaultSize()) {
                 inventory = plugin.getServer().createInventory(new Holder(this), slots.length, replaceVars(title));
             } else {
@@ -479,7 +480,6 @@ public class InventoryGui implements Listener {
                 inventory.setItem(i, element.getItem(who, i));
             }
         }
-        registerListeners();
     }
 
     /**
