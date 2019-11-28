@@ -74,7 +74,7 @@ public class GuiPageElement extends StaticGuiElement {
 
     @Override
     public ItemStack getItem(HumanEntity who, int slot) {
-        if (gui.getPageAmount() == 3
+        if (gui.getPageAmount() <= 3
                 || (pageAction == PageAction.NEXT && gui.getPageNumber() + 1 >= gui.getPageAmount())
                 || (pageAction == PageAction.PREVIOUS && gui.getPageNumber() == 0)) {
             return gui.getFiller() != null ? gui.getFiller().getItem(who, slot) : null;
