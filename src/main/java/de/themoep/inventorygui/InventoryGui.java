@@ -796,22 +796,27 @@ public class InventoryGui implements Listener {
             Inventory inventory = getInventory(event.getWhoClicked());
             if (event.getInventory().equals(inventory)) {
                 int rest = 0;
-                Set<Integer> resetSlots = new HashSet<>();
+                Map<Integer, ItemStack> resetSlots = new HashMap<>();
                 for (Map.Entry<Integer, ItemStack> items : event.getNewItems().entrySet()) {
                     if (items.getKey() < inventory.getSize()) {
                         GuiElement element = getElement(items.getKey());
                         if (!(element instanceof GuiStorageElement)
                                 || !((GuiStorageElement) element).setStorageItem(items.getKey(), items.getValue())) {
-                            rest += items.getValue().getAmount();
+                            ItemStack slotItem = event.getInventory().getItem(items.getKey());
+                            if (!items.getValue().isSimilar(slotItem)) {
+                                rest += items.getValue().getAmount();
+                            } else if (slotItem != null) {
+                                rest += items.getValue().getAmount() - slotItem.getAmount();
+                            }
                             //items.getValue().setAmount(0); // can't change resulting items :/
-                            resetSlots.add(items.getKey()); // reset them manually
+                            resetSlots.put(items.getKey(), event.getInventory().getItem(items.getKey())); // reset them manually
                         }
                     }
                 }
                 
                 plugin.getServer().getScheduler().runTask(plugin, () -> {
-                    for (int i : resetSlots) {
-                        event.getView().getTopInventory().setItem(i, null);
+                    for (Map.Entry<Integer, ItemStack> items : resetSlots.entrySet()) {
+                        event.getView().getTopInventory().setItem(items.getKey(), items.getValue());
                     }
                 });
                 
