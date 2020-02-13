@@ -66,7 +66,7 @@ public class StaticGuiElement extends GuiElement {
      *                  If it's not set/empty the item's default name will be used
      */
     public StaticGuiElement(char slotChar, ItemStack item, Action action, String... text) {
-        this(slotChar, item, 1, action, text);
+        this(slotChar, item, item != null ? item.getAmount() : 1, action, text);
     }
 
     /**
@@ -80,7 +80,7 @@ public class StaticGuiElement extends GuiElement {
      *                  If it's not set/empty the item's default name will be used
      */
     public StaticGuiElement(char slotChar, ItemStack item, String... text) {
-        this(slotChar, item, null, text);
+        this(slotChar, item, item != null ? item.getAmount() : 1, null, text);
     }
 
 
