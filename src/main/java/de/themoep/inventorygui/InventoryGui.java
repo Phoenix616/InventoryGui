@@ -765,6 +765,9 @@ public class InventoryGui implements Listener {
                 try {
                     if (action == null || action.onClick(new GuiElement.Click(gui, slot, element, event.getClick(), event))) {
                         event.setCancelled(true);
+                        if (event.getWhoClicked() instanceof Player) {
+                            ((Player) event.getWhoClicked()).updateInventory();
+                        }
                     }
                     if (action != null) {
                         // Let's assume something changed and re-draw all currently shown inventories
@@ -779,6 +782,9 @@ public class InventoryGui implements Listener {
                     }
                 } catch (Throwable t) {
                     event.setCancelled(true);
+                    if (event.getWhoClicked() instanceof Player) {
+                        ((Player) event.getWhoClicked()).updateInventory();
+                    }
                     plugin.getLogger().log(Level.SEVERE, "Exception while trying to run action for click on "
                             + (element != null ? element.getClass().getSimpleName() : "empty element")
                             + " in slot " + event.getRawSlot() + " of " + gui.getTitle() + " GUI!");
@@ -1072,6 +1078,9 @@ public class InventoryGui implements Listener {
         if (itemInGui) {
             click.getEvent().setCurrentItem(null);
             click.getEvent().setCancelled(true);
+            if (click.getEvent().getWhoClicked() instanceof Player) {
+                ((Player) click.getEvent().getWhoClicked()).updateInventory();
+            }
         
             if (click.getElement() instanceof GuiStorageElement) {
                 ((GuiStorageElement) click.getElement()).setStorageItem(click.getSlot(), null);
