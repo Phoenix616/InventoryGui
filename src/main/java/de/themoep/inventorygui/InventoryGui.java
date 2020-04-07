@@ -55,10 +55,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Deque;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Set;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.regex.Matcher;
@@ -982,6 +981,7 @@ public class InventoryGui implements Listener {
             ItemMeta meta = item.getItemMeta();
             if (meta != null) {
                 String combined = replaceVars(Arrays.stream(text)
+                        .filter(Objects::nonNull)
                         .filter(s -> !s.isEmpty())
                         .collect(Collectors.joining("\n")));
                 String[] lines = combined.split("\n");
