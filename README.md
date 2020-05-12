@@ -7,7 +7,7 @@ Please note that this is **not a plugin!**
 Requires Java 8.
 
 ## Using InventoryGui
-Take a look at the examples below to learn how to create a GUI with this library or use the [InventoryGui Javadocs](https://docs.minebench.de/inventorygui/).
+Take a look at the examples below to learn how to create a GUI with this library or use the [InventoryGui Javadocs](https://docs.phoenix616.dev/inventorygui/).
 
 ### Defining the GUI setup
 Every line in the array define the line in the inventory chest interface. 
@@ -114,7 +114,7 @@ If you want to change the content of a DynamicGuiElement after a player click on
 A group can contain multiple different elements and if there are more elements in the group than display slot you can use the GuiPageElement to switch between pages.
 
 ```java
-GuiElementGroup group = new GuiElementGroup();
+GuiElementGroup group = new GuiElementGroup('g');
 for (String text : texts) {
     // Add an element to the group
     // Elements are in the order they got added to the group and don't need to have the same type.
