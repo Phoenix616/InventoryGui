@@ -534,6 +534,9 @@ public class InventoryGui implements Listener {
         if (history.peekLast() != gui) {
             history.add(gui);
         }
+        if(gui != null) {
+            gui.draw(player);
+        }
     }
 
     /**
