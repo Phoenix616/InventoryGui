@@ -33,6 +33,7 @@ import java.util.function.Supplier;
  */
 public class GuiStateElement extends GuiElement {
     private Supplier<Integer> queryState = null;
+    private boolean silent = false;
     private int currentState;
     private final State[] states;
 
@@ -54,7 +55,9 @@ public class GuiStateElement extends GuiElement {
             State next = nextState();
             click.getEvent().setCurrentItem(next.getItem());
             next.change.onChange(click);
-            click.getGui().playClickSound();
+            if (!isSilent()) {
+                click.getGui().playClickSound();
+            }
             return true;
         });
     }
@@ -129,6 +132,22 @@ public class GuiStateElement extends GuiElement {
     public State getState() {
         queryCurrentState();
         return states[currentState];
+    }
+
+    /**
+     * Get whether or not this element should make a sound when interacted with
+     * @return  Whether or not to make a sound when interacted with
+     */
+    public boolean isSilent() {
+        return silent;
+    }
+
+    /**
+     * Set whether or not this element should make a sound when interacted with
+     * @param silent Whether or not to make a sound when interacted with
+     */
+    public void setSilent(boolean silent) {
+        this.silent = silent;
     }
     
     /**

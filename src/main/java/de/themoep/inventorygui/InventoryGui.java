@@ -95,6 +95,7 @@ public class InventoryGui implements Listener {
     private int pageAmount = 1;
     private GuiElement.Action outsideAction = click -> false;
     private CloseAction closeAction = close -> true;
+    private boolean silent = false;
     
     static {
         // Sound names changed, make it compatible with both versions
@@ -645,6 +646,22 @@ public class InventoryGui implements Listener {
     public void setCloseAction(CloseAction closeAction) {
         this.closeAction = closeAction;
     }
+
+    /**
+     * Get whether or not this GUI should make a sound when interacting with elements that make sound
+     * @return  Whether or not to make a sound when interacted with
+     */
+    public boolean isSilent() {
+        return silent;
+    }
+
+    /**
+     * Set whether or not this GUI should make a sound when interacting with elements that make sound
+     * @param silent Whether or not to make a sound when interacted with
+     */
+    public void setSilent(boolean silent) {
+        this.silent = silent;
+    }
     
     private void removeFromMap() {
         if (owner instanceof Entity) {
@@ -697,6 +714,7 @@ public class InventoryGui implements Listener {
      * Play a click sound e.g. when an element acts as a button
      */
     public void playClickSound() {
+        if (isSilent()) return;
         for (Inventory inventory : inventories.values()) {
             for (HumanEntity humanEntity : inventory.getViewers()) {
                 if (humanEntity instanceof Player) {

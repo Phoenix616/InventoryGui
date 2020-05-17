@@ -31,6 +31,7 @@ import org.bukkit.inventory.ItemStack;
  */
 public class GuiPageElement extends StaticGuiElement {
     private PageAction pageAction;
+    private boolean silent = false;
 
     /**
      * An element that allows for controlling the pagination of the gui.
@@ -44,32 +45,57 @@ public class GuiPageElement extends StaticGuiElement {
      *                      If it's not set/empty the item's default name will be used
      */
     public GuiPageElement(char slotChar, ItemStack item, PageAction pageAction, String... text) {
-        super(slotChar, item, click -> {
+        super(slotChar, item, text);
+        setAction(click -> {
             switch (pageAction) {
                 case NEXT:
                     if (click.getGui().getPageNumber() + 1 < click.getGui().getPageAmount()) {
-                        click.getGui().playClickSound();
+                        if (!isSilent()) {
+                            click.getGui().playClickSound();
+                        }
                         click.getGui().setPageNumber(click.getGui().getPageNumber() + 1);
                     }
                     break;
                 case PREVIOUS:
                     if (click.getGui().getPageNumber() > 0) {
-                        click.getGui().playClickSound();
+                        if (!isSilent()) {
+                            click.getGui().playClickSound();
+                        }
                         click.getGui().setPageNumber(click.getGui().getPageNumber() - 1);
                     }
                     break;
                 case FIRST:
-                    click.getGui().playClickSound();
+                    if (!isSilent()) {
+                        click.getGui().playClickSound();
+                    }
                     click.getGui().setPageNumber(0);
                     break;
                 case LAST:
-                    click.getGui().playClickSound();
+                    if (!isSilent()) {
+                        click.getGui().playClickSound();
+                    }
                     click.getGui().setPageNumber(click.getGui().getPageAmount() - 1);
                     break;
             }
             return true;
-        }, text);
+        });
         this.pageAction = pageAction;
+    }
+
+    /**
+     * Get whether or not this element should make a sound when interacted with
+     * @return  Whether or not to make a sound when interacted with
+     */
+    public boolean isSilent() {
+        return silent;
+    }
+
+    /**
+     * Set whether or not this element should make a sound when interacted with
+     * @param silent Whether or not to make a sound when interacted with
+     */
+    public void setSilent(boolean silent) {
+        this.silent = silent;
     }
 
     @Override
