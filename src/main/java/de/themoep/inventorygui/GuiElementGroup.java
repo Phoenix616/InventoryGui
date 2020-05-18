@@ -137,6 +137,13 @@ public class GuiElementGroup extends GuiElement {
         }
         return filler;
     }
+
+    /**
+     * Removes all elements in the group
+     */
+    public void clearElements() {
+        elements.clear();
+    }
     
     /**
      * Set the filler element for empty slots
