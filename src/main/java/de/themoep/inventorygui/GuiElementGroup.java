@@ -142,11 +142,6 @@ public class GuiElementGroup extends GuiElement {
      * Removes all elements in the group
      */
     public void clearElements() {
-        // Unsure if this is necessary
-        for(GuiElement element : elements) {
-            element.setSlots(new int[0]);
-        }
-
         elements.clear();
     }
     
