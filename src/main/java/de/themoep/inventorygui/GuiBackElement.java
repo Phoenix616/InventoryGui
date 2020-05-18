@@ -24,17 +24,23 @@ public class GuiBackElement extends StaticGuiElement {
         super(slotChar, item, text);
 
         setAction(click -> {
-            InventoryGui.goBack(click.getEvent().getWhoClicked());
+            if (canGoBack(click.getEvent().getWhoClicked())) {
+                InventoryGui.goBack(click.getEvent().getWhoClicked());
+            }
             return true;
         });
     }
 
     @Override
     public ItemStack getItem(HumanEntity who, int slot) {
-        if (InventoryGui.getHistory(who).isEmpty() || InventoryGui.getHistory(who).size() == 1) {
+        if (!canGoBack(who)) {
             return gui.getFiller() != null ? gui.getFiller().getItem(who, slot) : null;
         }
 
         return super.getItem(who, slot).clone();
+    }
+
+    private boolean canGoBack(HumanEntity who) {
+        return !(InventoryGui.getHistory(who).isEmpty() || InventoryGui.getHistory(who).size() == 1);
     }
 }
