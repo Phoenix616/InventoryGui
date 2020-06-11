@@ -153,8 +153,8 @@ You can easily depend on the library with maven.
 ```xml
 <repositories>
     <repository>
-        <id>minebench-repo</id>
-        <url>https://repo.minebench.de/</url>
+        <id>phoenix-repo</id>
+        <url>https://repo.phoenix616.dev/</url>
     </repository>
 </repositories>
 ```
