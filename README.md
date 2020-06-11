@@ -163,7 +163,8 @@ You can easily depend on the library with maven.
     <dependency>
         <groupId>de.themoep</groupId>
         <artifactId>inventorygui</artifactId>
-        <version>1.4.1-SNAPSHOT</version>
+        <!--The following version may not be the latest. Check it before using.-->
+        <version>1.4.2-SNAPSHOT</version>
         <scope>compile</scope>
     </dependency>
 </dependencies>
