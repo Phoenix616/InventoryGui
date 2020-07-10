@@ -131,7 +131,7 @@ public class GuiElementGroup extends GuiElement {
         if (elements.isEmpty()) {
             return null;
         }
-        int index = getSlotIndex(slot, pageNumber);
+        int index = getSlotIndex(slot, slots.length < elements.size() ? pageNumber : 0);
         if (index > -1 && index < elements.size()) {
             return elements.get(index);
         }
