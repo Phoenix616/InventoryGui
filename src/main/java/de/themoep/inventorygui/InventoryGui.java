@@ -53,6 +53,7 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -320,6 +321,24 @@ public class InventoryGui implements Listener {
     }
 
     /**
+     * Remove a specific element from this gui.
+     * @param element   The element to remove
+     * @return Whether or not the gui contained this element and if it was removed
+     */
+    public boolean removeElement(GuiElement element) {
+        return elements.remove(element.getSlotChar(), element);
+    }
+
+    /**
+     * Remove the element that is currently assigned to a specific slot char
+     * @param slotChar  The char of the slot
+     * @return The element which was in that slot or <code>null</code> if there was none
+     */
+    public GuiElement removeElement(char slotChar) {
+        return elements.remove(slotChar);
+    }
+
+    /**
      * Set the filler element for empty slots
      * @param item  The item for the filler element
      */
@@ -583,6 +602,15 @@ public class InventoryGui implements Listener {
      */
     public GuiElement getElement(int slot) {
         return slot < 0 || slot >= slots.length ? null : elements.get(slots[slot]);
+    }
+
+    /**
+     * Get all elements of this gui. This collection is immutable, use the addElement and removeElement methods
+     * to modify the elements in this gui.
+     * @return An immutable collection of all elements in this group
+     */
+    public Collection<GuiElement> getElements() {
+        return Collections.unmodifiableCollection(elements.values());
     }
     
     /**
