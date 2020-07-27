@@ -139,6 +139,15 @@ public class GuiElementGroup extends GuiElement {
     }
 
     /**
+     * Get all elements of this group. This list is immutable, use {@link #addElement(GuiElement)}
+     * and {@link #clearElements()} to modify the elements in this group.
+     * @return An immutable list of all elements in this group
+     */
+    public List<GuiElement> getElements() {
+        return Collections.unmodifiableList(elements);
+    }
+
+    /**
      * Removes all elements in the group
      */
     public void clearElements() {
