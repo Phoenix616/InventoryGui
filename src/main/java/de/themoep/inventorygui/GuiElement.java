@@ -107,7 +107,7 @@ public abstract class GuiElement {
     /**
      * Get the index that this slot has in the list of slots that this element is displayed in
      * @param slot  The id of the slot
-     * @return      The index in the list of slots that this id has or <tt>-1</tt> if it isn't in that list
+     * @return      The index in the list of slots that this id has or <code>-1</code> if it isn't in that list
      */
     public int getSlotIndex(int slot) {
         return getSlotIndex(slot, 0);
@@ -117,7 +117,7 @@ public abstract class GuiElement {
      * Get the index that this slot has in the list of slots that this element is displayed in
      * @param slot          The id of the slot
      * @param pageNumber    The number of the page that the gui is on
-     * @return              The index in the list of slots that this id has or <tt>-1</tt> if it isn't in that list
+     * @return              The index in the list of slots that this id has or <code>-1</code> if it isn't in that list
      */
     public int getSlotIndex(int slot, int pageNumber) {
         for (int i = 0; i < slots.length; i++) {

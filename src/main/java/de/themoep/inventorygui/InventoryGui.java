@@ -122,7 +122,7 @@ public class InventoryGui implements Listener {
      * Create a new gui with a certain setup and some elements
      * @param plugin    Your plugin
      * @param owner     The holder that owns this gui to retrieve it with {@link #get(InventoryHolder)}.
-     *                  Can be <tt>null</tt>.
+     *                  Can be <code>null</code>.
      * @param title     The name of the GUI. This will be the title of the inventory.
      * @param rows      How your rows are setup. Each element is getting assigned to a character.
      *                  Empty/missing ones get filled with the Filler.
@@ -192,7 +192,7 @@ public class InventoryGui implements Listener {
      * Create a new gui that has no owner with a certain setup and some elements
      * @param plugin    Your plugin
      * @param owner     The holder that owns this gui to retrieve it with {@link #get(InventoryHolder)}.
-     *                  Can be <tt>null</tt>.
+     *                  Can be <code>null</code>.
      * @param title     The name of the GUI. This will be the title of the inventory.
      * @param rows      How your rows are setup. Each element is getting assigned to a character.
      *                  Empty/missing ones get filled with the Filler.
@@ -272,7 +272,7 @@ public class InventoryGui implements Listener {
      * Create and add a {@link StaticGuiElement}
      * @param slotChar  The character to replace in the gui setup string
      * @param material  The {@link Material} that the item should have
-     * @param data      The <tt>byte</tt> representation of the material data of this element
+     * @param data      The <code>byte</code> representation of the material data of this element
      * @param action    The {@link GuiElement.Action} to run when the player clicks on this element
      * @param text      The text to display on this element, placeholders are automatically
      *                  replaced, see {@link InventoryGui#replaceVars} for a list of the
@@ -540,7 +540,7 @@ public class InventoryGui implements Listener {
      * Get the history of a player
      * @param player    The player to get the history for
      * @return          The history as a deque of InventoryGuis;
-     *                  returns an empty one and not <tt>null</tt>!
+     *                  returns an empty one and not <code>null</code>!
      */
     public static Deque<InventoryGui> getHistory(HumanEntity player) {
         return GUI_HISTORY.getOrDefault(player.getUniqueId(), new ArrayDeque<>());
@@ -549,7 +549,7 @@ public class InventoryGui implements Listener {
     /**
      * Go back one entry in the history
      * @param player    The player to show the previous gui to
-     * @return          <tt>true</tt> if there was a gui to show; <tt>false</tt> if not
+     * @return          <code>true</code> if there was a gui to show; <code>false</code> if not
      */
     public static boolean goBack(HumanEntity player) {
         Deque<InventoryGui> history = getHistory(player);
@@ -579,7 +579,7 @@ public class InventoryGui implements Listener {
     /**
      * Get element in a certain slot
      * @param slot  The slot to get the element from
-     * @return      The GuiElement or <tt>null</tt> if the slot is empty/there wasn't one
+     * @return      The GuiElement or <code>null</code> if the slot is empty/there wasn't one
      */
     public GuiElement getElement(int slot) {
         return slot < 0 || slot >= slots.length ? null : elements.get(slots[slot]);
@@ -609,7 +609,7 @@ public class InventoryGui implements Listener {
     
     /**
      * Check whether or not the Owner of this GUI is real or fake
-     * @return <tt>true</tt> if the owner is a real world InventoryHolder; <tt>false</tt> if it is null
+     * @return <code>true</code> if the owner is a real world InventoryHolder; <code>false</code> if it is null
      */
     public boolean hasRealOwner() {
         return owner != null;
@@ -674,7 +674,7 @@ public class InventoryGui implements Listener {
     /**
      * Get the GUI registered to an InventoryHolder
      * @param holder    The InventoryHolder to get the GUI for
-     * @return          The InventoryGui registered to it or <tt>null</tt> if none was registered to it
+     * @return          The InventoryGui registered to it or <code>null</code> if none was registered to it
      */
     public static InventoryGui get(InventoryHolder holder) {
         if (holder instanceof Entity) {
@@ -1017,13 +1017,13 @@ public class InventoryGui implements Listener {
     /**
      * Replace some placeholders in the with values regarding the gui's state. Replaced color codes.<br>
      * The placeholders are:<br>
-     * <tt>%plugin%</tt>    - The name of the plugin that this gui is from.<br>
-     * <tt>%owner%</tt>     - The name of the owner of this gui. Will be an empty string when the owner is null.<br>
-     * <tt>%title%</tt>     - The title of this GUI.<br>
-     * <tt>%page%</tt>      - The current page that this gui is on.<br>
-     * <tt>%nextpage%</tt>  - The next page. "none" if there is no next page.<br>
-     * <tt>%prevpage%</tt>  - The previous page. "none" if there is no previous page.<br>
-     * <tt>%pages%</tt>     - The amount of pages that this gui has.
+     * <code>%plugin%</code>    - The name of the plugin that this gui is from.<br>
+     * <code>%owner%</code>     - The name of the owner of this gui. Will be an empty string when the owner is null.<br>
+     * <code>%title%</code>     - The title of this GUI.<br>
+     * <code>%page%</code>      - The current page that this gui is on.<br>
+     * <code>%nextpage%</code>  - The next page. "none" if there is no next page.<br>
+     * <code>%prevpage%</code>  - The previous page. "none" if there is no previous page.<br>
+     * <code>%pages%</code>     - The amount of pages that this gui has.
      * @param text          The text to replace the placeholders in
      * @param replacements  Additional repplacements. i = placeholder, i+1 = replacements
      * @return      The text with all placeholders replaced
@@ -1123,7 +1123,7 @@ public class InventoryGui implements Listener {
      * Add items to a stack up to the max stack size
      * @param item  The base item
      * @param add   The item stack to add
-     * @return <tt>true</tt> if the stack is finished; <tt>false</tt> if these stacks can't be merged
+     * @return <code>true</code> if the stack is finished; <code>false</code> if these stacks can't be merged
      */
     private static boolean addToStack(ItemStack item, ItemStack add) {
         if (item.isSimilar(add)) {

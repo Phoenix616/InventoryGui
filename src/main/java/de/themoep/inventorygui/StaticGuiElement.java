@@ -137,7 +137,7 @@ public class StaticGuiElement extends GuiElement {
     /**
      * Set the number that this element should display (via the Item's amount)
      * @param number    The number, 1 will not display the number
-     * @return          <tt>true</tt> if the number was set; <tt>false</tt> if it was below 1 or above 64
+     * @return          <code>true</code> if the number was set; <code>false</code> if it was below 1 or above 64
      */
     public boolean setNumber(int number) {
         if (number < 1 || number > 64) {

@@ -68,7 +68,7 @@ public class GuiStorageElement extends GuiElement {
      * @param storage       The {@link Inventory} that this element is linked to.
      * @param invSlot       The index of the slot to access in the {@link Inventory}.
      * @param applyStorage  Apply the storage that this element represents.
-     * @param itemValidator Should return <tt>false</tt> for items that should not work in that slot
+     * @param itemValidator Should return <code>false</code> for items that should not work in that slot
      *                      Can be null if the storage is directly linked.
      */
     public GuiStorageElement(char slotChar, Inventory storage, int invSlot, Runnable applyStorage, Function<ValidatorInfo, Boolean> itemValidator) {
@@ -190,7 +190,7 @@ public class GuiStorageElement extends GuiElement {
     /**
      * Get the storage slot index that corresponds to the InventoryGui slot
      * @param slot  The slot in the GUI
-     * @return      The index of the storage slot or <tt>-1</tt> if it's outside the storage
+     * @return      The index of the storage slot or <code>-1</code> if it's outside the storage
      */
     private int getStorageSlot(int slot) {
         int index = invSlot != -1 ? invSlot : getSlotIndex(slot, gui.getPageNumber());
@@ -203,7 +203,7 @@ public class GuiStorageElement extends GuiElement {
     /**
      * Get the item in the storage that corresponds to the InventoryGui slot
      * @param slot  The slot in the GUI
-     * @return      The {@link ItemStack} or <tt>null</tt> if the slot is outside of the item's size
+     * @return      The {@link ItemStack} or <code>null</code> if the slot is outside of the item's size
      */
     public ItemStack getStorageItem(int slot) {
         int index = getStorageSlot(slot);
@@ -217,7 +217,7 @@ public class GuiStorageElement extends GuiElement {
      * Set the item in the storage that corresponds to the InventoryGui slot.
      * @param slot  The slot in the GUI
      * @param item  The {@link ItemStack} to set
-     * @return      <tt>true</tt> if the item was set; <tt>false</tt> if the slot was outside of this storage
+     * @return      <code>true</code> if the item was set; <code>false</code> if the slot was outside of this storage
      */
     public boolean setStorageItem(int slot, ItemStack item) {
         int index = getStorageSlot(slot);
@@ -261,8 +261,8 @@ public class GuiStorageElement extends GuiElement {
     
     /**
      * Set a function that can validate whether or not an item can fit in the slot
-     * @param itemValidator The item validator that takes a {@link ValidatorInfo} and returns <tt>true</tt> for items that
-     *                      should and <tt>false</tt> for items that should not work in that slot
+     * @param itemValidator The item validator that takes a {@link ValidatorInfo} and returns <code>true</code> for items that
+     *                      should and <code>false</code> for items that should not work in that slot
      */
     public void setItemValidator(Function<ValidatorInfo, Boolean> itemValidator) {
         this.itemValidator = itemValidator;
@@ -272,7 +272,7 @@ public class GuiStorageElement extends GuiElement {
      * Validate whether or not an item can be put in a slot with the item validator set in {@link #setItemValidator(Function)}
      * @param slot  The slot the item should be tested for
      * @param item  The item to test
-     * @return      <tt>true</tt> for items that should and <tt>false</tt> for items that should not work in that slot
+     * @return      <code>true</code> for items that should and <code>false</code> for items that should not work in that slot
      */
     public boolean validateItem(int slot, ItemStack item) {
         return itemValidator == null || itemValidator.apply(new ValidatorInfo(this, slot, item));
