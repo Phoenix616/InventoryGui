@@ -47,6 +47,7 @@ A simple, static element that runs some action when it is clicked.
 ```java
 gui.addElement(new StaticGuiElement('s',
         new ItemStack(Material.REDSTONE),
+        42, // Display a number as the item count
         click -> {
             if (click.getEvent().getWhoClicked().getName().equals("Redstone") {
                 click.getEvent().getWhoClicked().sendMessage(ChatColor.RED + "I am Redstone!");
@@ -60,12 +61,27 @@ gui.addElement(new StaticGuiElement('s',
         "Any text the ItemStack had will be overwritten."
 )); 
 ```
+All of these arguments (besides the ItemStack) are optional.
+See the docs for more details on the available convenience constructors. 
+
 #### Storage Element
 An Element that directly accesses the holder inventory.
+This can be used to handle placing and retrieving items from parts of a GUI as if that part
+was a normal inventory. You can even back the element by a virtual Bukkit inventory instead
+of a real one!
+
 If the element is displayed only in one slot it will show the first item in the inventory.
 In two slots the first two and so on.
 ```java
+// With an existing holder (e.g. block or entity)
 gui.addElement(new GuiStorageElement('i', theInventoryHolder.getInventory()));
+
+// With a virtual inventory to access items later on
+Inventory inv = Bukkit.createInventory(null, InventoryType.CHEST);
+gui.addElement(new GuiStorageElement('i', inv));
+gui.setCloseAction(close -> {
+    saveInv(inv); // Save inventory content or process it in some other way
+})
 ```
 #### State Element
 An element that can have certain states that trigger some code when changed to.
@@ -100,15 +116,21 @@ you can also set the state directly via `GuiStateElement#setState(String key)`
 #### Dynamic Element
 You can also dynamically load elements each time the GUI is re-drawn. E.g. when you want to cache GUIs but not the 
 text of some buttons or dynamically change them while they are open without closing and reopening them.
+
 Dynamic elements just return one of the other elements that should be displayed each time `InventoryGui#draw` is called.
 The slot character for the returned element doesn't really play a role, it is recommended to set it to
 the DynamicGuiElement's slot character though.
 ```java
 gui.addElement(new DynamicGuiElement('d', () -> {
-    return new StaticGuiElement('d', new ItemStack (Material.CLOCK), "Update time: " + new SimpleDateFormat("HH:mm:ss").format(new Date()));
+    return new StaticGuiElement('d', new ItemStack (Material.CLOCK), 
+        click -> {
+            click.getGui().draw(); // Update the GUI
+            return true;
+        }, 
+        "Update time: " + new SimpleDateFormat("HH:mm:ss").format(new Date()));
 }));
 ```
-If you want to change the content of a DynamicGuiElement after a player click on it just call `InventoryGui#draw` in the action of the supplied element.
+As you can see you can change the content of a DynamicGuiElement after a player click on it by calling `InventoryGui#draw` in the action of the supplied element.
 
 #### Element Group
 A group can contain multiple different elements and if there are more elements in the group than display slot you can use the GuiPageElement to switch between pages.
