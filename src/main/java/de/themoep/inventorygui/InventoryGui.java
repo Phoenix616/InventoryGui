@@ -605,6 +605,15 @@ public class InventoryGui implements Listener {
     }
 
     /**
+     * Get an element by its character
+     * @param c The character to get the element by
+     * @return  The GuiElement or <code>null</code> if there is no element for that character
+     */
+    public GuiElement getElement(char c) {
+        return elements.get(c);
+    }
+
+    /**
      * Get all elements of this gui. This collection is immutable, use the addElement and removeElement methods
      * to modify the elements in this gui.
      * @return An immutable collection of all elements in this group
