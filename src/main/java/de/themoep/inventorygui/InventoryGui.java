@@ -42,6 +42,7 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.inventory.InventoryMoveItemEvent;
 import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
@@ -957,6 +958,14 @@ public class InventoryGui implements Listener {
                 destroy();
             }
         }
+
+        @EventHandler(priority = EventPriority.HIGHEST)
+        public void onInventoryMoveItem(PlayerSwapHandItemsEvent event) {
+            Inventory inventory = getInventory(event.getPlayer());
+            if (event.getPlayer().getOpenInventory().getTopInventory().equals(inventory)) {
+                event.setCancelled(true);
+            }
+        }
     
         public void unregister() {
             InventoryClickEvent.getHandlerList().unregister(this);
@@ -966,6 +975,7 @@ public class InventoryGui implements Listener {
             BlockDispenseEvent.getHandlerList().unregister(this);
             BlockBreakEvent.getHandlerList().unregister(this);
             EntityDeathEvent.getHandlerList().unregister(this);
+            PlayerSwapHandItemsEvent.getHandlerList().unregister(this);
         }
     }
     
