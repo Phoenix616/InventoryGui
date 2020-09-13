@@ -81,6 +81,7 @@ Inventory inv = Bukkit.createInventory(null, InventoryType.CHEST);
 gui.addElement(new GuiStorageElement('i', inv));
 gui.setCloseAction(close -> {
     saveInv(inv); // Save inventory content or process it in some other way
+    return false; // Don't go back to the previous GUI (true would automatically go back to the previously opened one)
 })
 ```
 #### State Element
