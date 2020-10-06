@@ -30,7 +30,7 @@ You can easily depend on the library with maven.
     </dependency>
 </dependencies>
 ```
-As this is not a stadalone plugin you have to shade it into your plugin!
+As this is not a standalone plugin you have to shade it into your plugin!
 E.g. with the maven-shade-plugin [like this](https://github.com/Minebench/Pipes/blob/048337e7594684353e7360411b1ef6ba8e7223c4/pom.xml#L63-L82).
 
 You can also get development builds directly from the [Minebench Jenkins ci server](https://ci.minebench.de/job/InventoryGui/)
