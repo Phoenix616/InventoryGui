@@ -73,7 +73,7 @@ public class InventoryGui implements Listener {
 
     private final static int[] ROW_WIDTHS = {3, 5, 9};
     private final static InventoryType[] INVENTORY_TYPES = {
-            InventoryType.DROPPER, // 3*3
+            InventoryType.DISPENSER, // 3*3
             InventoryType.HOPPER, // 5*1
             InventoryType.CHEST // 9*x
     };
@@ -85,7 +85,10 @@ public class InventoryGui implements Listener {
     private final static Map<String, Pattern> PATTERN_CACHE = new HashMap<>();
 
     private final JavaPlugin plugin;
-    private GuiListener listener = new GuiListener(this);
+    private UnregisterableListener[] listeners = new UnregisterableListener[] {
+            new GuiListener(this),
+            new ItemSwapGuiListener(this)
+    };
     private String title;
     private final char[] slots;
     private final Map<Character, GuiElement> elements = new HashMap<>();
@@ -398,12 +401,16 @@ public class InventoryGui implements Listener {
         if (listenersRegistered) {
             return;
         }
-        plugin.getServer().getPluginManager().registerEvents(listener, plugin);
+        for (UnregisterableListener listener : listeners) {
+            plugin.getServer().getPluginManager().registerEvents(listener, plugin);
+        }
         listenersRegistered = true;
     }
 
     private void unregisterListeners() {
-        listener.unregister();
+        for (UnregisterableListener listener : listeners) {
+            listener.unregister();
+        }
         listenersRegistered = false;
     }
 
@@ -778,11 +785,15 @@ public class InventoryGui implements Listener {
     private Inventory getInventory(HumanEntity who) {
         return who != null ? inventories.get(who.getUniqueId()) : (inventories.isEmpty() ? null : inventories.values().iterator().next());
     }
-    
+
+    private interface UnregisterableListener extends Listener {
+        void unregister();
+    }
+
     /**
      * All the listeners that InventoryGui needs to work
      */
-    public class GuiListener implements Listener {
+    public class GuiListener implements UnregisterableListener {
         private final InventoryGui gui;
 
         public GuiListener(InventoryGui gui) {
@@ -958,14 +969,6 @@ public class InventoryGui implements Listener {
                 destroy();
             }
         }
-
-        @EventHandler(priority = EventPriority.HIGHEST)
-        public void onInventoryMoveItem(PlayerSwapHandItemsEvent event) {
-            Inventory inventory = getInventory(event.getPlayer());
-            if (event.getPlayer().getOpenInventory().getTopInventory().equals(inventory)) {
-                event.setCancelled(true);
-            }
-        }
     
         public void unregister() {
             InventoryClickEvent.getHandlerList().unregister(this);
@@ -975,6 +978,29 @@ public class InventoryGui implements Listener {
             BlockDispenseEvent.getHandlerList().unregister(this);
             BlockBreakEvent.getHandlerList().unregister(this);
             EntityDeathEvent.getHandlerList().unregister(this);
+        }
+    }
+
+    /**
+     * Event isn't available on older version so just use a separate listener...
+     */
+    public class ItemSwapGuiListener implements UnregisterableListener {
+
+        private final InventoryGui gui;
+
+        public ItemSwapGuiListener(InventoryGui gui) {
+            this.gui = gui;
+        }
+
+        @EventHandler(priority = EventPriority.HIGHEST)
+        public void onInventoryMoveItem(PlayerSwapHandItemsEvent event) {
+            Inventory inventory = getInventory(event.getPlayer());
+            if (event.getPlayer().getOpenInventory().getTopInventory().equals(inventory)) {
+                event.setCancelled(true);
+            }
+        }
+
+        public void unregister() {
             PlayerSwapHandItemsEvent.getHandlerList().unregister(this);
         }
     }
