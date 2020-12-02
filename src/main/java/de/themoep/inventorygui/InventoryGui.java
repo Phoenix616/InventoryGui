@@ -58,6 +58,7 @@ import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
@@ -85,8 +86,8 @@ public class InventoryGui implements Listener {
     private final static Map<String, Pattern> PATTERN_CACHE = new HashMap<>();
 
     private final JavaPlugin plugin;
-    private UnregisterableListener[] listeners = new UnregisterableListener[] {
-            new GuiListener(this),
+    private final List<UnregisterableListener> listeners = new ArrayList<>();
+    private final UnregisterableListener[] optionalListeners = new UnregisterableListener[]{
             new ItemSwapGuiListener(this)
     };
     private String title;
@@ -138,6 +139,12 @@ public class InventoryGui implements Listener {
         this.plugin = plugin;
         this.owner = owner;
         this.title = title;
+        listeners.add(new GuiListener(this));
+        for (UnregisterableListener listener : optionalListeners) {
+            if (listener.isCompatible()) {
+                listeners.add(listener);
+            }
+        }
 
         int width = ROW_WIDTHS[0];
         for (String row : rows) {
@@ -788,6 +795,16 @@ public class InventoryGui implements Listener {
 
     private interface UnregisterableListener extends Listener {
         void unregister();
+
+        default boolean isCompatible() {
+            try {
+                getClass().getMethods();
+                getClass().getDeclaredMethods();
+                return true;
+            } catch (NoClassDefFoundError e) {
+                return false;
+            }
+        }
     }
 
     /**
@@ -796,7 +813,7 @@ public class InventoryGui implements Listener {
     public class GuiListener implements UnregisterableListener {
         private final InventoryGui gui;
 
-        public GuiListener(InventoryGui gui) {
+        private GuiListener(InventoryGui gui) {
             this.gui = gui;
         }
 
@@ -988,7 +1005,7 @@ public class InventoryGui implements Listener {
 
         private final InventoryGui gui;
 
-        public ItemSwapGuiListener(InventoryGui gui) {
+        private ItemSwapGuiListener(InventoryGui gui) {
             this.gui = gui;
         }
 
