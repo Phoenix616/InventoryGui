@@ -25,6 +25,8 @@ package de.themoep.inventorygui;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.List;
+
 /**
  * Represents a simple element in a gui to which an action can be assigned.
  * If you want the item to change on click you have to do that yourself.
@@ -67,6 +69,21 @@ public class StaticGuiElement extends GuiElement {
      */
     public StaticGuiElement(char slotChar, ItemStack item, Action action, String... text) {
         this(slotChar, item, item != null ? item.getAmount() : 1, action, text);
+    }
+
+    /**
+     * Represents an element in a gui
+     * @param slotChar  The character to replace in the gui setup string
+     * @param item      The item this element displays
+     * @param action    The action to run when the player clicks on this element
+     * @param text      The text to display on this element, placeholders are automatically
+     *                  replaced, see {@link InventoryGui#replaceVars} for a list of the
+     *                  placeholder variables. Empty text strings are also filter out, use
+     *                  a single space if you want to add an empty line!<br>
+     *                  If it's not set/empty the item's default name will be used
+     */
+    public StaticGuiElement(char slotChar, ItemStack item, Action action, List<String> text) {
+        this(slotChar, item, item != null ? item.getAmount() : 1, action, text.toArray(new String[0]));
     }
 
     /**
@@ -124,6 +141,10 @@ public class StaticGuiElement extends GuiElement {
      */
     public void setText(String... text) {
         this.text = text;
+    }
+
+    public void setText(List<String> text) {
+        this.text = text.toArray(new String[0]);
     }
 
     /**
