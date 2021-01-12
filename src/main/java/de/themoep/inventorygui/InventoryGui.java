@@ -395,7 +395,6 @@ public class InventoryGui implements Listener {
             Player player = plugin.getServer().getPlayer(playerId);
             if (player != null) {
                 setPageNumber(player, pageNumber);
-                draw(player);
             }
         }
     }
@@ -407,6 +406,7 @@ public class InventoryGui implements Listener {
      */
     public void setPageNumber(HumanEntity player, int pageNumber) {
         pageNumbers.put(player.getUniqueId(), pageNumber);
+        draw(player);
     }
 
     /**
