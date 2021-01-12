@@ -107,7 +107,7 @@ public class StaticGuiElement extends GuiElement {
             return null;
         }
         ItemStack clone = item.clone();
-        gui.setItemText(clone, getText());
+        gui.setItemText(who, clone, getText());
         if (number > 0 && number <= 64) {
             clone.setAmount(number);
         }

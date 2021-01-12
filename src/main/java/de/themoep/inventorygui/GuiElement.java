@@ -151,14 +151,12 @@ public abstract class GuiElement {
         private final InventoryGui gui;
         private final int slot;
         private final GuiElement element;
-        private final ClickType type;
         private final InventoryClickEvent event;
 
-        public Click(InventoryGui gui, int slot, GuiElement element, ClickType type, InventoryClickEvent event) {
+        public Click(InventoryGui gui, int slot, GuiElement element, InventoryClickEvent event) {
             this.gui = gui;
             this.slot = slot;
             this.element = element;
-            this.type = type;
             this.event = event;
         }
 
@@ -183,7 +181,15 @@ public abstract class GuiElement {
          * @return  The type of the click
          */
         public ClickType getType() {
-            return type;
+            return event.getClick();
+        }
+
+        /**
+         * Get who clicked the element
+         * @return  The player that clicked
+         */
+        public HumanEntity getWhoClicked() {
+            return event.getWhoClicked();
         }
 
         /**

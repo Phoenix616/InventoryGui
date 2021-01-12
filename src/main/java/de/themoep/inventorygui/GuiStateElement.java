@@ -53,7 +53,7 @@ public class GuiStateElement extends GuiElement {
 
         setAction(click -> {
             State next = nextState();
-            click.getEvent().setCurrentItem(next.getItem());
+            click.getEvent().setCurrentItem(next.getItem(click.getWhoClicked()));
             next.change.onChange(click);
             if (!isSilent()) {
                 click.getGui().playClickSound();
@@ -114,7 +114,7 @@ public class GuiStateElement extends GuiElement {
 
     @Override
     public ItemStack getItem(HumanEntity who, int slot) {
-        return getState().getItem();
+        return getState().getItem(who);
     }
 
     @Override
@@ -227,10 +227,21 @@ public class GuiStateElement extends GuiElement {
         /**
          * Get the {@link ItemStack} that represents this state.
          * @return The {@link ItemStack} that represents this state
+         * @deprecated Use {@link #getItem(HumanEntity)}
          */
+        @Deprecated
         public ItemStack getItem() {
+            return getItem(null);
+        }
+
+        /**
+         * Get the {@link ItemStack} that represents this state.
+         * @param who The player viewing the GUI
+         * @return The {@link ItemStack} that represents this state
+         */
+        public ItemStack getItem(HumanEntity who) {
             ItemStack clone = item.clone();
-            gui.setItemText(clone, text);
+            gui.setItemText(who, clone, getText());
             return clone;
         }
 

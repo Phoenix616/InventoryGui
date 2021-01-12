@@ -97,8 +97,8 @@ public class InventoryGui implements Listener {
     private Map<UUID, Inventory> inventories = new LinkedHashMap<>();
     private InventoryHolder owner = null;
     private boolean listenersRegistered = false;
-    private int pageNumber = 0;
-    private int pageAmount = 1;
+    private Map<UUID, Integer> pageNumbers = new LinkedHashMap<>();
+    private Map<UUID, Integer> pageAmounts = new LinkedHashMap<>();
     private GuiElement.Action outsideAction = click -> false;
     private CloseAction closeAction = close -> true;
     private boolean silent = false;
@@ -368,40 +368,96 @@ public class InventoryGui implements Listener {
     /**
      * Get the number of the page that this gui is on. zero indexed. Only affects group elements.
      * @return The page number
+     * @deprecated Use {@link #getPageNumber(HumanEntity)}
      */
+    @Deprecated
     public int getPageNumber() {
-        return pageNumber;
+        return getPageNumber(null);
     }
 
     /**
-     * Set the number of the page that this gui is on. zero indexed. Only affects group elements.
+     * Get the number of the page that this gui is on. zero indexed. Only affects group elements.
+     * @param player    The Player to query the page number for
+     * @return The page number
+     */
+    public int getPageNumber(HumanEntity player) {
+        return player != null
+                ? pageNumbers.getOrDefault(player.getUniqueId(), 0)
+                : pageNumbers.isEmpty() ? 0 : pageNumbers.values().iterator().next();
+    }
+
+    /**
+     * Set the number of the page that this gui is on for all players. zero indexed. Only affects group elements.
      * @param pageNumber The page number to set
      */
     public void setPageNumber(int pageNumber) {
-        this.pageNumber = pageNumber;
-        draw();
+        for (UUID playerId : inventories.keySet()) {
+            Player player = plugin.getServer().getPlayer(playerId);
+            if (player != null) {
+                setPageNumber(player, pageNumber);
+                draw(player);
+            }
+        }
+    }
+
+    /**
+     * Set the number of the page that this gui is on for a player. zero indexed. Only affects group elements.
+     * @param player        The player to set the page number for
+     * @param pageNumber    The page number to set
+     */
+    public void setPageNumber(HumanEntity player, int pageNumber) {
+        pageNumbers.put(player.getUniqueId(), pageNumber);
     }
 
     /**
      * Get the amount of pages that this GUI has
      * @return The amount of pages
+     * @deprecated Use {@link #getPageAmount(HumanEntity)}
      */
+    @Deprecated
     public int getPageAmount() {
-        return pageAmount;
+        return getPageAmount(null);
     }
 
-    private void calculatePageAmount() {
+    /**
+     * Get the amount of pages that this GUI has for a certain player
+     * @param player    The Player to query the page amount for
+     * @return The amount of pages
+     */
+    public int getPageAmount(HumanEntity player) {
+        return player != null
+                ? pageAmounts.getOrDefault(player.getUniqueId(), 1)
+                : pageAmounts.isEmpty() ? 1 : pageAmounts.values().iterator().next();
+    }
+
+    /**
+     * Set the amount of pages that this GUI has for a certain player
+     * @param player        The Player to query the page amount for
+     * @param pageAmount    The page amount
+     */
+    private void setPageAmount(HumanEntity player, int pageAmount) {
+        pageAmounts.put(player.getUniqueId(), pageAmount);
+    }
+
+    private void calculatePageAmount(HumanEntity player) {
         for (GuiElement element : elements.values()) {
-            int amount = 0;
-            if (element instanceof GuiElementGroup) {
-                amount = ((GuiElementGroup) element).size();
-            } else if (element instanceof GuiStorageElement) {
-                amount = ((GuiStorageElement) element).getStorage().getSize();
-            }
+            int pageAmount = getPageAmount(player);
+            int amount = calculatePageAmount(player, element);
             if (amount > 0 && (pageAmount - 1) * element.getSlots().length < amount) {
-                pageAmount = (int) Math.ceil((double) amount / element.getSlots().length);
+                setPageAmount(player, (int) Math.ceil((double) amount / element.getSlots().length));
             }
         }
+    }
+
+    private int calculatePageAmount(HumanEntity player, GuiElement element) {
+        if (element instanceof GuiElementGroup) {
+            return ((GuiElementGroup) element).size();
+        } else if (element instanceof GuiStorageElement) {
+            return ((GuiStorageElement) element).getStorage().getSize();
+        } else if (element instanceof DynamicGuiElement) {
+            return calculatePageAmount(player, ((DynamicGuiElement) element).queryElement(player));
+        }
+        return 0;
     }
 
     private void registerListeners() {
@@ -473,7 +529,6 @@ public class InventoryGui implements Listener {
     public void build(InventoryHolder owner) {
         setOwner(owner);
         registerListeners();
-        calculatePageAmount();
     }
 
     /**
@@ -494,12 +549,13 @@ public class InventoryGui implements Listener {
      */
     public void draw(HumanEntity who) {
         Inventory inventory = getInventory(who);
+        calculatePageAmount(who);
         if (inventory == null) {
             build();
             if (slots.length != inventoryType.getDefaultSize()) {
-                inventory = plugin.getServer().createInventory(new Holder(this), slots.length, replaceVars(title));
+                inventory = plugin.getServer().createInventory(new Holder(this), slots.length, replaceVars(who, title));
             } else {
-                inventory = plugin.getServer().createInventory(new Holder(this), inventoryType, replaceVars(title));
+                inventory = plugin.getServer().createInventory(new Holder(this), inventoryType, replaceVars(who, title));
             }
             inventories.put(who != null ? who.getUniqueId() : null, inventory);
         } else {
@@ -553,6 +609,8 @@ public class InventoryGui implements Listener {
             inventory.clear();
         }
         inventories.clear();
+        pageNumbers.clear();
+        pageAmounts.clear();
         unregisterListeners();
         removeFromMap();
     }
@@ -841,12 +899,12 @@ public class InventoryGui implements Listener {
                     // Click was neither for the top inventory or outside
                     // E.g. click is in the bottom inventory
                     if (event.getAction() == InventoryAction.COLLECT_TO_CURSOR) {
-                        simulateCollectToCursor(new GuiElement.Click(gui, slot, null, event.getClick(), event));
+                        simulateCollectToCursor(new GuiElement.Click(gui, slot, null, event));
                     }
                     return;
                 }
                 try {
-                    if (action == null || action.onClick(new GuiElement.Click(gui, slot, element, event.getClick(), event))) {
+                    if (action == null || action.onClick(new GuiElement.Click(gui, slot, element, event))) {
                         event.setCancelled(true);
                         if (event.getWhoClicked() instanceof Player) {
                             ((Player) event.getWhoClicked()).updateInventory();
@@ -955,6 +1013,8 @@ public class InventoryGui implements Listener {
                         }
                     }
                     inventories.remove(event.getPlayer().getUniqueId());
+                    pageAmounts.remove(event.getPlayer().getUniqueId());
+                    pageNumbers.remove(event.getPlayer().getUniqueId());
                 }
             }
         }
@@ -1081,14 +1141,28 @@ public class InventoryGui implements Listener {
      * Set the text of an item using the display name and the lore.
      * Also replaces any placeholders in the text and filters out empty lines.
      * Use a single space to create an emtpy line.
-     * @param item  The {@link ItemStack} to set the text for
-     * @param text  The text lines to set
+     * @param item      The {@link ItemStack} to set the text for
+     * @param text      The text lines to set
+     * @deprecated Use {@link #setItemText(HumanEntity, ItemStack, String...)}
      */
+    @Deprecated
     public void setItemText(ItemStack item, String... text) {
+        setItemText(null, item, text);
+    }
+
+    /**
+     * Set the text of an item using the display name and the lore.
+     * Also replaces any placeholders in the text and filters out empty lines.
+     * Use a single space to create an emtpy line.
+     * @param player    The player viewing the GUI
+     * @param item      The {@link ItemStack} to set the text for
+     * @param text      The text lines to set
+     */
+    public void setItemText(HumanEntity player, ItemStack item, String... text) {
         if (item != null && text != null && text.length > 0) {
             ItemMeta meta = item.getItemMeta();
             if (meta != null) {
-                String combined = replaceVars(Arrays.stream(text)
+                String combined = replaceVars(player, Arrays.stream(text)
                         .filter(Objects::nonNull)
                         .filter(s -> !s.isEmpty())
                         .collect(Collectors.joining("\n")));
@@ -1117,16 +1191,37 @@ public class InventoryGui implements Listener {
      * @param text          The text to replace the placeholders in
      * @param replacements  Additional repplacements. i = placeholder, i+1 = replacements
      * @return      The text with all placeholders replaced
+     * @deprecated Use {@link #replaceVars(HumanEntity, String, String...)}
      */
+    @Deprecated
     public String replaceVars(String text, String... replacements) {
+        return replaceVars(null, text, replacements);
+    }
+
+    /**
+     * Replace some placeholders in the with values regarding the gui's state. Replaced color codes.<br>
+     * The placeholders are:<br>
+     * <code>%plugin%</code>    - The name of the plugin that this gui is from.<br>
+     * <code>%owner%</code>     - The name of the owner of this gui. Will be an empty string when the owner is null.<br>
+     * <code>%title%</code>     - The title of this GUI.<br>
+     * <code>%page%</code>      - The current page that this gui is on.<br>
+     * <code>%nextpage%</code>  - The next page. "none" if there is no next page.<br>
+     * <code>%prevpage%</code>  - The previous page. "none" if there is no previous page.<br>
+     * <code>%pages%</code>     - The amount of pages that this gui has.
+     * @param player        The player viewing the GUI
+     * @param text          The text to replace the placeholders in
+     * @param replacements  Additional repplacements. i = placeholder, i+1 = replacements
+     * @return      The text with all placeholders replaced
+     */
+    public String replaceVars(HumanEntity player, String text, String... replacements) {
         text = replace(replace(text, replacements),
                 "plugin", plugin.getName(),
                 "owner", owner instanceof Nameable ? ((Nameable) owner).getCustomName() : "",
                 "title", title,
-                "page", String.valueOf(getPageNumber() + 1),
-                "nextpage", getPageNumber() + 1 < getPageAmount() ? String.valueOf(getPageNumber() + 2) : "none",
-                "prevpage", getPageNumber() > 0 ? String.valueOf(getPageNumber()) : "none",
-                "pages", String.valueOf(getPageAmount())
+                "page", String.valueOf(getPageNumber(player) + 1),
+                "nextpage", getPageNumber(player) + 1 < getPageAmount(player) ? String.valueOf(getPageNumber(player) + 2) : "none",
+                "prevpage", getPageNumber(player) > 0 ? String.valueOf(getPageNumber(player)) : "none",
+                "pages", String.valueOf(getPageAmount(player))
         );
         return ChatColor.translateAlternateColorCodes('&', text);
     }
