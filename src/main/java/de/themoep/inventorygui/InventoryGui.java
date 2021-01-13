@@ -948,7 +948,7 @@ public class InventoryGui implements Listener {
                     if (items.getKey() < inventory.getSize()) {
                         GuiElement element = getElement(items.getKey());
                         if (!(element instanceof GuiStorageElement)
-                                || !((GuiStorageElement) element).setStorageItem(items.getKey(), items.getValue())) {
+                                || !((GuiStorageElement) element).setStorageItem(event.getWhoClicked(), items.getKey(), items.getValue())) {
                             ItemStack slotItem = event.getInventory().getItem(items.getKey());
                             if (!items.getValue().isSimilar(slotItem)) {
                                 rest += items.getValue().getAmount();
@@ -1264,7 +1264,7 @@ public class InventoryGui implements Listener {
                 GuiElement element = getElement(i);
                 if (element instanceof GuiStorageElement) {
                     GuiStorageElement storageElement = (GuiStorageElement) element;
-                    ItemStack otherStorageItem = storageElement.getStorageItem(i);
+                    ItemStack otherStorageItem = storageElement.getStorageItem(click.getWhoClicked(), i);
                     if (addToStack(newCursor, otherStorageItem)) {
                         if (otherStorageItem.getAmount() == 0) {
                             otherStorageItem = null;
@@ -1286,7 +1286,7 @@ public class InventoryGui implements Listener {
             }
         
             if (click.getElement() instanceof GuiStorageElement) {
-                ((GuiStorageElement) click.getElement()).setStorageItem(click.getSlot(), null);
+                ((GuiStorageElement) click.getElement()).setStorageItem(click.getWhoClicked(), click.getSlot(), null);
             }
     
             if (newCursor.getAmount() < newCursor.getMaxStackSize()) {

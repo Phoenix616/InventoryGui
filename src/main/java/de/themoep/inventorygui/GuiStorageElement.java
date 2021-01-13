@@ -77,10 +77,10 @@ public class GuiStorageElement extends GuiElement {
         this.applyStorage = applyStorage;
         this.itemValidator = itemValidator;
         setAction(click -> {
-            if (getStorageSlot(click.getSlot()) < 0) {
+            if (getStorageSlot(click.getWhoClicked(), click.getSlot()) < 0) {
                 return true;
             }
-            ItemStack storageItem = getStorageItem(click.getSlot());
+            ItemStack storageItem = getStorageItem(click.getWhoClicked(), click.getSlot());
             ItemStack slotItem = click.getEvent().getView().getTopInventory().getItem(click.getSlot());
             if (slotItem == null && storageItem != null && storageItem.getType() != Material.AIR
                     || storageItem == null && slotItem != null && slotItem.getType() != Material.AIR
@@ -165,7 +165,7 @@ public class GuiStorageElement extends GuiElement {
                     click.getEvent().getWhoClicked().sendMessage(ChatColor.RED + "The action " + click.getEvent().getAction() + " is not supported! Sorry about that :(");
                     return true;
             }
-            return !setStorageItem(click.getSlot(), movedItem);
+            return !setStorageItem(click.getWhoClicked(), click.getSlot(), movedItem);
         });
         this.storage = storage;
     }
@@ -189,11 +189,12 @@ public class GuiStorageElement extends GuiElement {
     
     /**
      * Get the storage slot index that corresponds to the InventoryGui slot
-     * @param slot  The slot in the GUI
+     * @param player    The player which is using the GUI view
+     * @param slot      The slot in the GUI
      * @return      The index of the storage slot or <code>-1</code> if it's outside the storage
      */
-    private int getStorageSlot(int slot) {
-        int index = invSlot != -1 ? invSlot : getSlotIndex(slot, gui.getPageNumber());
+    private int getStorageSlot(HumanEntity player, int slot) {
+        int index = invSlot != -1 ? invSlot : getSlotIndex(slot, gui.getPageNumber(player));
         if (index < 0 || index >= storage.getSize()) {
             return -1;
         }
@@ -202,11 +203,23 @@ public class GuiStorageElement extends GuiElement {
     
     /**
      * Get the item in the storage that corresponds to the InventoryGui slot
-     * @param slot  The slot in the GUI
+     * @param slot      The slot in the GUI
+     * @return      The {@link ItemStack} or <code>null</code> if the slot is outside of the item's size
+     * @deprecated Use {@link #getStorageItem(HumanEntity, int)}
+     */
+    @Deprecated
+    public ItemStack getStorageItem(int slot) {
+        return getStorageItem(null, slot);
+    }
+
+    /**
+     * Get the item in the storage that corresponds to the InventoryGui slot
+     * @param player    The player which is using the GUI view
+     * @param slot      The slot in the GUI
      * @return      The {@link ItemStack} or <code>null</code> if the slot is outside of the item's size
      */
-    public ItemStack getStorageItem(int slot) {
-        int index = getStorageSlot(slot);
+    public ItemStack getStorageItem(HumanEntity player, int slot) {
+        int index = getStorageSlot(player, slot);
         if (index == -1) {
             return null;
         }
@@ -218,9 +231,22 @@ public class GuiStorageElement extends GuiElement {
      * @param slot  The slot in the GUI
      * @param item  The {@link ItemStack} to set
      * @return      <code>true</code> if the item was set; <code>false</code> if the slot was outside of this storage
+     * @deprecated Use {@link #setStorageItem(HumanEntity, int, ItemStack)}
      */
+    @Deprecated
     public boolean setStorageItem(int slot, ItemStack item) {
-        int index = getStorageSlot(slot);
+        return setStorageItem(null, slot, item);
+    }
+
+    /**
+     * Set the item in the storage that corresponds to the InventoryGui slot.
+     * @param player    The player using the GUI view
+     * @param slot      The slot in the GUI
+     * @param item      The {@link ItemStack} to set
+     * @return      <code>true</code> if the item was set; <code>false</code> if the slot was outside of this storage
+     */
+    public boolean setStorageItem(HumanEntity player, int slot, ItemStack item) {
+        int index = getStorageSlot(player, slot);
         if (index == -1) {
             return false;
         }

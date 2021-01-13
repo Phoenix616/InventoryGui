@@ -45,7 +45,7 @@ public class GuiElementGroup extends GuiElement {
     public GuiElementGroup(char slotChar, GuiElement... elements) {
         super(slotChar, null);
         setAction(click -> {
-            GuiElement element = getElement(click.getSlot(), click.getGui().getPageNumber());
+            GuiElement element = getElement(click.getSlot(), click.getGui().getPageNumber(click.getWhoClicked()));
             if (element != null && element.getAction(click.getEvent().getWhoClicked()) != null) {
                 return element.getAction(click.getEvent().getWhoClicked()).onClick(click);
             }
@@ -56,7 +56,7 @@ public class GuiElementGroup extends GuiElement {
 
     @Override
     public ItemStack getItem(HumanEntity who, int slot) {
-        GuiElement element = getElement(slot, gui.getPageNumber());
+        GuiElement element = getElement(slot, gui.getPageNumber(who));
         if (element != null) {
             return element.getItem(who, slot);
         }
