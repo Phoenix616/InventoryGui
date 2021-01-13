@@ -777,10 +777,10 @@ public class InventoryGui implements Listener {
     }
     
     /**
-     * Get the inventory. Package scope as it should only be used by InventoryGui.Holder
+     * Get the inventory.
      * @return The GUI's generated inventory
      */
-    Inventory getInventory() {
+    public Inventory getInventory() {
         return getInventory(null);
     }
 
@@ -789,7 +789,7 @@ public class InventoryGui implements Listener {
      * @param who The player, if null it will try to return the inventory created first or null if none was created
      * @return The GUI's generated inventory, null if none was found
      */
-    private Inventory getInventory(HumanEntity who) {
+    public Inventory getInventory(HumanEntity who) {
         return who != null ? inventories.get(who.getUniqueId()) : (inventories.isEmpty() ? null : inventories.values().iterator().next());
     }
 
