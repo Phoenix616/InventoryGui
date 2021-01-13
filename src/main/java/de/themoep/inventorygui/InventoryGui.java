@@ -43,6 +43,7 @@ import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.inventory.InventoryMoveItemEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
+import org.bukkit.event.server.PluginDisableEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
@@ -1046,6 +1047,13 @@ public class InventoryGui implements Listener {
                 destroy();
             }
         }
+
+        @EventHandler(priority = EventPriority.MONITOR)
+        public void onPluginDisable(PluginDisableEvent event) {
+            if (event.getPlugin() == plugin) {
+                destroy();
+            }
+        }
     
         public void unregister() {
             InventoryClickEvent.getHandlerList().unregister(this);
@@ -1055,6 +1063,7 @@ public class InventoryGui implements Listener {
             BlockDispenseEvent.getHandlerList().unregister(this);
             BlockBreakEvent.getHandlerList().unregister(this);
             EntityDeathEvent.getHandlerList().unregister(this);
+            PluginDisableEvent.getHandlerList().unregister(this);
         }
     }
 
