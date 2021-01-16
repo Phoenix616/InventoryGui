@@ -23,8 +23,13 @@ package de.themoep.inventorygui;
  */
 
 import org.bukkit.entity.HumanEntity;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -33,7 +38,9 @@ import java.util.function.Supplier;
  */
 public class DynamicGuiElement extends GuiElement {
     private Function<HumanEntity, GuiElement> query;
-    
+
+    private Map<UUID, CacheEntry> cachedElements = new HashMap<>();
+
     /**
      * Represents an element in a gui that will query all it's data when drawn.
      * @param slotChar  The character to replace in the gui setup string
@@ -52,24 +59,29 @@ public class DynamicGuiElement extends GuiElement {
         super(slotChar);
         this.query = query;
     }
-    
+
     /**
-     * Query this element's state even if it shouldn't be done yet
-     * @deprecated Use {@link #update(HumanEntity)}
+     * Query this element's state for every player who had it cached
      */
-    @Deprecated
     public void update() {
-        update(null);
+        for (UUID playerId : new ArrayList<>(cachedElements.keySet())) {
+            Player p = gui.getPlugin().getServer().getPlayer(playerId);
+            if (p != null && p.isOnline()) {
+                update(p);
+            } else {
+                cachedElements.remove(playerId);
+            }
+        }
     }
 
     /**
-     * Query this element's state even if it shouldn't be done yet
+     * Query this element's state for a certain player
      * @param player The player for whom to update the element
-     * @deprecated This element no longer supports caching, use {@link #queryElement(HumanEntity)} to query the element
      */
-    @Deprecated
-    public void update(HumanEntity player) {
-
+    public CacheEntry update(HumanEntity player) {
+        CacheEntry cacheEntry = new CacheEntry(queryElement(player));
+        cachedElements.put(player.getUniqueId(), cacheEntry);
+        return cacheEntry;
     }
     
     @Override
@@ -79,13 +91,13 @@ public class DynamicGuiElement extends GuiElement {
     
     @Override
     public ItemStack getItem(HumanEntity who, int slot) {
-        GuiElement element = queryElement(who);
+        GuiElement element = getCachedElement(who);
         return element != null ? element.getItem(who, slot) : null;
     }
     
     @Override
     public Action getAction(HumanEntity who) {
-        GuiElement element = queryElement(who);
+        GuiElement element = getCachedElement(who);
         return element != null ? element.getAction(who) : null;
     }
     
@@ -120,26 +132,53 @@ public class DynamicGuiElement extends GuiElement {
     }
     
     /**
-     * Get the cached element, creates a new one if there is none
+     * Get the cached element, creates a new one if there is none for that player.
+     * Use {@link #getLastCached(HumanEntity)} to check if a player has something cached.
      * @param who The player to get the element for
      * @return The element that is currently cached
-     * @deprecated  Caching is no longer supported by this class, this method will now only return the actual element
-     *              that the query provides. Use {@link #queryElement(HumanEntity)} as a more stable alternative.
-     *              Caching might be re-added as a separate element class if there is a demand
      */
-    @Deprecated
     public GuiElement getCachedElement(HumanEntity who) {
-        return queryElement(who);
+        CacheEntry cached = cachedElements.get(who.getUniqueId());
+        if (cached == null) {
+            cached = update(who);
+        }
+        return cached.getElement();
+    }
+
+    /**
+     * Remove the cached element if the player has one.
+     * @param who The player to remove the cached element for
+     * @return The element that was cached or null if none was cached
+     */
+    public GuiElement removeCachedElement(HumanEntity who) {
+        CacheEntry cached = cachedElements.remove(who.getUniqueId());
+        return cached != null ? cached.getElement() : null;
     }
     
     /**
-     * Get the time at which this element was last cached
-     * @return  The timestamp from when it was last cached
-     * @deprecated  Caching is no longer supported by this class, this method will now only return the current time stamp.
-     *              Caching might be re-added as a separate element class if there is a demand
+     * Get the time at which this element was last cached for a certain player
+     * @param who The player to get the last cache time for
+     * @return  The timestamp from when it was last cached or -1 if it wasn't cached
      */
-    @Deprecated
-    public long getLastCached() {
-        return System.currentTimeMillis();
+    public long getLastCached(HumanEntity who) {
+        CacheEntry cached = cachedElements.get(who.getUniqueId());
+        return cached != null ? cached.getCreated() : -1;
+    }
+
+    private class CacheEntry {
+        private final GuiElement element;
+        private final long created = System.currentTimeMillis();
+
+        public CacheEntry(GuiElement element) {
+            this.element = element;
+        }
+
+        public GuiElement getElement() {
+            return element;
+        }
+
+        public long getCreated() {
+            return created;
+        }
     }
 }

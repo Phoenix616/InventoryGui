@@ -568,6 +568,9 @@ public class InventoryGui implements Listener {
                 element = getFiller();
             }
             if (element != null) {
+                if (element instanceof DynamicGuiElement) {
+                    ((DynamicGuiElement) element).update(who);
+                }
                 inventory.setItem(i, element.getItem(who, i));
             }
         }
@@ -670,6 +673,14 @@ public class InventoryGui implements Listener {
     }
 
     /**
+     * Get the plugin which owns this GUI. Should be the one who created it.
+     * @return The plugin which owns this GUI
+     */
+    public JavaPlugin getPlugin() {
+        return plugin;
+    }
+
+    /**
      * Get element in a certain slot
      * @param slot  The slot to get the element from
      * @return      The GuiElement or <code>null</code> if the slot is empty/there wasn't one
@@ -709,7 +720,7 @@ public class InventoryGui implements Listener {
             GUI_MAP.put(((BlockState) owner).getLocation().toString(), this);
         }
     }
-    
+
     /**
      * Get the owner of this GUI. Will be null if th GUI doesn't have one
      * @return The InventoryHolder of this GUI
@@ -1016,6 +1027,11 @@ public class InventoryGui implements Listener {
                     inventories.remove(event.getPlayer().getUniqueId());
                     pageAmounts.remove(event.getPlayer().getUniqueId());
                     pageNumbers.remove(event.getPlayer().getUniqueId());
+                    for (GuiElement element : getElements()) {
+                        if (element instanceof DynamicGuiElement) {
+                            ((DynamicGuiElement) element).removeCachedElement(event.getPlayer());
+                        }
+                    }
                 }
             }
         }
