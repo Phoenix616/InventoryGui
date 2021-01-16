@@ -165,11 +165,11 @@ public class DynamicGuiElement extends GuiElement {
         return cached != null ? cached.getCreated() : -1;
     }
 
-    private class CacheEntry {
+    public class CacheEntry {
         private final GuiElement element;
         private final long created = System.currentTimeMillis();
 
-        public CacheEntry(GuiElement element) {
+        CacheEntry(GuiElement element) {
             this.element = element;
         }
 
