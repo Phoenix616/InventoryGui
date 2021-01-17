@@ -563,11 +563,7 @@ public class InventoryGui implements Listener {
      */
     public void draw(HumanEntity who, boolean updateDynamic) {
         if (updateDynamic) {
-            for (GuiElement element : elements.values()) {
-                if (element instanceof DynamicGuiElement) {
-                    ((DynamicGuiElement) element).update(who);
-                }
-            }
+            updateElements(who, elements.values());
         }
         calculatePageAmount(who);
         Inventory inventory = getInventory(who);
@@ -589,6 +585,21 @@ public class InventoryGui implements Listener {
             }
             if (element != null) {
                 inventory.setItem(i, element.getItem(who, i));
+            }
+        }
+    }
+
+    /**
+     * Update all dynamic elements in a collection of elements.
+     * @param who       The player to update the elements for
+     * @param elements  The elements to update
+     */
+    private void updateElements(HumanEntity who, Collection<GuiElement> elements) {
+        for (GuiElement element : elements) {
+            if (element instanceof DynamicGuiElement) {
+                ((DynamicGuiElement) element).update(who);
+            } else if (element instanceof GuiElementGroup) {
+                updateElements(who, ((GuiElementGroup) element).getElements());
             }
         }
     }
