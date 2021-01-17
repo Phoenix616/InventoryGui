@@ -407,7 +407,7 @@ public class InventoryGui implements Listener {
      */
     public void setPageNumber(HumanEntity player, int pageNumber) {
         pageNumbers.put(player.getUniqueId(), pageNumber);
-        draw(player);
+        draw(player, false);
     }
 
     /**
@@ -456,7 +456,7 @@ public class InventoryGui implements Listener {
         } else if (element instanceof GuiStorageElement) {
             return ((GuiStorageElement) element).getStorage().getSize();
         } else if (element instanceof DynamicGuiElement) {
-            return calculatePageAmount(player, ((DynamicGuiElement) element).queryElement(player));
+            return calculatePageAmount(player, ((DynamicGuiElement) element).getCachedElement(player));
         }
         return 0;
     }
@@ -533,7 +533,7 @@ public class InventoryGui implements Listener {
     }
 
     /**
-     * Draw the elements in the inventory. This can be used to manually refresh the gui.
+     * Draw the elements in the inventory. This can be used to manually refresh the gui. Updates any dynamic elements.
      */
     public void draw() {
         for (UUID playerId : inventories.keySet()) {
@@ -545,12 +545,28 @@ public class InventoryGui implements Listener {
     }
 
     /**
-     * Draw the elements in the inventory. This can be used to manually refresh the gui.
+     * Draw the elements in the inventory. This can be used to manually refresh the gui. Updates any dynamic elements.
      * @param who For who to draw the GUI
      */
     public void draw(HumanEntity who) {
-        Inventory inventory = getInventory(who);
+        draw(who, true);
+    }
+
+    /**
+     * Draw the elements in the inventory. This can be used to manually refresh the gui.
+     * @param who           For who to draw the GUI
+     * @param updateDynamic Update dynamic elements
+     */
+    public void draw(HumanEntity who, boolean updateDynamic) {
+        if (updateDynamic) {
+            for (GuiElement element : elements.values()) {
+                if (element instanceof DynamicGuiElement) {
+                    ((DynamicGuiElement) element).update(who);
+                }
+            }
+        }
         calculatePageAmount(who);
+        Inventory inventory = getInventory(who);
         if (inventory == null) {
             build();
             if (slots.length != inventoryType.getDefaultSize()) {
@@ -568,9 +584,6 @@ public class InventoryGui implements Listener {
                 element = getFiller();
             }
             if (element != null) {
-                if (element instanceof DynamicGuiElement) {
-                    ((DynamicGuiElement) element).update(who);
-                }
                 inventory.setItem(i, element.getItem(who, i));
             }
         }
@@ -928,7 +941,7 @@ public class InventoryGui implements Listener {
                             if (!event.getWhoClicked().getUniqueId().equals(playerId)) {
                                 Player player = plugin.getServer().getPlayer(playerId);
                                 if (player != null) {
-                                    draw(player);
+                                    draw(player, false);
                                 }
                             }
                         }

@@ -85,7 +85,7 @@ public class GuiStorageElement extends GuiElement {
             if (slotItem == null && storageItem != null && storageItem.getType() != Material.AIR
                     || storageItem == null && slotItem != null && slotItem.getType() != Material.AIR
                     || storageItem != null && !storageItem.equals(slotItem)) {
-                gui.draw(click.getEvent().getWhoClicked());
+                gui.draw(click.getEvent().getWhoClicked(), false);
                 return true;
             }
             ItemStack movedItem = null;
