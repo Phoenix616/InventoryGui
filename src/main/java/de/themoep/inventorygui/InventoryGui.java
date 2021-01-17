@@ -441,22 +441,26 @@ public class InventoryGui implements Listener {
     }
 
     private void calculatePageAmount(HumanEntity player) {
+        int pageAmount = 0;
         for (GuiElement element : elements.values()) {
-            int pageAmount = getPageAmount(player);
-            int amount = calculatePageAmount(player, element);
+            int amount = calculateElementSize(player, element);
             if (amount > 0 && (pageAmount - 1) * element.getSlots().length < amount) {
-                setPageAmount(player, (int) Math.ceil((double) amount / element.getSlots().length));
+                pageAmount = (int) Math.ceil((double) amount / element.getSlots().length);
             }
+        }
+        setPageAmount(player, pageAmount);
+        if (getPageNumber(player) >= pageAmount) {
+            setPageNumber(player, pageAmount - 1);
         }
     }
 
-    private int calculatePageAmount(HumanEntity player, GuiElement element) {
+    private int calculateElementSize(HumanEntity player, GuiElement element) {
         if (element instanceof GuiElementGroup) {
             return ((GuiElementGroup) element).size();
         } else if (element instanceof GuiStorageElement) {
             return ((GuiStorageElement) element).getStorage().getSize();
         } else if (element instanceof DynamicGuiElement) {
-            return calculatePageAmount(player, ((DynamicGuiElement) element).getCachedElement(player));
+            return calculateElementSize(player, ((DynamicGuiElement) element).getCachedElement(player));
         }
         return 0;
     }
