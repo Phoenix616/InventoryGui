@@ -1267,16 +1267,24 @@ public class InventoryGui implements Listener {
      * @return      The text with all placeholders replaced
      */
     public String replaceVars(HumanEntity player, String text, String... replacements) {
-        text = replace(replace(text, replacements),
-                "plugin", plugin.getName(),
-                "owner", owner instanceof Nameable ? ((Nameable) owner).getCustomName() : "",
-                "title", title,
-                "page", String.valueOf(getPageNumber(player) + 1),
-                "nextpage", getPageNumber(player) + 1 < getPageAmount(player) ? String.valueOf(getPageNumber(player) + 2) : "none",
-                "prevpage", getPageNumber(player) > 0 ? String.valueOf(getPageNumber(player)) : "none",
-                "pages", String.valueOf(getPageAmount(player))
-        );
-        return ChatColor.translateAlternateColorCodes('&', text);
+        Map<String, String> map = new LinkedHashMap<>();
+        for (int i = 0; i + 1 < replacements.length; i += 2) {
+            map.putIfAbsent(replacements[i], replacements[i + 1]);
+        }
+
+        map.putIfAbsent("plugin", plugin.getName());
+        try {
+            map.putIfAbsent("owner", owner instanceof Nameable ? ((Nameable) owner).getCustomName() : "");
+        } catch (NoSuchMethodError e) {
+            map.putIfAbsent("owner", owner instanceof Entity ? ((Entity) owner).getCustomName() : "");
+        }
+        map.putIfAbsent("title", title);
+        map.putIfAbsent("page", String.valueOf(getPageNumber(player) + 1));
+        map.putIfAbsent("nextpage", getPageNumber(player) + 1 < getPageAmount(player) ? String.valueOf(getPageNumber(player) + 2) : "none");
+        map.putIfAbsent("prevpage", getPageNumber(player) > 0 ? String.valueOf(getPageNumber(player)) : "none");
+        map.putIfAbsent("pages", String.valueOf(getPageAmount(player)));
+
+        return ChatColor.translateAlternateColorCodes('&', replace(text, map));
     }
 
     /**
@@ -1285,17 +1293,17 @@ public class InventoryGui implements Listener {
      * @param replacements  What to replace the placeholders with. The n-th index is the placeholder, the n+1-th the value.
      * @return The string with all placeholders replaced (using the configured placeholder prefix and suffix)
      */
-    private String replace(String string, String... replacements) {
-        for (int i = 0; i + 1 < replacements.length; i+=2) {
-            if (replacements[i] == null) {
+    private String replace(String string, Map<String, String> replacements) {
+        for (Map.Entry<String, String> entry : replacements.entrySet()) {
+            if (entry.getKey() == null) {
                 continue;
             }
-            String placeholder = "%" + replacements[i] + "%";
+            String placeholder = "%" + entry.getKey() + "%";
             Pattern pattern = PATTERN_CACHE.get(placeholder);
             if (pattern == null) {
                 PATTERN_CACHE.put(placeholder, pattern = Pattern.compile(placeholder, Pattern.LITERAL));
             }
-            string = pattern.matcher(string).replaceAll(Matcher.quoteReplacement(replacements[i+1] != null ? replacements[i+1] : "null"));
+            string = pattern.matcher(string).replaceAll(Matcher.quoteReplacement(entry.getValue() != null ? entry.getValue() : "null"));
         }
         return string;
     }
