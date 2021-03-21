@@ -406,7 +406,7 @@ public class InventoryGui implements Listener {
      * @param pageNumber    The page number to set
      */
     public void setPageNumber(HumanEntity player, int pageNumber) {
-        pageNumbers.put(player.getUniqueId(), pageNumber);
+        pageNumbers.put(player.getUniqueId(), pageNumber > 0 ? pageNumber : 0);
         draw(player, false);
     }
 
