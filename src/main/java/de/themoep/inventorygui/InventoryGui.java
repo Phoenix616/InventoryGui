@@ -406,8 +406,12 @@ public class InventoryGui implements Listener {
      * @param pageNumber    The page number to set
      */
     public void setPageNumber(HumanEntity player, int pageNumber) {
-        pageNumbers.put(player.getUniqueId(), pageNumber > 0 ? pageNumber : 0);
+        setPageNumberInternal(player, pageNumber);
         draw(player, false);
+    }
+
+    private void setPageNumberInternal(HumanEntity player, int pageNumber) {
+        pageNumbers.put(player.getUniqueId(), pageNumber > 0 ? pageNumber : 0);
     }
 
     /**
@@ -450,7 +454,7 @@ public class InventoryGui implements Listener {
         }
         setPageAmount(player, pageAmount);
         if (getPageNumber(player) >= pageAmount) {
-            setPageNumber(player, pageAmount - 1);
+            setPageNumberInternal(player, pageAmount - 1);
         }
     }
 
