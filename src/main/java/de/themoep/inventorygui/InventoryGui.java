@@ -1218,9 +1218,14 @@ public class InventoryGui implements Listener {
         if (item != null && text != null && text.length > 0) {
             ItemMeta meta = item.getItemMeta();
             if (meta != null) {
-                String combined = replaceVars(player, Arrays.stream(text).collect(Collectors.joining("\n")));
+                String combined = replaceVars(player, Arrays.stream(text)
+                        .map(s -> s == null ? " " : s)
+                        .filter(String::isEmpty)
+                        .collect(Collectors.joining("\n")));
                 String[] lines = combined.split("\n");
-                if(text[0] != null) meta.setDisplayName(lines[0]);
+                if (text[0] != null) {
+                    meta.setDisplayName(lines[0]);
+                }
                 if (lines.length > 1) {
                     meta.setLore(Arrays.asList(Arrays.copyOfRange(lines, 1, lines.length)));
                 } else {
