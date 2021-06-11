@@ -1220,7 +1220,7 @@ public class InventoryGui implements Listener {
             if (meta != null) {
                 String combined = replaceVars(player, Arrays.stream(text)
                         .map(s -> s == null ? " " : s)
-                        .filter(String::isEmpty)
+                        .filter(s -> !s.isEmpty())
                         .collect(Collectors.joining("\n")));
                 String[] lines = combined.split("\n");
                 if (text[0] != null) {
