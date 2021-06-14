@@ -90,6 +90,7 @@ public class InventoryGui implements Listener {
     private final UnregisterableListener[] optionalListeners = new UnregisterableListener[]{
             new ItemSwapGuiListener(this)
     };
+    private InventoryCreator creator;
     private String title;
     private final char[] slots;
     private final Map<Character, GuiElement> elements = new HashMap<>();
@@ -127,6 +128,7 @@ public class InventoryGui implements Listener {
     /**
      * Create a new gui with a certain setup and some elements
      * @param plugin    Your plugin
+     * @param creator   A creator for the backing inventory
      * @param owner     The holder that owns this gui to retrieve it with {@link #get(InventoryHolder)}.
      *                  Can be <code>null</code>.
      * @param title     The name of the GUI. This will be the title of the inventory.
@@ -135,8 +137,9 @@ public class InventoryGui implements Listener {
      * @param elements  The {@link GuiElement}s that the gui should have. You can also use {@link #addElement(GuiElement)} later.
      * @throws IllegalArgumentException Thrown when the provided rows cannot be matched to an InventoryType
      */
-    public InventoryGui(JavaPlugin plugin, InventoryHolder owner, String title, String[] rows, GuiElement... elements) {
+    public InventoryGui(JavaPlugin plugin, InventoryCreator creator, InventoryHolder owner, String title, String[] rows, GuiElement... elements) {
         this.plugin = plugin;
+        this.creator = creator;
         this.owner = owner;
         this.title = title;
         listeners.add(new GuiListener(this));
@@ -185,6 +188,24 @@ public class InventoryGui implements Listener {
         slots = slotsBuilder.toString().toCharArray();
 
         addElements(elements);
+    }
+
+    /**
+     * Create a new gui with a certain setup and some elements
+     * @param plugin    Your plugin
+     * @param owner     The holder that owns this gui to retrieve it with {@link #get(InventoryHolder)}.
+     *                  Can be <code>null</code>.
+     * @param title     The name of the GUI. This will be the title of the inventory.
+     * @param rows      How your rows are setup. Each element is getting assigned to a character.
+     *                  Empty/missing ones get filled with the Filler.
+     * @param elements  The {@link GuiElement}s that the gui should have. You can also use {@link #addElement(GuiElement)} later.
+     * @throws IllegalArgumentException Thrown when the provided rows cannot be matched to an InventoryType
+     */
+    public InventoryGui(JavaPlugin plugin, InventoryHolder owner, String title, String[] rows, GuiElement... elements) {
+        this(plugin, new InventoryCreator(
+                (gui, who, type) -> plugin.getServer().createInventory(new Holder(gui), type, gui.replaceVars(who, title)),
+                (gui, who, size) -> plugin.getServer().createInventory(new Holder(gui), size, gui.replaceVars(who, title))),
+                owner, title, rows, elements);
     }
 
     /**
@@ -573,9 +594,9 @@ public class InventoryGui implements Listener {
         if (inventory == null) {
             build();
             if (slots.length != inventoryType.getDefaultSize()) {
-                inventory = plugin.getServer().createInventory(new Holder(this), slots.length, replaceVars(who, title));
+                inventory = getInventoryCreator().getSizeCreator().create(this, who, slots.length);
             } else {
-                inventory = plugin.getServer().createInventory(new Holder(this), inventoryType, replaceVars(who, title));
+                inventory = getInventoryCreator().getTypeCreator().create(this, who, inventoryType);
             }
             inventories.put(who != null ? who.getUniqueId() : null, inventory);
         } else {
@@ -709,6 +730,26 @@ public class InventoryGui implements Listener {
      */
     public JavaPlugin getPlugin() {
         return plugin;
+    }
+
+    /**
+     * Get the helper class which will create the custom inventory for this gui.
+     * Simply uses {@link org.bukkit.Bukkit#createInventory(InventoryHolder, int, String)} by default.
+     * @return The used inventory creator instance
+     */
+    public InventoryCreator getInventoryCreator() {
+        return creator;
+    }
+
+    /**
+     * Set the helper class which will create the custom inventory for this gui.
+     * Can be used to create more special inventories.
+     * Simply uses {@link org.bukkit.Bukkit#createInventory(InventoryHolder, int, String)} by default.
+     * Should return a container inventory that can hold the size. Special inventories will break stuff.
+     * @param creator The new inventory creator instance
+     */
+    public void setInventoryCreator(InventoryCreator creator) {
+        this.creator = creator;
     }
 
     /**
@@ -1389,5 +1430,45 @@ public class InventoryGui implements Listener {
             return true;
         }
         return false;
+    }
+
+    public static class InventoryCreator {
+        private final CreatorImplementation<InventoryType> typeCreator;
+        private final CreatorImplementation<Integer> sizeCreator;
+
+        /**
+         * A new inventory creator which should be able to create an inventory based on the type and the size.
+         * <br><br>
+         * By default the creators are implemented as follows:
+         * <pre>
+         * typeCreator = (gui, who, type) -> plugin.getServer().createInventory(new Holder(gui), type, gui.replaceVars(who, title));
+         * sizeCreator = (gui, who, size) -> plugin.getServer().createInventory(new Holder(gui), size, gui.replaceVars(who, title));
+         * </pre>
+         * @param typeCreator The type creator.
+         * @param sizeCreator The size creator
+         */
+        public InventoryCreator(CreatorImplementation<InventoryType> typeCreator, CreatorImplementation<Integer> sizeCreator) {
+            this.typeCreator = typeCreator;
+            this.sizeCreator = sizeCreator;
+        }
+
+        public CreatorImplementation<InventoryType> getTypeCreator() {
+            return typeCreator;
+        }
+
+        public CreatorImplementation<Integer> getSizeCreator() {
+            return sizeCreator;
+        }
+
+        public interface CreatorImplementation<T> {
+            /**
+             * Creates a new inventory
+             * @param gui   The InventoryGui instance
+             * @param who   The player to create the inventory for
+             * @param t     The size or type of the inventory
+             * @return      The created inventory
+             */
+            Inventory create(InventoryGui gui, HumanEntity who, T t);
+        }
     }
 }
