@@ -172,7 +172,7 @@ public class GuiStorageElement extends GuiElement {
     
     @Override
     public ItemStack getItem(HumanEntity who, int slot) {
-        int index = getSlotIndex(slot);
+        int index = getStorageSlot(who, slot);
         if (index > -1 && index < storage.getSize()) {
             return storage.getItem(index);
         }
