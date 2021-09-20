@@ -67,7 +67,9 @@ public class GuiElementGroup extends GuiElement {
     public void setGui(InventoryGui gui) {
         super.setGui(gui);
         for (GuiElement element : elements) {
-            element.setGui(gui);
+            if (element != null) {
+                element.setGui(gui);
+            }
         }
         if (filler != null) {
             filler.setGui(gui);
@@ -78,7 +80,9 @@ public class GuiElementGroup extends GuiElement {
     public void setSlots(int[] slots) {
         super.setSlots(slots);
         for (GuiElement element : elements) {
-            element.setSlots(slots);
+            if (element != null) {
+                element.setSlots(slots);
+            }
         }
     }
 
@@ -88,8 +92,10 @@ public class GuiElementGroup extends GuiElement {
      */
     public void addElement(GuiElement element){
         elements.add(element);
-        element.setGui(gui);
-        element.setSlots(slots);
+        if (element != null) {
+            element.setGui(gui);
+            element.setSlots(slots);
+        }
     }
     
     /**
@@ -169,6 +175,9 @@ public class GuiElementGroup extends GuiElement {
      */
     public void setFiller(GuiElement filler) {
         this.filler = filler;
+        if (filler != null) {
+            filler.setGui(gui);
+        }
     }
     
     /**
