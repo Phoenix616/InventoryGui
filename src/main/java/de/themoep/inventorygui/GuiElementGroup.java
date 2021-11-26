@@ -31,11 +31,12 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Represents a group of multiple elements
+ * Represents a group of multiple elements. Will be left-aligned by default.
  */
 public class GuiElementGroup extends GuiElement {
     private List<GuiElement> elements = new ArrayList<>();
     private GuiElement filler = null;
+    private Alignment alignment = Alignment.LEFT;
     
     /**
      * A group of elements
@@ -138,10 +139,65 @@ public class GuiElementGroup extends GuiElement {
             return null;
         }
         int index = getSlotIndex(slot, slots.length < elements.size() ? pageNumber : 0);
-        if (index > -1 && index < elements.size()) {
-            return elements.get(index);
+        if (index > -1) {
+            if (alignment == Alignment.LEFT) {
+                if (index < elements.size()) {
+                    return elements.get(index);
+                }
+            } else {
+                int lineWidth = getLineWidth(slot);
+                int linePosition = getLinePosition(slot);
+                if (elements.size() - index > lineWidth - linePosition) {
+                    return elements.get(index);
+                }
+                int rest = elements.size() - (index - linePosition);
+                int blankBefore = alignment == Alignment.CENTER ? (lineWidth - rest) / 2 : lineWidth - rest;
+                if (linePosition < blankBefore || index - blankBefore >= elements.size()) {
+                    return filler;
+                }
+                return elements.get(index - blankBefore);
+            }
         }
         return filler;
+    }
+
+    /**
+     * Get the width of the line the slot is in
+     * @param slot The slot
+     * @return The width of the line in the GUI setup of this group
+     */
+    private int getLineWidth(int slot) {
+        int width = gui.getWidth();
+        int row = slot / width;
+
+        int amount = 0;
+        for (int s : slots) {
+            if (s >= row * width && s < (row + 1) * width) {
+                amount++;
+            }
+        }
+        return amount;
+    }
+
+    /**
+     * Get the position of the slot in its line
+     * @param slot The slot ID
+     * @return The line position or -1 if not in its line. wat
+     */
+    private int getLinePosition(int slot) {
+        int width = gui.getWidth();
+        int row = slot / width;
+
+        int position = -1;
+        for (int s : slots) {
+            if (s >= row * width && s < (row + 1) * width) {
+                position++;
+                if (s == slot) {
+                    return position;
+                }
+            }
+        }
+        return position;
     }
 
     /**
@@ -194,5 +250,27 @@ public class GuiElementGroup extends GuiElement {
      */
     public int size() {
         return elements.size();
+    }
+
+    /**
+     * Set the alignment of the elements in this group
+     * @param alignment The alignment
+     */
+    public void setAlignment(Alignment alignment) {
+        this.alignment = alignment;
+    }
+
+    /**
+     * Get the alignment of the elements in this group
+     * @return The alignment
+     */
+    public Alignment getAlignment() {
+        return alignment;
+    }
+
+    public enum Alignment {
+        LEFT,
+        CENTER,
+        RIGHT;
     }
 }

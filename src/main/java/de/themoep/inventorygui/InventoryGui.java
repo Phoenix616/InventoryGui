@@ -93,6 +93,7 @@ public class InventoryGui implements Listener {
     private InventoryCreator creator;
     private String title;
     private final char[] slots;
+    private int width;
     private final Map<Character, GuiElement> elements = new HashMap<>();
     private InventoryType inventoryType;
     private Map<UUID, Inventory> inventories = new LinkedHashMap<>();
@@ -149,7 +150,7 @@ public class InventoryGui implements Listener {
             }
         }
 
-        int width = ROW_WIDTHS[0];
+        width = ROW_WIDTHS[0];
         for (String row : rows) {
             if (row.length() > width) {
                 width = row.length();
@@ -933,6 +934,10 @@ public class InventoryGui implements Listener {
      */
     private Inventory getInventory(HumanEntity who) {
         return who != null ? inventories.get(who.getUniqueId()) : (inventories.isEmpty() ? null : inventories.values().iterator().next());
+    }
+
+    int getWidth() {
+        return width;
     }
 
     private interface UnregisterableListener extends Listener {
