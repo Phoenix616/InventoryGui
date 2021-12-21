@@ -60,7 +60,7 @@ public class GuiBackElement extends StaticGuiElement {
             return gui.getFiller() != null ? gui.getFiller().getItem(who, slot) : null;
         }
 
-        return super.getItem(who, slot).clone();
+        return super.getItem(who, slot);
     }
 
     /**
