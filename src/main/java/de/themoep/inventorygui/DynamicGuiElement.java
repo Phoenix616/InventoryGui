@@ -80,6 +80,11 @@ public class DynamicGuiElement extends GuiElement {
      */
     public CacheEntry update(HumanEntity player) {
         CacheEntry cacheEntry = new CacheEntry(queryElement(player));
+        if (cacheEntry.element instanceof DynamicGuiElement) {
+            ((DynamicGuiElement) cacheEntry.element).update(player);
+        } else if (cacheEntry.element instanceof GuiElementGroup) {
+            InventoryGui.updateElements(player, ((GuiElementGroup) cacheEntry.element).getElements());
+        }
         cachedElements.put(player.getUniqueId(), cacheEntry);
         return cacheEntry;
     }

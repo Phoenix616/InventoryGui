@@ -432,7 +432,7 @@ public class InventoryGui implements Listener {
     }
 
     private void setPageNumberInternal(HumanEntity player, int pageNumber) {
-        pageNumbers.put(player.getUniqueId(), pageNumber > 0 ? pageNumber : 0);
+        pageNumbers.put(player.getUniqueId(), Math.max(pageNumber, 0));
     }
 
     /**
@@ -619,7 +619,7 @@ public class InventoryGui implements Listener {
      * @param who       The player to update the elements for
      * @param elements  The elements to update
      */
-    private void updateElements(HumanEntity who, Collection<GuiElement> elements) {
+    public static void updateElements(HumanEntity who, Collection<GuiElement> elements) {
         for (GuiElement element : elements) {
             if (element instanceof DynamicGuiElement) {
                 ((DynamicGuiElement) element).update(who);
