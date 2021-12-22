@@ -469,13 +469,13 @@ public class InventoryGui implements Listener {
         int pageAmount = 0;
         for (GuiElement element : elements.values()) {
             int amount = calculateElementSize(player, element);
-            if (amount > 0 && (pageAmount - 1) * element.getSlots().length < amount) {
+            if (amount > 0 && (pageAmount - 1) * element.getSlots().length < amount && element.getSlots().length > 0) {
                 pageAmount = (int) Math.ceil((double) amount / element.getSlots().length);
             }
         }
         setPageAmount(player, pageAmount);
         if (getPageNumber(player) >= pageAmount) {
-            setPageNumberInternal(player, pageAmount - 1);
+            setPageNumberInternal(player, Math.min(0, pageAmount - 1));
         }
     }
 
