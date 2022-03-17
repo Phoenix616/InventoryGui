@@ -136,6 +136,14 @@ public abstract class GuiElement {
         this.gui = gui;
     }
 
+    /**
+     * Get the gui this element belongs to
+     * @return The GUI that this element is in
+     */
+    public InventoryGui getGui() {
+        return gui;
+    }
+
     public static interface Action {
 
         /**

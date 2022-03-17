@@ -94,13 +94,14 @@ public class InventoryGui implements Listener {
     private String title;
     private final char[] slots;
     private int width;
+    private final GuiElement[] elementSlots;
     private final Map<Character, GuiElement> elements = new HashMap<>();
     private InventoryType inventoryType;
-    private Map<UUID, Inventory> inventories = new LinkedHashMap<>();
-    private InventoryHolder owner = null;
+    private final Map<UUID, Inventory> inventories = new LinkedHashMap<>();
+    private InventoryHolder owner;
     private boolean listenersRegistered = false;
-    private Map<UUID, Integer> pageNumbers = new LinkedHashMap<>();
-    private Map<UUID, Integer> pageAmounts = new LinkedHashMap<>();
+    private final Map<UUID, Integer> pageNumbers = new LinkedHashMap<>();
+    private final Map<UUID, Integer> pageAmounts = new LinkedHashMap<>();
     private GuiElement.Action outsideAction = click -> false;
     private CloseAction closeAction = close -> true;
     private boolean silent = false;
@@ -172,7 +173,7 @@ public class InventoryGui implements Listener {
         StringBuilder slotsBuilder = new StringBuilder();
         for (String row : rows) {
             if (row.length() < width) {
-                double side = (width - row.length()) / 2;
+                double side = (width - row.length()) / 2.0;
                 for (int i = 0; i < Math.floor(side); i++) {
                     slotsBuilder.append(" ");
                 }
@@ -183,10 +184,11 @@ public class InventoryGui implements Listener {
             } else if (row.length() == width) {
                 slotsBuilder.append(row);
             } else {
-                slotsBuilder.append(row.substring(0, width));
+                slotsBuilder.append(row, 0, width);
             }
         }
         slots = slotsBuilder.toString().toCharArray();
+        elementSlots = new GuiElement[slots.length];
 
         addElements(elements);
     }
@@ -239,13 +241,38 @@ public class InventoryGui implements Listener {
     }
 
     /**
-     * Add an element to the gui
+     * Directly set the element in a specific slot
+     * @param element   The {@link GuiElement} to add
+     * @throws IllegalArgumentException Thrown if the provided slot is below 0 or equal/above the available slot count
+     * @throws IllegalStateException    Thrown if the element was already added to a gui
+     */
+    public void setElement(int slot, GuiElement element) {
+        if (slot < 0 || slot >= elementSlots.length) {
+            throw new IllegalArgumentException("Provided slots is outside available slots! (" + elementSlots.length + ")");
+        }
+        if (element.getSlots().length > 0 || element.getGui() != null) {
+            throw new IllegalStateException("Element was already added to a gui!");
+        }
+        element.setSlots(new int[] {slot});
+        element.setGui(this);
+        elementSlots[slot] = element;
+    }
+
+    /**
+     * Add an element to the gui with its position directly based on the elements slot char and the gui setup string
      * @param element   The {@link GuiElement} to add
      */
     public void addElement(GuiElement element) {
+        if (element.getSlots().length > 0 || element.getGui() != null) {
+            throw new IllegalStateException("Element was already added to a gui!");
+        }
         elements.put(element.getSlotChar(), element);
         element.setGui(this);
-        element.setSlots(getSlots(element.getSlotChar()));
+        int[] slots = getSlots(element.getSlotChar());
+        element.setSlots(slots);
+        for (int slot : slots) {
+            elementSlots[slot] = element;
+        }
     }
 
     private int[] getSlots(char slotChar) {
@@ -260,7 +287,7 @@ public class InventoryGui implements Listener {
 
     /**
      * Create and add a {@link StaticGuiElement} in one quick method.
-     * @param slotChar  The character to replace in the gui setup string
+     * @param slotChar  The character to specify the elements position based on the gui setup string
      * @param item      The item that should be displayed
      * @param action    The {@link de.themoep.inventorygui.GuiElement.Action} to run when the player clicks on this element
      * @param text      The text to display on this element, placeholders are automatically
@@ -275,7 +302,7 @@ public class InventoryGui implements Listener {
 
     /**
      * Create and add a {@link StaticGuiElement} that has no action.
-     * @param slotChar  The character to replace in the gui setup string
+     * @param slotChar  The character to specify the elements position based on the gui setup string
      * @param item      The item that should be displayed
      * @param text      The text to display on this element, placeholders are automatically
      *                  replaced, see {@link InventoryGui#replaceVars} for a list of the
@@ -289,9 +316,9 @@ public class InventoryGui implements Listener {
 
     /**
      * Create and add a {@link StaticGuiElement} in one quick method.
-     * @param slotChar      The character to replace in the gui setup string
+     * @param slotChar  The character to specify the elements position based on the gui setup string
      * @param materialData  The {@link MaterialData} of the item of tihs element
-     * @param action         The {@link de.themoep.inventorygui.GuiElement.Action} to run when the player clicks on this element
+     * @param action        The {@link de.themoep.inventorygui.GuiElement.Action} to run when the player clicks on this element
      * @param text      The text to display on this element, placeholders are automatically
      *                  replaced, see {@link InventoryGui#replaceVars} for a list of the
      *                  placeholder variables. Empty text strings are also filter out, use
@@ -304,7 +331,7 @@ public class InventoryGui implements Listener {
 
     /**
      * Create and add a {@link StaticGuiElement}
-     * @param slotChar  The character to replace in the gui setup string
+     * @param slotChar  The character to specify the elements position based on the gui setup string
      * @param material  The {@link Material} that the item should have
      * @param data      The <code>byte</code> representation of the material data of this element
      * @param action    The {@link GuiElement.Action} to run when the player clicks on this element
@@ -320,7 +347,7 @@ public class InventoryGui implements Listener {
 
     /**
      * Create and add a {@link StaticGuiElement}
-     * @param slotChar  The character to replace in the gui setup string
+     * @param slotChar  The character to specify the elements position based on the gui setup string
      * @param material  The {@link Material} that the item should have
      * @param action    The {@link GuiElement.Action} to run when the player clicks on this element
      * @param text      The text to display on this element, placeholders are automatically
@@ -334,7 +361,7 @@ public class InventoryGui implements Listener {
     }
 
     /**
-     * Add multiple elements to the gui
+     * Add multiple elements to the gui with their position based on their slot character
      * @param elements   The {@link GuiElement}s to add
      */
     public void addElements(GuiElement... elements) {
@@ -344,7 +371,7 @@ public class InventoryGui implements Listener {
     }
 
     /**
-     * Add multiple elements to the gui
+     * Add multiple elements to the gui with their position based on their slot character
      * @param elements   The {@link GuiElement}s to add
      */
     public void addElements(Collection<GuiElement> elements) {
@@ -359,16 +386,41 @@ public class InventoryGui implements Listener {
      * @return Whether or not the gui contained this element and if it was removed
      */
     public boolean removeElement(GuiElement element) {
-        return elements.remove(element.getSlotChar(), element);
+        boolean removed = elements.remove(element.getSlotChar(), element);
+        for (int slot : element.getSlots()) {
+            if (elementSlots[slot] == element) {
+                elementSlots[slot] = null;
+                removed = true;
+            }
+        }
+        return removed;
     }
 
     /**
-     * Remove the element that is currently assigned to a specific slot char
+     * Remove the element that is currently assigned to a specific slot char from all slots in the gui
      * @param slotChar  The char of the slot
      * @return The element which was in that slot or <code>null</code> if there was none
      */
     public GuiElement removeElement(char slotChar) {
-        return elements.remove(slotChar);
+        GuiElement element = getElement(slotChar);
+        if (element != null) {
+            removeElement(element);
+        }
+        return element;
+    }
+
+    /**
+     * Remove the element that is currently in a specific slot. Will not remove that element from other slots
+     * @param slot  The slot
+     * @return The element which was in that slot or <code>null</code> if there was none
+     */
+    public GuiElement removeElement(int slot) {
+        if (slot < 0 || slot >= elementSlots.length) {
+            return null;
+        }
+        GuiElement element = elementSlots[slot];
+        elementSlots[slot] = null;
+        return element;
     }
 
     /**
@@ -759,7 +811,7 @@ public class InventoryGui implements Listener {
      * @return      The GuiElement or <code>null</code> if the slot is empty/there wasn't one
      */
     public GuiElement getElement(int slot) {
-        return slot < 0 || slot >= slots.length ? null : elements.get(slots[slot]);
+        return slot < 0 || slot >= elementSlots.length ? null : elementSlots[slot];
     }
 
     /**
