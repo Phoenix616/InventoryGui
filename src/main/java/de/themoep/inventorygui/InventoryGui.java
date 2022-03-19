@@ -1016,7 +1016,7 @@ public class InventoryGui implements Listener {
             this.gui = gui;
         }
 
-        @EventHandler
+        @EventHandler(ignoreCancelled = true)
         private void onInventoryClick(InventoryClickEvent event) {
             if (event.getInventory().equals(getInventory(event.getWhoClicked()))) {
 
@@ -1037,7 +1037,7 @@ public class InventoryGui implements Listener {
                 } else if (slot == -999) {
                     action = outsideAction;
                 } else {
-                    // Click was neither for the top inventory or outside
+                    // Click was neither for the top inventory nor outside
                     // E.g. click is in the bottom inventory
                     if (event.getAction() == InventoryAction.COLLECT_TO_CURSOR) {
                         simulateCollectToCursor(new GuiElement.Click(gui, slot, null, event));
@@ -1165,14 +1165,14 @@ public class InventoryGui implements Listener {
             }
         }
 
-        @EventHandler(priority = EventPriority.MONITOR)
+        @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
         public void onInventoryMoveItem(InventoryMoveItemEvent event) {
             if (hasRealOwner() && (owner.equals(event.getDestination().getHolder()) || owner.equals(event.getSource().getHolder()))) {
                 plugin.getServer().getScheduler().runTask(plugin, (Runnable) gui::draw);
             }
         }
 
-        @EventHandler(priority = EventPriority.MONITOR)
+        @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
         public void onDispense(BlockDispenseEvent event) {
             if (hasRealOwner() && owner.equals(event.getBlock().getState())) {
                 plugin.getServer().getScheduler().runTask(plugin, (Runnable) gui::draw);
@@ -1186,7 +1186,7 @@ public class InventoryGui implements Listener {
             }
         }
 
-        @EventHandler(priority = EventPriority.MONITOR)
+        @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
         public void onEntityDeath(EntityDeathEvent event) {
             if (hasRealOwner() && owner.equals(event.getEntity())) {
                 destroy();
@@ -1223,7 +1223,7 @@ public class InventoryGui implements Listener {
             this.gui = gui;
         }
 
-        @EventHandler(priority = EventPriority.HIGHEST)
+        @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
         public void onInventoryMoveItem(PlayerSwapHandItemsEvent event) {
             Inventory inventory = getInventory(event.getPlayer());
             if (event.getPlayer().getOpenInventory().getTopInventory().equals(inventory)) {
