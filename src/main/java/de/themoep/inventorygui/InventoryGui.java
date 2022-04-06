@@ -575,7 +575,8 @@ public class InventoryGui implements Listener {
     public void show(HumanEntity player, boolean checkOpen) {
         draw(player);
         if (!checkOpen || !this.equals(getOpen(player))) {
-            if (player.getOpenInventory().getType() != InventoryType.CRAFTING) {
+            InventoryType type = player.getOpenInventory().getType();
+            if (type != InventoryType.CRAFTING && type != InventoryType.CREATIVE) {
                 // If the player already has a gui open then we assume that the call was from that gui.
                 // In order to not close it in a InventoryClickEvent listener (which will lead to errors)
                 // we delay the opening for one tick to run after it finished processing the event
