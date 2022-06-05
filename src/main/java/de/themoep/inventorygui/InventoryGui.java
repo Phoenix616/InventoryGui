@@ -1379,7 +1379,7 @@ public class InventoryGui implements Listener {
         map.putIfAbsent("plugin", plugin.getName());
         try {
             map.putIfAbsent("owner", owner instanceof Nameable ? ((Nameable) owner).getCustomName() : "");
-        } catch (NoSuchMethodError e) {
+        } catch (NoSuchMethodError | NoClassDefFoundError e) {
             map.putIfAbsent("owner", owner instanceof Entity ? ((Entity) owner).getCustomName() : "");
         }
         map.putIfAbsent("title", title);
