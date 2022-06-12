@@ -32,6 +32,7 @@ import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
+import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockDispenseEvent;
@@ -1202,14 +1203,7 @@ public class InventoryGui implements Listener {
         }
     
         public void unregister() {
-            InventoryClickEvent.getHandlerList().unregister(this);
-            InventoryDragEvent.getHandlerList().unregister(this);
-            InventoryCloseEvent.getHandlerList().unregister(this);
-            InventoryMoveItemEvent.getHandlerList().unregister(this);
-            BlockDispenseEvent.getHandlerList().unregister(this);
-            BlockBreakEvent.getHandlerList().unregister(this);
-            EntityDeathEvent.getHandlerList().unregister(this);
-            PluginDisableEvent.getHandlerList().unregister(this);
+            HandlerList.unregisterAll(this);
         }
     }
 
@@ -1233,7 +1227,7 @@ public class InventoryGui implements Listener {
         }
 
         public void unregister() {
-            PlayerSwapHandItemsEvent.getHandlerList().unregister(this);
+            HandlerList.unregisterAll(this);
         }
     }
     
