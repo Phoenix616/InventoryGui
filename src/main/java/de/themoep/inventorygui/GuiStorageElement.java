@@ -95,8 +95,16 @@ public class GuiStorageElement extends GuiElement {
                     return false;
                 case MOVE_TO_OTHER_INVENTORY:
                     if (click.getEvent().getRawSlot() < click.getEvent().getView().getTopInventory().getSize()) {
+                        // Moved from storage
+
+                        // Check if there is actually space
+                        if (click.getEvent().getView().getBottomInventory().firstEmpty() == -1) {
+                            // No empty slot, cancel
+                            return true;
+                        }
                         movedItem = null;
                     } else {
+                        // Moved to storage
                         movedItem = click.getEvent().getCurrentItem();
                     }
                     break;
