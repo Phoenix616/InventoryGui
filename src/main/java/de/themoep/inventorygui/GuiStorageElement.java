@@ -97,7 +97,7 @@ public class GuiStorageElement extends GuiElement {
                     if (click.getEvent().getRawSlot() < click.getEvent().getView().getTopInventory().getSize()) {
                         // Moved from storage
 
-                        // Check if there is actually space
+                        // Check if there is actually space (more advanced checks can unfortunately not be supported right now)
                         if (click.getEvent().getView().getBottomInventory().firstEmpty() == -1) {
                             // No empty slot, cancel
                             return true;
@@ -105,8 +105,16 @@ public class GuiStorageElement extends GuiElement {
                         movedItem = null;
                     } else {
                         // Moved to storage
+
+                        // Check if there is actually space (more advanced checks can unfortunately not be supported right now)
+                        if (click.getEvent().getView().getTopInventory().firstEmpty() == -1) {
+                            // No empty slot, cancel
+                            return true;
+                        }
                         movedItem = click.getEvent().getCurrentItem();
                     }
+                    // Update GUI to avoid display glitches
+                    gui.getPlugin().getServer().getScheduler().runTask(gui.getPlugin(), (Runnable) gui::draw);
                     break;
                 case HOTBAR_MOVE_AND_READD:
                 case HOTBAR_SWAP:

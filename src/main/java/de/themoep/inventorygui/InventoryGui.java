@@ -1043,6 +1043,9 @@ public class InventoryGui implements Listener {
                     // E.g. click is in the bottom inventory
                     if (event.getAction() == InventoryAction.COLLECT_TO_CURSOR) {
                         simulateCollectToCursor(new GuiElement.Click(gui, slot, null, event));
+                    } else {
+                        // This was an action we can't handle, abort
+                        event.setCancelled(true);
                     }
                     return;
                 }
