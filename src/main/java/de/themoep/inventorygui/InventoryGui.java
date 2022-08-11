@@ -93,6 +93,7 @@ public class InventoryGui implements Listener {
     };
     private InventoryCreator creator;
     private String title;
+    private boolean titleUpdated = false;
     private final char[] slots;
     private int width;
     private final GuiElement[] elementSlots;
@@ -574,7 +575,7 @@ public class InventoryGui implements Listener {
      * @param checkOpen Whether or not it should check if this gui is already open
      */
     public void show(HumanEntity player, boolean checkOpen) {
-        draw(player);
+        draw(player, true, true);
         if (!checkOpen || !this.equals(getOpen(player))) {
             InventoryType type = player.getOpenInventory().getType();
             if (type != InventoryType.CRAFTING && type != InventoryType.CREATIVE) {
@@ -641,12 +642,23 @@ public class InventoryGui implements Listener {
      * @param updateDynamic Update dynamic elements
      */
     public void draw(HumanEntity who, boolean updateDynamic) {
+        draw(who, updateDynamic, false);
+    }
+
+    /**
+     * Draw the elements in the inventory. This can be used to manually refresh the gui.
+     * @param who           For who to draw the GUI
+     * @param updateDynamic Update dynamic elements
+     * @param updateTitle   Recreate the inventory if the title changed
+     */
+    private void draw(HumanEntity who, boolean updateDynamic, boolean updateTitle) {
         if (updateDynamic) {
             updateElements(who, elements.values());
         }
         calculatePageAmount(who);
         Inventory inventory = getInventory(who);
-        if (inventory == null) {
+        if (inventory == null || titleUpdated) {
+            titleUpdated = false;
             build();
             if (slots.length != inventoryType.getDefaultSize()) {
                 inventory = getInventoryCreator().getSizeCreator().create(this, who, slots.length);
@@ -957,6 +969,7 @@ public class InventoryGui implements Listener {
      */
     public void setTitle(String title) {
         this.title = title;
+        this.titleUpdated = true;
     }
 
     /**
