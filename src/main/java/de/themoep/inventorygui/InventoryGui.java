@@ -575,8 +575,9 @@ public class InventoryGui implements Listener {
      * @param checkOpen Whether or not it should check if this gui is already open
      */
     public void show(HumanEntity player, boolean checkOpen) {
-        draw(player, true, true);
-        if (!checkOpen || !this.equals(getOpen(player))) {
+        // Draw the elements into an inventory, if the title was updated then also force-recreate the inventory if it exists
+        draw(player, true, titleUpdated);
+        if (titleUpdated || !checkOpen || !this.equals(getOpen(player))) {
             InventoryType type = player.getOpenInventory().getType();
             if (type != InventoryType.CRAFTING && type != InventoryType.CREATIVE) {
                 // If the player already has a gui open then we assume that the call was from that gui.
@@ -598,6 +599,8 @@ public class InventoryGui implements Listener {
                 }
             }
         }
+        // Reset the field that indicates that the title changed
+        titleUpdated = false;
     }
 
     /**
@@ -647,18 +650,17 @@ public class InventoryGui implements Listener {
 
     /**
      * Draw the elements in the inventory. This can be used to manually refresh the gui.
-     * @param who           For who to draw the GUI
-     * @param updateDynamic Update dynamic elements
-     * @param updateTitle   Recreate the inventory if the title changed
+     * @param who               For who to draw the GUI
+     * @param updateDynamic     Update dynamic elements
+     * @param recreateInventory Recreate the inventory
      */
-    private void draw(HumanEntity who, boolean updateDynamic, boolean updateTitle) {
+    public void draw(HumanEntity who, boolean updateDynamic, boolean recreateInventory) {
         if (updateDynamic) {
             updateElements(who, elements.values());
         }
         calculatePageAmount(who);
         Inventory inventory = getInventory(who);
-        if (inventory == null || titleUpdated) {
-            titleUpdated = false;
+        if (inventory == null || recreateInventory) {
             build();
             if (slots.length != inventoryType.getDefaultSize()) {
                 inventory = getInventoryCreator().getSizeCreator().create(this, who, slots.length);
