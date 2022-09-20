@@ -53,11 +53,11 @@ public class GuiStateElement extends GuiElement {
 
         setAction(click -> {
             State next = nextState();
-            click.getEvent().setCurrentItem(next.getItem(click.getWhoClicked()));
             next.change.onChange(click);
             if (!isSilent()) {
                 click.getGui().playClickSound();
             }
+            gui.draw(click.getWhoClicked(), false);
             return true;
         });
     }

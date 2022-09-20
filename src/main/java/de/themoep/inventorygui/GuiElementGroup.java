@@ -47,8 +47,8 @@ public class GuiElementGroup extends GuiElement {
         super(slotChar, null);
         setAction(click -> {
             GuiElement element = getElement(click.getSlot(), click.getGui().getPageNumber(click.getWhoClicked()));
-            if (element != null && element.getAction(click.getEvent().getWhoClicked()) != null) {
-                return element.getAction(click.getEvent().getWhoClicked()).onClick(click);
+            if (element != null && element.getAction(click.getRawEvent().getWhoClicked()) != null) {
+                return element.getAction(click.getWhoClicked()).onClick(click);
             }
             return true;
         });

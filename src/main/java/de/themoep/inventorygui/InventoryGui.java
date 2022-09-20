@@ -37,10 +37,13 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockDispenseEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.inventory.ClickType;
+import org.bukkit.event.inventory.DragType;
 import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
+import org.bukkit.event.inventory.InventoryInteractEvent;
 import org.bukkit.event.inventory.InventoryMoveItemEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
@@ -1005,8 +1008,78 @@ public class InventoryGui implements Listener {
         return who != null ? inventories.get(who.getUniqueId()) : (inventories.isEmpty() ? null : inventories.values().iterator().next());
     }
 
+    /**
+     * Get the width of the GUI in slots
+     * @return The width of the GUI
+     */
     int getWidth() {
         return width;
+    }
+
+    /**
+     * Handle interaction with a slot in this GUI
+     * @param event     The event that triggered it
+     * @param clickType The type of click
+     * @param slot      The slot
+     * @param cursor    The item on the cursor
+     * @return The resulting click object
+     */
+    private GuiElement.Click handleInteract(InventoryInteractEvent event, ClickType clickType, int slot, ItemStack cursor) {
+        GuiElement.Action action = null;
+        GuiElement element = null;
+        if (slot >= 0) {
+            element = getElement(slot);
+            if (element != null) {
+                action = element.getAction(event.getWhoClicked());
+            }
+        } else if (slot == -999) {
+            action = outsideAction;
+        } else {
+            if (event instanceof InventoryClickEvent) {
+                // Click was neither for the top inventory nor outside
+                // E.g. click is in the bottom inventory
+                if (((InventoryClickEvent) event).getAction() == InventoryAction.COLLECT_TO_CURSOR) {
+                    GuiElement.Click click = new GuiElement.Click(this, slot, clickType, cursor, null, event);
+                    simulateCollectToCursor(click);
+                    return click;
+                } else if (((InventoryClickEvent) event).getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) {
+                    // This was an action we can't handle, abort
+                    event.setCancelled(true);
+                }
+            }
+            return null;
+        }
+        try {
+            GuiElement.Click click = new GuiElement.Click(this, slot, clickType, cursor, element, event);
+            if (action == null || action.onClick(click)) {
+                event.setCancelled(true);
+                if (event.getWhoClicked() instanceof Player) {
+                    ((Player) event.getWhoClicked()).updateInventory();
+                }
+            }
+            if (action != null) {
+                // Let's assume something changed and re-draw all currently shown inventories
+                for (UUID playerId : inventories.keySet()) {
+                    if (!event.getWhoClicked().getUniqueId().equals(playerId)) {
+                        Player player = plugin.getServer().getPlayer(playerId);
+                        if (player != null) {
+                            draw(player, false);
+                        }
+                    }
+                }
+                return click;
+            }
+        } catch (Throwable t) {
+            event.setCancelled(true);
+            if (event.getWhoClicked() instanceof Player) {
+                ((Player) event.getWhoClicked()).updateInventory();
+            }
+            plugin.getLogger().log(Level.SEVERE, "Exception while trying to run action for click on "
+                    + (element != null ? element.getClass().getSimpleName() : "empty element")
+                    + " in slot " + slot + " of " + getTitle() + " GUI!");
+            t.printStackTrace();
+        }
+        return null;
     }
 
     private interface UnregisterableListener extends Listener {
@@ -1043,54 +1116,16 @@ public class InventoryGui implements Listener {
                 } else if (event.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) {
                     slot = event.getInventory().firstEmpty();
                 }
-    
-                GuiElement.Action action = null;
-                GuiElement element = null;
-                if (slot >= 0) {
-                    element = getElement(slot);
-                    if (element != null) {
-                        action = element.getAction(event.getWhoClicked());
-                    }
-                } else if (slot == -999) {
-                    action = outsideAction;
-                } else {
-                    // Click was neither for the top inventory nor outside
-                    // E.g. click is in the bottom inventory
-                    if (event.getAction() == InventoryAction.COLLECT_TO_CURSOR) {
-                        simulateCollectToCursor(new GuiElement.Click(gui, slot, null, event));
-                    } else if (event.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) {
-                        // This was an action we can't handle, abort
-                        event.setCancelled(true);
-                    }
-                    return;
-                }
-                try {
-                    if (action == null || action.onClick(new GuiElement.Click(gui, slot, element, event))) {
-                        event.setCancelled(true);
-                        if (event.getWhoClicked() instanceof Player) {
-                            ((Player) event.getWhoClicked()).updateInventory();
-                        }
-                    }
-                    if (action != null) {
-                        // Let's assume something changed and re-draw all currently shown inventories
-                        for (UUID playerId : inventories.keySet()) {
-                            if (!event.getWhoClicked().getUniqueId().equals(playerId)) {
-                                Player player = plugin.getServer().getPlayer(playerId);
-                                if (player != null) {
-                                    draw(player, false);
-                                }
-                            }
-                        }
-                    }
-                } catch (Throwable t) {
-                    event.setCancelled(true);
-                    if (event.getWhoClicked() instanceof Player) {
-                        ((Player) event.getWhoClicked()).updateInventory();
-                    }
-                    plugin.getLogger().log(Level.SEVERE, "Exception while trying to run action for click on "
-                            + (element != null ? element.getClass().getSimpleName() : "empty element")
-                            + " in slot " + event.getRawSlot() + " of " + gui.getTitle() + " GUI!");
-                    t.printStackTrace();
+
+                // Cache the original cursor
+                ItemStack originalCursor = event.getCursor() != null ? event.getCursor().clone() : null;
+
+                // Forward the click
+                GuiElement.Click click = handleInteract(event, event.getClick(), slot, event.getCursor());
+
+                // Update the cursor if necessary
+                if (click != null && (originalCursor == null || !originalCursor.equals(click.getCursor()))) {
+                    event.setCursor(click.getCursor());
                 }
             } else if (hasRealOwner() && owner.equals(event.getInventory().getHolder())) {
                 // Click into inventory by same owner but not the inventory of the GUI
@@ -1101,6 +1136,24 @@ public class InventoryGui implements Listener {
 
         @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
         public void onInventoryDrag(InventoryDragEvent event) {
+            // Check if we only drag over one slot if so then handle that as a click with the element
+            if (event.getRawSlots().size() == 1) {
+                int slot = event.getRawSlots().iterator().next();
+                GuiElement.Click click = handleInteract(
+                        event,
+                        // Map drag type to the button that caused it
+                        event.getType() == DragType.SINGLE ? ClickType.RIGHT : ClickType.LEFT,
+                        slot,
+                        event.getOldCursor()
+                );
+
+                // Update the cursor if necessary
+                if (click != null && !event.getOldCursor().equals(click.getCursor())) {
+                    event.setCursor(click.getCursor());
+                }
+                return;
+            }
+
             Inventory inventory = getInventory(event.getWhoClicked());
             if (event.getInventory().equals(inventory)) {
                 int rest = 0;
@@ -1429,12 +1482,18 @@ public class InventoryGui implements Listener {
      * @param click The click that startet it all
      */
     void simulateCollectToCursor(GuiElement.Click click) {
-        ItemStack newCursor = click.getEvent().getCursor().clone();
+        if (!(click.getRawEvent() instanceof InventoryClickEvent)) {
+            // Only a click event can trigger the collection to the cursor
+            return;
+        }
+        InventoryClickEvent event = (InventoryClickEvent) click.getRawEvent();
+
+        ItemStack newCursor = click.getCursor().clone();
     
         boolean itemInGui = false;
-        for (int i = 0; i < click.getEvent().getView().getTopInventory().getSize(); i++) {
-            if (i != click.getEvent().getRawSlot()) {
-                ItemStack viewItem = click.getEvent().getView().getTopInventory().getItem(i);
+        for (int i = 0; i < click.getRawEvent().getView().getTopInventory().getSize(); i++) {
+            if (i != event.getRawSlot()) {
+                ItemStack viewItem = click.getRawEvent().getView().getTopInventory().getItem(i);
                 if (newCursor.isSimilar(viewItem)) {
                     itemInGui = true;
                 }
@@ -1456,10 +1515,10 @@ public class InventoryGui implements Listener {
         }
     
         if (itemInGui) {
-            click.getEvent().setCurrentItem(null);
-            click.getEvent().setCancelled(true);
-            if (click.getEvent().getWhoClicked() instanceof Player) {
-                ((Player) click.getEvent().getWhoClicked()).updateInventory();
+            event.setCurrentItem(null);
+            click.getRawEvent().setCancelled(true);
+            if (click.getRawEvent().getWhoClicked() instanceof Player) {
+                ((Player) click.getRawEvent().getWhoClicked()).updateInventory();
             }
         
             if (click.getElement() instanceof GuiStorageElement) {
@@ -1467,7 +1526,7 @@ public class InventoryGui implements Listener {
             }
     
             if (newCursor.getAmount() < newCursor.getMaxStackSize()) {
-                Inventory bottomInventory = click.getEvent().getView().getBottomInventory();
+                Inventory bottomInventory = click.getRawEvent().getView().getBottomInventory();
                 for (ItemStack bottomIem : bottomInventory) {
                     if (addToStack(newCursor, bottomIem)) {
                         if (newCursor.getAmount() == newCursor.getMaxStackSize()) {
@@ -1476,7 +1535,7 @@ public class InventoryGui implements Listener {
                     }
                 }
             }
-            click.getEvent().setCursor(newCursor);
+            event.setCursor(newCursor);
             draw();
         }
     }

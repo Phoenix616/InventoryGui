@@ -25,6 +25,7 @@ package de.themoep.inventorygui;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.HumanEntity;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
@@ -81,24 +82,32 @@ public class GuiStorageElement extends GuiElement {
                 return true;
             }
             ItemStack storageItem = getStorageItem(click.getWhoClicked(), click.getSlot());
-            ItemStack slotItem = click.getEvent().getView().getTopInventory().getItem(click.getSlot());
+            ItemStack slotItem = click.getRawEvent().getView().getTopInventory().getItem(click.getSlot());
             if (slotItem == null && storageItem != null && storageItem.getType() != Material.AIR
                     || storageItem == null && slotItem != null && slotItem.getType() != Material.AIR
                     || storageItem != null && !storageItem.equals(slotItem)) {
-                gui.draw(click.getEvent().getWhoClicked(), false);
+                gui.draw(click.getWhoClicked(), false);
                 return true;
             }
+
+            if (!(click.getRawEvent() instanceof InventoryClickEvent)) {
+                // Only the click event will be handled here, drag event is handled separately
+                return true;
+            }
+
+            InventoryClickEvent event = (InventoryClickEvent) click.getRawEvent();
+
             ItemStack movedItem = null;
-            switch (click.getEvent().getAction()) {
+            switch (event.getAction()) {
                 case NOTHING:
                 case CLONE_STACK:
                     return false;
                 case MOVE_TO_OTHER_INVENTORY:
-                    if (click.getEvent().getRawSlot() < click.getEvent().getView().getTopInventory().getSize()) {
+                    if (event.getRawSlot() < click.getRawEvent().getView().getTopInventory().getSize()) {
                         // Moved from storage
 
                         // Check if there is actually space (more advanced checks can unfortunately not be supported right now)
-                        if (click.getEvent().getView().getBottomInventory().firstEmpty() == -1) {
+                        if (click.getRawEvent().getView().getBottomInventory().firstEmpty() == -1) {
                             // No empty slot, cancel
                             return true;
                         }
@@ -107,78 +116,91 @@ public class GuiStorageElement extends GuiElement {
                         // Moved to storage
 
                         // Check if there is actually space (more advanced checks can unfortunately not be supported right now)
-                        if (click.getEvent().getView().getTopInventory().firstEmpty() == -1) {
+                        if (click.getRawEvent().getView().getTopInventory().firstEmpty() == -1) {
                             // No empty slot, cancel
                             return true;
                         }
-                        movedItem = click.getEvent().getCurrentItem();
+                        movedItem = event.getCurrentItem();
                     }
                     // Update GUI to avoid display glitches
                     gui.getPlugin().getServer().getScheduler().runTask(gui.getPlugin(), (Runnable) gui::draw);
                     break;
                 case HOTBAR_MOVE_AND_READD:
                 case HOTBAR_SWAP:
-                    int button = click.getEvent().getHotbarButton();
+                    int button = event.getHotbarButton();
                     if (button < 0) {
                         return true;
                     }
-                    ItemStack hotbarItem = click.getEvent().getView().getBottomInventory().getItem(button);
+                    ItemStack hotbarItem = click.getRawEvent().getView().getBottomInventory().getItem(button);
                     if (hotbarItem != null) {
                         movedItem = hotbarItem.clone();
                     }
                     break;
                 case PICKUP_ONE:
                 case DROP_ONE_SLOT:
-                    movedItem = click.getEvent().getCurrentItem().clone();
-                    movedItem.setAmount(movedItem.getAmount() - 1);
+                    if (event.getCurrentItem() != null) {
+                        movedItem = event.getCurrentItem().clone();
+                        movedItem.setAmount(movedItem.getAmount() - 1);
+                    }
                     break;
                 case DROP_ALL_SLOT:
                     movedItem = null;
                     break;
                 case PICKUP_HALF:
-                    movedItem = click.getEvent().getCurrentItem().clone();
-                    movedItem.setAmount(movedItem.getAmount() / 2);
+                    if (event.getCurrentItem() != null) {
+                        movedItem = event.getCurrentItem().clone();
+                        movedItem.setAmount(movedItem.getAmount() / 2);
+                    }
                     break;
                 case PLACE_SOME:
-                    if (click.getEvent().getCurrentItem() == null) {
-                        movedItem = click.getEvent().getCursor();
+                    if (event.getCurrentItem() == null) {
+                        if (event.getCursor() != null) {
+                            movedItem = event.getCursor().clone();
+                        }
                     } else {
-                        movedItem = click.getEvent().getCurrentItem().clone();
-                        if (movedItem.getAmount() + click.getEvent().getCursor().getAmount() < movedItem.getMaxStackSize()) {
-                            movedItem.setAmount(movedItem.getAmount() + click.getEvent().getCursor().getAmount());
+                        movedItem = event.getCurrentItem().clone();
+                        int newAmount = movedItem.getAmount() + (event.getCursor() != null ? event.getCursor().getAmount() : 0);
+                        if (newAmount < movedItem.getMaxStackSize()) {
+                            movedItem.setAmount(newAmount);
                         } else {
                             movedItem.setAmount(movedItem.getMaxStackSize());
                         }
                     }
                     break;
                 case PLACE_ONE:
-                    if (click.getEvent().getCurrentItem() == null) {
-                        movedItem = click.getEvent().getCursor().clone();
-                        movedItem.setAmount(1);
-                    } else {
-                        movedItem = click.getEvent().getCursor().clone();
-                        movedItem.setAmount(click.getEvent().getCurrentItem().getAmount() + 1);
+                    if (event.getCursor() != null) {
+                        if (event.getCurrentItem() == null) {
+                            movedItem = event.getCursor().clone();
+                            movedItem.setAmount(1);
+                        } else {
+                            movedItem = event.getCursor().clone();
+                            movedItem.setAmount(event.getCurrentItem().getAmount() + 1);
+                        }
                     }
                     break;
                 case PLACE_ALL:
-                    movedItem = click.getEvent().getCursor().clone();
-                    if (click.getEvent().getCurrentItem() != null && click.getEvent().getCurrentItem().getAmount() > 0) {
-                        movedItem.setAmount(click.getEvent().getCurrentItem().getAmount() + movedItem.getAmount());
+                    if (event.getCursor() != null) {
+                        movedItem = event.getCursor().clone();
+                        if (event.getCurrentItem() != null && event.getCurrentItem().getAmount() > 0) {
+                            movedItem.setAmount(event.getCurrentItem().getAmount() + movedItem.getAmount());
+                        }
                     }
                     break;
                 case PICKUP_ALL:
                 case SWAP_WITH_CURSOR:
-                    movedItem = click.getEvent().getCursor();
+                    if (event.getCursor() != null) {
+                        movedItem = event.getCursor().clone();
+                    };
                     break;
                 case COLLECT_TO_CURSOR:
-                    if (click.getEvent().getCursor() == null
-                            || click.getEvent().getCurrentItem() != null && click.getEvent().getCurrentItem().getType() != Material.AIR) {
+                    if (event.getCursor() == null
+                            || event.getCurrentItem() != null && event.getCurrentItem().getType() != Material.AIR) {
                         return true;
                     }
                     gui.simulateCollectToCursor(click);
                     return false;
                 default:
-                    click.getEvent().getWhoClicked().sendMessage(ChatColor.RED + "The action " + click.getEvent().getAction() + " is not supported! Sorry about that :(");
+                    click.getRawEvent().getWhoClicked().sendMessage(ChatColor.RED + "The action " + event.getAction() + " is not supported! Sorry about that :(");
                     return true;
             }
             return !setStorageItem(click.getWhoClicked(), click.getSlot(), movedItem);

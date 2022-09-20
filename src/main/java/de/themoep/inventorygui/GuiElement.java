@@ -24,7 +24,7 @@ package de.themoep.inventorygui;
 
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.event.inventory.ClickType;
-import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryInteractEvent;
 import org.bukkit.inventory.ItemStack;
 
 /**
@@ -158,12 +158,16 @@ public abstract class GuiElement {
     public static class Click {
         private final InventoryGui gui;
         private final int slot;
+        private final ClickType clickType;
+        private ItemStack cursor;
         private final GuiElement element;
-        private final InventoryClickEvent event;
+        private final InventoryInteractEvent event;
 
-        public Click(InventoryGui gui, int slot, GuiElement element, InventoryClickEvent event) {
+        public Click(InventoryGui gui, int slot, ClickType clickType, ItemStack cursor, GuiElement element, InventoryInteractEvent event) {
             this.gui = gui;
             this.slot = slot;
+            this.clickType = clickType;
+            this.cursor = cursor;
             this.element = element;
             this.event = event;
         }
@@ -189,7 +193,23 @@ public abstract class GuiElement {
          * @return  The type of the click
          */
         public ClickType getType() {
-            return event.getClick();
+            return clickType;
+        }
+
+        /**
+         * Get the item on the cursor
+         * @return The item on the cursor when this click occurred
+         */
+        public ItemStack getCursor() {
+            return cursor;
+        }
+
+        /**
+         * Set the item on the cursor after the click
+         * @param cursor The new item on the cursor
+         */
+        public void setCursor(ItemStack cursor) {
+            this.cursor = cursor;
         }
 
         /**
@@ -201,10 +221,10 @@ public abstract class GuiElement {
         }
 
         /**
-         * Get the event of the click
-         * @return  The InventoryClickEvent associated with this Click
+         * Get the event of the inventory interaction
+         * @return  The InventoryInteractEvent associated with this Click
          */
-        public InventoryClickEvent getEvent() {
+        public InventoryInteractEvent getRawEvent() {
             return event;
         }
 
