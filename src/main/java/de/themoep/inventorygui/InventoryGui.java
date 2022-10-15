@@ -1136,26 +1136,28 @@ public class InventoryGui implements Listener {
 
         @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
         public void onInventoryDrag(InventoryDragEvent event) {
-            // Check if we only drag over one slot if so then handle that as a click with the element
-            if (event.getRawSlots().size() == 1) {
-                int slot = event.getRawSlots().iterator().next();
-                GuiElement.Click click = handleInteract(
-                        event,
-                        // Map drag type to the button that caused it
-                        event.getType() == DragType.SINGLE ? ClickType.RIGHT : ClickType.LEFT,
-                        slot,
-                        event.getOldCursor()
-                );
-
-                // Update the cursor if necessary
-                if (click != null && !event.getOldCursor().equals(click.getCursor())) {
-                    event.setCursor(click.getCursor());
-                }
-                return;
-            }
-
             Inventory inventory = getInventory(event.getWhoClicked());
             if (event.getInventory().equals(inventory)) {
+                // Check if we only drag over one slot if so then handle that as a click with the element
+                if (event.getRawSlots().size() == 1) {
+                    int slot = event.getRawSlots().iterator().next();
+                    if (slot < event.getView().getTopInventory().getSize()) {
+                        GuiElement.Click click = handleInteract(
+                                event,
+                                // Map drag type to the button that caused it
+                                event.getType() == DragType.SINGLE ? ClickType.RIGHT : ClickType.LEFT,
+                                slot,
+                                event.getOldCursor()
+                        );
+
+                        // Update the cursor if necessary
+                        if (click != null && !event.getOldCursor().equals(click.getCursor())) {
+                            event.setCursor(click.getCursor());
+                        }
+                    }
+                    return;
+                }
+
                 int rest = 0;
                 Map<Integer, ItemStack> resetSlots = new HashMap<>();
                 for (Map.Entry<Integer, ItemStack> items : event.getNewItems().entrySet()) {
