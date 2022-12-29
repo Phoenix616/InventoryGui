@@ -64,6 +64,7 @@ import java.util.Deque;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -82,12 +83,13 @@ public class InventoryGui implements Listener {
             InventoryType.HOPPER, // 5*1
             InventoryType.CHEST // 9*x
     };
-    private final static Sound CLICK_SOUND;
 
     private final static Map<String, InventoryGui> GUI_MAP = new HashMap<>();
     private final static Map<UUID, ArrayDeque<InventoryGui>> GUI_HISTORY = new HashMap<>();
 
     private final static Map<String, Pattern> PATTERN_CACHE = new HashMap<>();
+
+    private static String DEFAULT_CLICK_SOUND;
 
     private final JavaPlugin plugin;
     private final List<UnregisterableListener> listeners = new ArrayList<>();
@@ -109,27 +111,34 @@ public class InventoryGui implements Listener {
     private final Map<UUID, Integer> pageAmounts = new LinkedHashMap<>();
     private GuiElement.Action outsideAction = click -> false;
     private CloseAction closeAction = close -> true;
+    private String clickSound = getDefaultClickSound();
     private boolean silent = false;
     
     static {
         // Sound names changed, make it compatible with both versions
-        Sound clickSound = null;
-        String[] clickSounds = {"UI_BUTTON_CLICK", "CLICK"};
-        for (String s : clickSounds) {
+        String clickSound = null;
+        Map<String, String> clickSounds = new LinkedHashMap<>();
+        clickSounds.put("UI_BUTTON_CLICK", "ui.button.click");
+        clickSounds.put("CLICK", "random.click");
+        for (Map.Entry<String, String> entry : clickSounds.entrySet()) {
             try {
-                clickSound = Sound.valueOf(s.toUpperCase());
+                // Try to get sound enum to see if it exists
+                Sound.valueOf(entry.getKey().toUpperCase(Locale.ROOT));
+                // If it does use the sound key
+                clickSound = entry.getValue();
                 break;
             } catch (IllegalArgumentException ignored) {}
         }
         if (clickSound == null) {
             for (Sound sound : Sound.values()) {
                 if (sound.name().contains("CLICK")) {
-                    clickSound = sound;
+                    // Convert to sound key under the assumption that the enum name is just using underscores in the place of dots
+                    clickSound = sound.name().toLowerCase(Locale.ROOT).replace('_', '.');
                     break;
                 }
             }
         }
-        CLICK_SOUND = clickSound;
+        setDefaultClickSound(clickSound);
     }
 
     /**
@@ -914,6 +923,40 @@ public class InventoryGui implements Listener {
     }
 
     /**
+     * Get the click sound to use for non-silent GUIs that don't have a specific one set
+     * @return The default click sound, if set null no sound will play
+     */
+    public static String getDefaultClickSound() {
+        return DEFAULT_CLICK_SOUND;
+    }
+
+    /**
+     * Set the click sound to use for non-silent GUIs that don't have a specific one set
+     * @param defaultClickSound The default click sound, if set to null no sound will play
+     */
+    public static void setDefaultClickSound(String defaultClickSound) {
+        DEFAULT_CLICK_SOUND = defaultClickSound;
+    }
+
+    /**
+     * Set the sound that plays when a button (that isn't preventing the item from being taken) is clicked in the GUI.
+     * Fillers will not play a click sound
+     * @return The key of the sound to play
+     */
+    public String getClickSound() {
+        return clickSound;
+    }
+
+    /**
+     * Set the sound that plays when a button (that isn't preventing the item from being taken) is clicked in the GUI.
+     * Fillers will not play a click sound
+     * @param soundKey  The key of the sound to play, if null then no sound will play (same effect as {@link #setSilent(boolean)})
+     */
+    public void setClickSound(String soundKey) {
+        clickSound = soundKey;
+    }
+
+    /**
      * Get whether or not this GUI should make a sound when interacting with elements that make sound
      * @return  Whether or not to make a sound when interacted with
      */
@@ -981,11 +1024,11 @@ public class InventoryGui implements Listener {
      * Play a click sound e.g. when an element acts as a button
      */
     public void playClickSound() {
-        if (isSilent()) return;
+        if (isSilent() || clickSound == null) return;
         for (Inventory inventory : inventories.values()) {
             for (HumanEntity humanEntity : inventory.getViewers()) {
                 if (humanEntity instanceof Player) {
-                    ((Player) humanEntity).playSound(humanEntity.getEyeLocation(), CLICK_SOUND, 1, 1);
+                    ((Player) humanEntity).playSound(humanEntity.getEyeLocation(), getClickSound(), 1, 1);
                 }
             }
         }
