@@ -718,17 +718,34 @@ public class InventoryGui implements Listener {
     
     /**
      * Close the GUI for everyone viewing it
-     * @param clearHistory  Whether or not to close the GUI completely (by clearing the history)
+     * @param clearHistory  Whether to close the GUI completely (by clearing the history)
      */
     public void close(boolean clearHistory) {
         for (Inventory inventory : inventories.values()) {
             for (HumanEntity viewer : new ArrayList<>(inventory.getViewers())) {
-                if (clearHistory) {
-                    clearHistory(viewer);
-                }
-                viewer.closeInventory();
+                close(viewer, clearHistory);
             }
         }
+    }
+
+    /**
+     * Closes the GUI for a specific viewer it
+     * @param viewer    The player viewing it
+     */
+    public void close(HumanEntity viewer) {
+        close(viewer, true);
+    }
+
+    /**
+     * Closes the GUI for a specific viewer it
+     * @param viewer        The player viewing it
+     * @param clearHistory  Whether to close the GUI completely (by clearing the history)
+     */
+    public void close(HumanEntity viewer, boolean clearHistory) {
+        if (clearHistory) {
+            clearHistory(viewer);
+        }
+        viewer.closeInventory();
     }
 
     /**
