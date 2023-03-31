@@ -89,6 +89,8 @@ public class InventoryGui implements Listener {
 
     private final static Map<String, Pattern> PATTERN_CACHE = new HashMap<>();
 
+    private final static boolean FOLIA;
+
     private static String DEFAULT_CLICK_SOUND;
 
     private final JavaPlugin plugin;
@@ -115,6 +117,15 @@ public class InventoryGui implements Listener {
     private boolean silent = false;
     
     static {
+        boolean folia;
+        try {
+            Class.forName("io.papermc.paper.threadedregions.scheduler.AsyncScheduler");
+            folia = true;
+        } catch (ClassNotFoundException e) {
+            folia = false;
+        }
+        FOLIA = folia;
+
         // Sound names changed, make it compatible with both versions
         String clickSound = null;
         Map<String, String> clickSounds = new LinkedHashMap<>();
@@ -595,7 +606,7 @@ public class InventoryGui implements Listener {
                 // If the player already has a gui open then we assume that the call was from that gui.
                 // In order to not close it in a InventoryClickEvent listener (which will lead to errors)
                 // we delay the opening for one tick to run after it finished processing the event
-                plugin.getServer().getScheduler().runTask(plugin, () -> {
+                runTask(plugin, player, () -> {
                     Inventory inventory = getInventory(player);
                     if (inventory != null) {
                         addHistory(player, this);
@@ -638,7 +649,7 @@ public class InventoryGui implements Listener {
         for (UUID playerId : inventories.keySet()) {
             Player player = plugin.getServer().getPlayer(playerId);
             if (player != null) {
-                draw(player);
+                runTaskOrNow(plugin, player, () -> draw(player));
             }
         }
     }
@@ -690,6 +701,56 @@ public class InventoryGui implements Listener {
             }
             if (element != null) {
                 inventory.setItem(i, element.getItem(who, i));
+            }
+        }
+    }
+
+    /**
+     * Schedule a task on a {@link HumanEntity}/main thread to run on the next tick
+     * @param plugin the reference to the plugin
+     * @param entity the human entity to schedule a task on
+     * @param task the task to be run
+     */
+    protected static void runTask(JavaPlugin plugin, HumanEntity entity, Runnable task) {
+        if (FOLIA) {
+            entity.getScheduler().run(plugin, st -> task.run(), null);
+        } else {
+            plugin.getServer().getScheduler().runTask(plugin, task);
+        }
+    }
+
+    /**
+     * Schedule a task on the global region/main thread to run on the next tick
+     * @param plugin the reference to the plugin
+     * @param task the task to be run
+     */
+    protected static void runTask(JavaPlugin plugin, Runnable task) {
+        if (FOLIA) {
+            plugin.getServer().getGlobalRegionScheduler().run(plugin, st -> task.run());
+        } else {
+            plugin.getServer().getScheduler().runTask(plugin, task);
+        }
+    }
+
+    /**
+     * Schedule a task on a {@link HumanEntity} to run on the next tick
+     * Alternatively if the current thread is already the right thread, execute immediately
+     * @param plugin the reference to the plugin
+     * @param entity the human entity to schedule a task on
+     * @param task the task to be run
+     */
+    protected static void runTaskOrNow(JavaPlugin plugin, HumanEntity entity, Runnable task) {
+        if (FOLIA) {
+            if (plugin.getServer().isOwnedByCurrentRegion(entity)) {
+                task.run();
+            } else {
+                entity.getScheduler().run(plugin, st -> task.run(), null);
+            }
+        } else {
+            if (plugin.getServer().isPrimaryThread()) {
+                task.run();
+            } else {
+                plugin.getServer().getScheduler().runTask(plugin, task);
             }
         }
     }
@@ -1190,7 +1251,7 @@ public class InventoryGui implements Listener {
             } else if (hasRealOwner() && owner.equals(event.getInventory().getHolder())) {
                 // Click into inventory by same owner but not the inventory of the GUI
                 // Assume that the underlying inventory changed and redraw the GUI
-                plugin.getServer().getScheduler().runTask(plugin, (Runnable) gui::draw);
+                runTask(plugin, gui::draw);
             }
         }
 
@@ -1237,7 +1298,7 @@ public class InventoryGui implements Listener {
                     }
                 }
                 
-                plugin.getServer().getScheduler().runTask(plugin, () -> {
+                runTask(plugin, event.getWhoClicked(), () -> {
                     for (Map.Entry<Integer, ItemStack> items : resetSlots.entrySet()) {
                         event.getView().getTopInventory().setItem(items.getKey(), items.getValue());
                     }
@@ -1303,14 +1364,14 @@ public class InventoryGui implements Listener {
         @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
         public void onInventoryMoveItem(InventoryMoveItemEvent event) {
             if (hasRealOwner() && (owner.equals(event.getDestination().getHolder()) || owner.equals(event.getSource().getHolder()))) {
-                plugin.getServer().getScheduler().runTask(plugin, (Runnable) gui::draw);
+                runTask(plugin, gui::draw);
             }
         }
 
         @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
         public void onDispense(BlockDispenseEvent event) {
             if (hasRealOwner() && owner.equals(event.getBlock().getState())) {
-                plugin.getServer().getScheduler().runTask(plugin, (Runnable) gui::draw);
+                runTask(plugin, gui::draw);
             }
         }
 
