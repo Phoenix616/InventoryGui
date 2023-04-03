@@ -606,7 +606,7 @@ public class InventoryGui implements Listener {
                 // If the player already has a gui open then we assume that the call was from that gui.
                 // In order to not close it in a InventoryClickEvent listener (which will lead to errors)
                 // we delay the opening for one tick to run after it finished processing the event
-                runTask(plugin, player, () -> {
+                runTask(player, () -> {
                     Inventory inventory = getInventory(player);
                     if (inventory != null) {
                         addHistory(player, this);
@@ -649,7 +649,7 @@ public class InventoryGui implements Listener {
         for (UUID playerId : inventories.keySet()) {
             Player player = plugin.getServer().getPlayer(playerId);
             if (player != null) {
-                runTaskOrNow(plugin, player, () -> draw(player));
+                runTaskOrNow(player, () -> draw(player));
             }
         }
     }
@@ -707,11 +707,10 @@ public class InventoryGui implements Listener {
 
     /**
      * Schedule a task on a {@link HumanEntity}/main thread to run on the next tick
-     * @param plugin the reference to the plugin
      * @param entity the human entity to schedule a task on
      * @param task the task to be run
      */
-    protected static void runTask(JavaPlugin plugin, HumanEntity entity, Runnable task) {
+    protected void runTask(HumanEntity entity, Runnable task) {
         if (FOLIA) {
             entity.getScheduler().run(plugin, st -> task.run(), null);
         } else {
@@ -721,10 +720,9 @@ public class InventoryGui implements Listener {
 
     /**
      * Schedule a task on the global region/main thread to run on the next tick
-     * @param plugin the reference to the plugin
      * @param task the task to be run
      */
-    protected static void runTask(JavaPlugin plugin, Runnable task) {
+    protected void runTask(Runnable task) {
         if (FOLIA) {
             plugin.getServer().getGlobalRegionScheduler().run(plugin, st -> task.run());
         } else {
@@ -735,11 +733,10 @@ public class InventoryGui implements Listener {
     /**
      * Schedule a task on a {@link HumanEntity} to run on the next tick
      * Alternatively if the current thread is already the right thread, execute immediately
-     * @param plugin the reference to the plugin
      * @param entity the human entity to schedule a task on
      * @param task the task to be run
      */
-    protected static void runTaskOrNow(JavaPlugin plugin, HumanEntity entity, Runnable task) {
+    protected void runTaskOrNow(HumanEntity entity, Runnable task) {
         if (FOLIA) {
             if (plugin.getServer().isOwnedByCurrentRegion(entity)) {
                 task.run();
@@ -1251,7 +1248,7 @@ public class InventoryGui implements Listener {
             } else if (hasRealOwner() && owner.equals(event.getInventory().getHolder())) {
                 // Click into inventory by same owner but not the inventory of the GUI
                 // Assume that the underlying inventory changed and redraw the GUI
-                runTask(plugin, gui::draw);
+                runTask(gui::draw);
             }
         }
 
@@ -1298,7 +1295,7 @@ public class InventoryGui implements Listener {
                     }
                 }
                 
-                runTask(plugin, event.getWhoClicked(), () -> {
+                runTask(event.getWhoClicked(), () -> {
                     for (Map.Entry<Integer, ItemStack> items : resetSlots.entrySet()) {
                         event.getView().getTopInventory().setItem(items.getKey(), items.getValue());
                     }
@@ -1364,14 +1361,14 @@ public class InventoryGui implements Listener {
         @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
         public void onInventoryMoveItem(InventoryMoveItemEvent event) {
             if (hasRealOwner() && (owner.equals(event.getDestination().getHolder()) || owner.equals(event.getSource().getHolder()))) {
-                runTask(plugin, gui::draw);
+                runTask(gui::draw);
             }
         }
 
         @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
         public void onDispense(BlockDispenseEvent event) {
             if (hasRealOwner() && owner.equals(event.getBlock().getState())) {
-                runTask(plugin, gui::draw);
+                runTask(gui::draw);
             }
         }
 

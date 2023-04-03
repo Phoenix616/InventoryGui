@@ -123,7 +123,7 @@ public class GuiStorageElement extends GuiElement {
                         movedItem = event.getCurrentItem();
                     }
                     // Update GUI to avoid display glitches
-                    InventoryGui.runTask(gui.getPlugin(), gui::draw);
+                    gui.runTask(gui::draw);
                     break;
                 case HOTBAR_MOVE_AND_READD:
                 case HOTBAR_SWAP:
