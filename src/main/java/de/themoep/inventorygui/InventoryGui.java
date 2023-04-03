@@ -88,11 +88,6 @@ public class InventoryGui implements Listener {
             InventoryType.CHEST // 9*x
     };
 
-    @Unmodifiable
-    private final static List<Class<? extends UnregisterableListener>> OPTIONAL_LISTENERS = Arrays.asList(
-            ItemSwapGuiListener.class
-    );
-
     private final static Map<String, InventoryGui> GUI_MAP = new ConcurrentHashMap<>();
     private final static Map<UUID, ArrayDeque<InventoryGui>> GUI_HISTORY = new ConcurrentHashMap<>();
 
@@ -178,14 +173,16 @@ public class InventoryGui implements Listener {
         this.title = title;
         List<UnregisterableListener> listeners = new ArrayList<>();
         listeners.add(new GuiListener(this));
-        for (Class<? extends UnregisterableListener> listenerClass : OPTIONAL_LISTENERS) {
-            try {
-                UnregisterableListener listener = listenerClass.getConstructor(InventoryGui.class).newInstance(this);
-                if (listener.isCompatible()) {
-                    listeners.add(listener);
+        for (Class<?> innerClass : getClass().getDeclaredClasses()) {
+            if (innerClass != OptionalListener.class && OptionalListener.class.isAssignableFrom(innerClass)) {
+                try {
+                    OptionalListener listener = ((Class<? extends OptionalListener>) innerClass).getConstructor(InventoryGui.class).newInstance(this);
+                    if (listener.isCompatible()) {
+                        listeners.add(listener);
+                    }
+                } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+                    e.printStackTrace();
                 }
-            } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-                e.printStackTrace();
             }
         }
         this.listeners = Collections.unmodifiableList(listeners);
@@ -1190,7 +1187,9 @@ public class InventoryGui implements Listener {
 
     private interface UnregisterableListener extends Listener {
         void unregister();
+    }
 
+    private interface OptionalListener extends UnregisterableListener {
         default boolean isCompatible() {
             try {
                 getClass().getMethods();
@@ -1389,7 +1388,7 @@ public class InventoryGui implements Listener {
     /**
      * Event isn't available on older version so just use a separate listener...
      */
-    public class ItemSwapGuiListener implements UnregisterableListener {
+    public class ItemSwapGuiListener implements OptionalListener {
 
         private final InventoryGui gui;
 
