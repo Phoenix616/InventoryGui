@@ -55,7 +55,6 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.material.MaterialData;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Unmodifiable;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayDeque;
@@ -98,8 +97,7 @@ public class InventoryGui implements Listener {
     private static String DEFAULT_CLICK_SOUND;
 
     private final JavaPlugin plugin;
-    @Unmodifiable
-    private final List<UnregisterableListener> listeners;
+    private final GuiListener listener;
     private InventoryCreator creator;
     private String title;
     private boolean titleUpdated = false;
@@ -110,7 +108,6 @@ public class InventoryGui implements Listener {
     private InventoryType inventoryType;
     private final Map<UUID, Inventory> inventories = new ConcurrentHashMap<>();
     private InventoryHolder owner;
-    private boolean listenersRegistered = false;
     private final Map<UUID, Integer> pageNumbers = new ConcurrentHashMap<>();
     private final Map<UUID, Integer> pageAmounts = new ConcurrentHashMap<>();
     private GuiElement.Action outsideAction = click -> false;
@@ -171,21 +168,7 @@ public class InventoryGui implements Listener {
         this.creator = creator;
         this.owner = owner;
         this.title = title;
-        List<UnregisterableListener> listeners = new ArrayList<>();
-        listeners.add(new GuiListener(this));
-        for (Class<?> innerClass : getClass().getDeclaredClasses()) {
-            if (innerClass != OptionalListener.class && OptionalListener.class.isAssignableFrom(innerClass)) {
-                try {
-                    OptionalListener listener = ((Class<? extends OptionalListener>) innerClass).getDeclaredConstructor(InventoryGui.class).newInstance(this);
-                    if (listener.isCompatible()) {
-                        listeners.add(listener);
-                    }
-                } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-        this.listeners = Collections.unmodifiableList(listeners);
+        this.listener = new GuiListener();
 
         width = ROW_WIDTHS[0];
         for (String row : rows) {
@@ -554,23 +537,6 @@ public class InventoryGui implements Listener {
         return 0;
     }
 
-    private void registerListeners() {
-        if (listenersRegistered) {
-            return;
-        }
-        for (UnregisterableListener listener : listeners) {
-            plugin.getServer().getPluginManager().registerEvents(listener, plugin);
-        }
-        listenersRegistered = true;
-    }
-
-    private void unregisterListeners() {
-        for (UnregisterableListener listener : listeners) {
-            listener.unregister();
-        }
-        listenersRegistered = false;
-    }
-
     /**
      * Show this GUI to a player
      * @param player    The Player to show the GUI to
@@ -626,7 +592,7 @@ public class InventoryGui implements Listener {
      */
     public void build(InventoryHolder owner) {
         setOwner(owner);
-        registerListeners();
+        listener.registerListeners();
     }
 
     /**
@@ -810,7 +776,7 @@ public class InventoryGui implements Listener {
         inventories.clear();
         pageNumbers.clear();
         pageAmounts.clear();
-        unregisterListeners();
+        listener.unregisterListeners();
         removeFromMap();
     }
 
@@ -1185,12 +1151,49 @@ public class InventoryGui implements Listener {
         return null;
     }
 
-    private interface UnregisterableListener extends Listener {
-        void unregister();
+    private abstract class UnregisterableListener implements Listener {
+        private final List<UnregisterableListener> listeners;
+        private boolean listenersRegistered = false;
+
+        private UnregisterableListener() {
+            List<UnregisterableListener> listeners = new ArrayList<>();
+            for (Class<?> innerClass : getClass().getDeclaredClasses()) {
+                if (UnregisterableListener.class.isAssignableFrom(innerClass)) {
+                    try {
+                        UnregisterableListener listener = ((Class<? extends UnregisterableListener>) innerClass).getDeclaredConstructor(getClass()).newInstance(this);
+                        if (!(listener instanceof OptionalListener) || ((OptionalListener) listener).isCompatible()) {
+                            listeners.add(listener);
+                        }
+                    } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            this.listeners = Collections.unmodifiableList(listeners);
+        }
+
+        protected void registerListeners() {
+            if (listenersRegistered) {
+                return;
+            }
+            plugin.getServer().getPluginManager().registerEvents(this, plugin);
+            for (UnregisterableListener listener : listeners) {
+                listener.registerListeners();
+            }
+            listenersRegistered = true;
+        }
+
+        protected void unregisterListeners() {
+            HandlerList.unregisterAll(this);
+            for (UnregisterableListener listener : listeners) {
+                listener.unregisterListeners();
+            }
+            listenersRegistered = false;
+        }
     }
 
-    private interface OptionalListener extends UnregisterableListener {
-        default boolean isCompatible() {
+    private abstract class OptionalListener extends UnregisterableListener {
+        private boolean isCompatible() {
             try {
                 getClass().getMethods();
                 getClass().getDeclaredMethods();
@@ -1204,12 +1207,7 @@ public class InventoryGui implements Listener {
     /**
      * All the listeners that InventoryGui needs to work
      */
-    public class GuiListener implements UnregisterableListener {
-        private final InventoryGui gui;
-
-        private GuiListener(InventoryGui gui) {
-            this.gui = gui;
-        }
+    private class GuiListener extends UnregisterableListener {
 
         @EventHandler(ignoreCancelled = true)
         private void onInventoryClick(InventoryClickEvent event) {
@@ -1235,7 +1233,7 @@ public class InventoryGui implements Listener {
             } else if (hasRealOwner() && owner.equals(event.getInventory().getHolder())) {
                 // Click into inventory by same owner but not the inventory of the GUI
                 // Assume that the underlying inventory changed and redraw the GUI
-                runTask(gui::draw);
+                runTask(InventoryGui.this::draw);
             }
         }
 
@@ -1317,8 +1315,8 @@ public class InventoryGui implements Listener {
             Inventory inventory = getInventory(event.getPlayer());
             if (event.getInventory().equals(inventory)) {
                 // go back. that checks if the player is in gui and has history
-                if (gui.equals(getOpen(event.getPlayer()))) {
-                    if (closeAction == null || closeAction.onClose(new Close(event.getPlayer(), gui, event))) {
+                if (InventoryGui.this.equals(getOpen(event.getPlayer()))) {
+                    if (closeAction == null || closeAction.onClose(new Close(event.getPlayer(), InventoryGui.this, event))) {
                         goBack(event.getPlayer());
                     } else {
                         clearHistory(event.getPlayer());
@@ -1348,14 +1346,14 @@ public class InventoryGui implements Listener {
         @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
         public void onInventoryMoveItem(InventoryMoveItemEvent event) {
             if (hasRealOwner() && (owner.equals(event.getDestination().getHolder()) || owner.equals(event.getSource().getHolder()))) {
-                runTask(gui::draw);
+                runTask(InventoryGui.this::draw);
             }
         }
 
         @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
         public void onDispense(BlockDispenseEvent event) {
             if (hasRealOwner() && owner.equals(event.getBlock().getState())) {
-                runTask(gui::draw);
+                runTask(InventoryGui.this::draw);
             }
         }
 
@@ -1379,33 +1377,19 @@ public class InventoryGui implements Listener {
                 destroy();
             }
         }
-    
-        public void unregister() {
-            HandlerList.unregisterAll(this);
-        }
-    }
 
-    /**
-     * Event isn't available on older version so just use a separate listener...
-     */
-    public class ItemSwapGuiListener implements OptionalListener {
+        /**
+         * Event isn't available on older version so just use a separate listener...
+         */
+        protected class ItemSwapGuiListener extends OptionalListener {
 
-        private final InventoryGui gui;
-
-        private ItemSwapGuiListener(InventoryGui gui) {
-            this.gui = gui;
-        }
-
-        @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-        public void onInventoryMoveItem(PlayerSwapHandItemsEvent event) {
-            Inventory inventory = getInventory(event.getPlayer());
-            if (event.getPlayer().getOpenInventory().getTopInventory().equals(inventory)) {
-                event.setCancelled(true);
+            @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+            public void onInventoryMoveItem(PlayerSwapHandItemsEvent event) {
+                Inventory inventory = getInventory(event.getPlayer());
+                if (event.getPlayer().getOpenInventory().getTopInventory().equals(inventory)) {
+                    event.setCancelled(true);
+                }
             }
-        }
-
-        public void unregister() {
-            HandlerList.unregisterAll(this);
         }
     }
     
