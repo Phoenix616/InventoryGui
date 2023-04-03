@@ -54,7 +54,10 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.material.MaterialData;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Unmodifiable;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -67,6 +70,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -84,8 +88,13 @@ public class InventoryGui implements Listener {
             InventoryType.CHEST // 9*x
     };
 
-    private final static Map<String, InventoryGui> GUI_MAP = new HashMap<>();
-    private final static Map<UUID, ArrayDeque<InventoryGui>> GUI_HISTORY = new HashMap<>();
+    @Unmodifiable
+    private final static List<Class<? extends UnregisterableListener>> OPTIONAL_LISTENERS = Arrays.asList(
+            ItemSwapGuiListener.class
+    );
+
+    private final static Map<String, InventoryGui> GUI_MAP = new ConcurrentHashMap<>();
+    private final static Map<UUID, ArrayDeque<InventoryGui>> GUI_HISTORY = new ConcurrentHashMap<>();
 
     private final static Map<String, Pattern> PATTERN_CACHE = new HashMap<>();
 
@@ -94,23 +103,21 @@ public class InventoryGui implements Listener {
     private static String DEFAULT_CLICK_SOUND;
 
     private final JavaPlugin plugin;
-    private final List<UnregisterableListener> listeners = new ArrayList<>();
-    private final UnregisterableListener[] optionalListeners = new UnregisterableListener[]{
-            new ItemSwapGuiListener(this)
-    };
+    @Unmodifiable
+    private final List<UnregisterableListener> listeners;
     private InventoryCreator creator;
     private String title;
     private boolean titleUpdated = false;
     private final char[] slots;
     private int width;
     private final GuiElement[] elementSlots;
-    private final Map<Character, GuiElement> elements = new HashMap<>();
+    private final Map<Character, GuiElement> elements = new ConcurrentHashMap<>();
     private InventoryType inventoryType;
-    private final Map<UUID, Inventory> inventories = new LinkedHashMap<>();
+    private final Map<UUID, Inventory> inventories = new ConcurrentHashMap<>();
     private InventoryHolder owner;
     private boolean listenersRegistered = false;
-    private final Map<UUID, Integer> pageNumbers = new LinkedHashMap<>();
-    private final Map<UUID, Integer> pageAmounts = new LinkedHashMap<>();
+    private final Map<UUID, Integer> pageNumbers = new ConcurrentHashMap<>();
+    private final Map<UUID, Integer> pageAmounts = new ConcurrentHashMap<>();
     private GuiElement.Action outsideAction = click -> false;
     private CloseAction closeAction = close -> true;
     private String clickSound = getDefaultClickSound();
@@ -169,12 +176,19 @@ public class InventoryGui implements Listener {
         this.creator = creator;
         this.owner = owner;
         this.title = title;
+        List<UnregisterableListener> listeners = new ArrayList<>();
         listeners.add(new GuiListener(this));
-        for (UnregisterableListener listener : optionalListeners) {
-            if (listener.isCompatible()) {
-                listeners.add(listener);
+        for (Class<? extends UnregisterableListener> listenerClass : OPTIONAL_LISTENERS) {
+            try {
+                UnregisterableListener listener = listenerClass.getConstructor(InventoryGui.class).newInstance(this);
+                if (listener.isCompatible()) {
+                    listeners.add(listener);
+                }
+            } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+                e.printStackTrace();
             }
         }
+        this.listeners = Collections.unmodifiableList(listeners);
 
         width = ROW_WIDTHS[0];
         for (String row : rows) {
@@ -466,23 +480,11 @@ public class InventoryGui implements Listener {
 
     /**
      * Get the number of the page that this gui is on. zero indexed. Only affects group elements.
-     * @return The page number
-     * @deprecated Use {@link #getPageNumber(HumanEntity)}
-     */
-    @Deprecated
-    public int getPageNumber() {
-        return getPageNumber(null);
-    }
-
-    /**
-     * Get the number of the page that this gui is on. zero indexed. Only affects group elements.
      * @param player    The Player to query the page number for
      * @return The page number
      */
-    public int getPageNumber(HumanEntity player) {
-        return player != null
-                ? pageNumbers.getOrDefault(player.getUniqueId(), 0)
-                : pageNumbers.isEmpty() ? 0 : pageNumbers.values().iterator().next();
+    public int getPageNumber(@NotNull HumanEntity player) {
+        return pageNumbers.getOrDefault(player.getUniqueId(), 0);
     }
 
     /**
@@ -513,24 +515,12 @@ public class InventoryGui implements Listener {
     }
 
     /**
-     * Get the amount of pages that this GUI has
-     * @return The amount of pages
-     * @deprecated Use {@link #getPageAmount(HumanEntity)}
-     */
-    @Deprecated
-    public int getPageAmount() {
-        return getPageAmount(null);
-    }
-
-    /**
      * Get the amount of pages that this GUI has for a certain player
      * @param player    The Player to query the page amount for
      * @return The amount of pages
      */
-    public int getPageAmount(HumanEntity player) {
-        return player != null
-                ? pageAmounts.getOrDefault(player.getUniqueId(), 1)
-                : pageAmounts.isEmpty() ? 1 : pageAmounts.values().iterator().next();
+    public int getPageAmount(@NotNull HumanEntity player) {
+        return pageAmounts.getOrDefault(player.getUniqueId(), 1);
     }
 
     /**
@@ -874,10 +864,8 @@ public class InventoryGui implements Listener {
      * @return          The history
      */
     public static Deque<InventoryGui> clearHistory(HumanEntity player) {
-        if (GUI_HISTORY.containsKey(player.getUniqueId())) {
-            return GUI_HISTORY.remove(player.getUniqueId());
-        }
-        return new ArrayDeque<>();
+        Deque<InventoryGui> previous = GUI_HISTORY.remove(player.getUniqueId());
+        return previous != null ? previous : new ArrayDeque<>();
     }
 
     /**

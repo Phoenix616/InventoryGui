@@ -25,7 +25,7 @@ You can easily depend on the library with maven.
         <groupId>de.themoep</groupId>
         <artifactId>inventorygui</artifactId>
         <!--The following version may not be the latest. Check it before using.-->
-        <version>1.6-SNAPSHOT</version>
+        <version>1.6.1-SNAPSHOT</version>
         <scope>compile</scope>
     </dependency>
 </dependencies>
