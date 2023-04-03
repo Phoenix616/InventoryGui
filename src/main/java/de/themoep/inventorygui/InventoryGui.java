@@ -176,7 +176,7 @@ public class InventoryGui implements Listener {
         for (Class<?> innerClass : getClass().getDeclaredClasses()) {
             if (innerClass != OptionalListener.class && OptionalListener.class.isAssignableFrom(innerClass)) {
                 try {
-                    OptionalListener listener = ((Class<? extends OptionalListener>) innerClass).getConstructor(InventoryGui.class).newInstance(this);
+                    OptionalListener listener = ((Class<? extends OptionalListener>) innerClass).getDeclaredConstructor(InventoryGui.class).newInstance(this);
                     if (listener.isCompatible()) {
                         listeners.add(listener);
                     }
