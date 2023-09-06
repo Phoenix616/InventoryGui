@@ -68,8 +68,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiConsumer;
 import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -99,6 +101,8 @@ public class InventoryGui implements Listener {
     private final JavaPlugin plugin;
     private final GuiListener listener;
     private InventoryCreator creator;
+    private BiConsumer<ItemMeta, String> itemNameSetter;
+    private BiConsumer<ItemMeta, List<String>> itemLoreSetter;
     private String title;
     private boolean titleUpdated = false;
     private final char[] slots;
@@ -153,19 +157,23 @@ public class InventoryGui implements Listener {
 
     /**
      * Create a new gui with a certain setup and some elements
-     * @param plugin    Your plugin
-     * @param creator   A creator for the backing inventory
-     * @param owner     The holder that owns this gui to retrieve it with {@link #get(InventoryHolder)}.
-     *                  Can be <code>null</code>.
-     * @param title     The name of the GUI. This will be the title of the inventory.
-     * @param rows      How your rows are setup. Each element is getting assigned to a character.
-     *                  Empty/missing ones get filled with the Filler.
-     * @param elements  The {@link GuiElement}s that the gui should have. You can also use {@link #addElement(GuiElement)} later.
+     * @param plugin            Your plugin
+     * @param creator           A creator for the backing inventory
+     * @param itemNameSetter    Setter for item display names
+     * @param itemLoreSetter    Setter for item lores
+     * @param owner             The holder that owns this gui to retrieve it with {@link #get(InventoryHolder)}.
+     *                          Can be <code>null</code>.
+     * @param title             The name of the GUI. This will be the title of the inventory.
+     * @param rows              How your rows are setup. Each element is getting assigned to a character.
+     *                          Empty/missing ones get filled with the Filler.
+     * @param elements          The {@link GuiElement}s that the gui should have. You can also use {@link #addElement(GuiElement)} later.
      * @throws IllegalArgumentException Thrown when the provided rows cannot be matched to an InventoryType
      */
-    public InventoryGui(JavaPlugin plugin, InventoryCreator creator, InventoryHolder owner, String title, String[] rows, GuiElement... elements) {
+    public InventoryGui(JavaPlugin plugin, InventoryCreator creator, BiConsumer<ItemMeta, String> itemNameSetter, BiConsumer<ItemMeta, List<String>> itemLoreSetter, InventoryHolder owner, String title, String[] rows, GuiElement... elements) {
         this.plugin = plugin;
         this.creator = creator;
+        this.itemNameSetter = itemNameSetter;
+        this.itemLoreSetter = itemLoreSetter;
         this.owner = owner;
         this.title = title;
         this.listener = new GuiListener();
@@ -210,6 +218,22 @@ public class InventoryGui implements Listener {
         elementSlots = new GuiElement[slots.length];
 
         addElements(elements);
+    }
+
+    /**
+     * Create a new gui with a certain setup and some elements
+     * @param plugin    Your plugin
+     * @param creator   A creator for the backing inventory
+     * @param owner     The holder that owns this gui to retrieve it with {@link #get(InventoryHolder)}.
+     *                  Can be <code>null</code>.
+     * @param title     The name of the GUI. This will be the title of the inventory.
+     * @param rows      How your rows are setup. Each element is getting assigned to a character.
+     *                  Empty/missing ones get filled with the Filler.
+     * @param elements  The {@link GuiElement}s that the gui should have. You can also use {@link #addElement(GuiElement)} later.
+     * @throws IllegalArgumentException Thrown when the provided rows cannot be matched to an InventoryType
+     */
+    public InventoryGui(JavaPlugin plugin, InventoryCreator creator, InventoryHolder owner, String title, String[] rows, GuiElement... elements) {
+        this(plugin, creator, ItemMeta::setDisplayName, ItemMeta::setLore, owner, title, rows, elements);
     }
 
     /**
@@ -853,10 +877,42 @@ public class InventoryGui implements Listener {
      * Can be used to create more special inventories.
      * Simply uses {@link org.bukkit.Bukkit#createInventory(InventoryHolder, int, String)} by default.
      * Should return a container inventory that can hold the size. Special inventories will break stuff.
-     * @param creator The new inventory creator instance
+     * @param inventoryCreator The new inventory creator instance
      */
-    public void setInventoryCreator(InventoryCreator creator) {
-        this.creator = creator;
+    public void setInventoryCreator(InventoryCreator inventoryCreator) {
+        this.creator = Objects.requireNonNull(inventoryCreator);
+    }
+
+    /**
+     * Get the setter for item names.
+     * @return The setter instance
+     */
+    public BiConsumer<ItemMeta, String> getItemNameSetter() {
+        return itemNameSetter;
+    }
+
+    /**
+     * Sets the setter ofr item names.
+     * @param itemNameSetter The item name setter BiConsumer taking the ItemMeta to be modified and the string for the name
+     */
+    public void setItemNameSetter(BiConsumer<ItemMeta, String> itemNameSetter) {
+        this.itemNameSetter = Objects.requireNonNull(itemNameSetter);
+    }
+
+    /**
+     * Get the setter for item lores.
+     * @return The setter instance
+     */
+    public BiConsumer<ItemMeta, List<String>> getItemLoreSetter() {
+        return itemLoreSetter;
+    }
+
+    /**
+     * Sets the setter for item lores.
+     * @param itemLoreSetter The item lore setter BiConsumer taking the ItemMeta to be modified and the string list for the lore lines
+     */
+    public void setItemLoreSetter(BiConsumer<ItemMeta, List<String>> itemLoreSetter) {
+        this.itemLoreSetter = Objects.requireNonNull(itemLoreSetter);
     }
 
     /**
@@ -1479,10 +1535,10 @@ public class InventoryGui implements Listener {
                         .collect(Collectors.joining("\n")));
                 String[] lines = combined.split("\n");
                 if (text[0] != null) {
-                    meta.setDisplayName(lines[0]);
+                    getItemNameSetter().accept(meta, lines[0]);
                 }
                 if (lines.length > 1) {
-                    meta.setLore(Arrays.asList(Arrays.copyOfRange(lines, 1, lines.length)));
+                    getItemLoreSetter().accept(meta, Arrays.asList(Arrays.copyOfRange(lines, 1, lines.length)));
                 } else {
                     meta.setLore(null);
                 }
