@@ -1265,7 +1265,7 @@ public class InventoryGui implements Listener {
      */
     private class GuiListener extends UnregisterableListener {
 
-        @EventHandler(ignoreCancelled = true)
+        @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
         private void onInventoryClick(InventoryClickEvent event) {
             if (event.getInventory().equals(getInventory(event.getWhoClicked()))) {
 
