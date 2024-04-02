@@ -1152,29 +1152,29 @@ public class InventoryGui implements Listener {
     private GuiElement.Click handleInteract(InventoryInteractEvent event, ClickType clickType, int slot, ItemStack cursor) {
         GuiElement.Action action = null;
         GuiElement element = null;
-        if (slot >= 0) {
-            element = getElement(slot);
-            if (element != null) {
-                action = element.getAction(event.getWhoClicked());
-            }
-        } else if (slot == -999) {
-            action = outsideAction;
-        } else {
-            if (event instanceof InventoryClickEvent) {
-                // Click was neither for the top inventory nor outside
-                // E.g. click is in the bottom inventory
-                if (((InventoryClickEvent) event).getAction() == InventoryAction.COLLECT_TO_CURSOR) {
-                    GuiElement.Click click = new GuiElement.Click(this, slot, clickType, cursor, null, event);
-                    simulateCollectToCursor(click);
-                    return click;
-                } else if (((InventoryClickEvent) event).getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) {
-                    // This was an action we can't handle, abort
-                    event.setCancelled(true);
-                }
-            }
-            return null;
-        }
         try {
+            if (slot >= 0) {
+                element = getElement(slot);
+                if (element != null) {
+                    action = element.getAction(event.getWhoClicked());
+                }
+            } else if (slot == -999) {
+                action = outsideAction;
+            } else {
+                if (event instanceof InventoryClickEvent) {
+                    // Click was neither for the top inventory nor outside
+                    // E.g. click is in the bottom inventory
+                    if (((InventoryClickEvent) event).getAction() == InventoryAction.COLLECT_TO_CURSOR) {
+                        GuiElement.Click click = new GuiElement.Click(this, slot, clickType, cursor, null, event);
+                        simulateCollectToCursor(click);
+                        return click;
+                    } else if (((InventoryClickEvent) event).getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) {
+                        // This was an action we can't handle, abort
+                        event.setCancelled(true);
+                    }
+                }
+                return null;
+            }
             GuiElement.Click click = new GuiElement.Click(this, slot, clickType, cursor, element, event);
             if (action == null || action.onClick(click)) {
                 event.setCancelled(true);
@@ -1200,9 +1200,8 @@ public class InventoryGui implements Listener {
                 ((Player) event.getWhoClicked()).updateInventory();
             }
             plugin.getLogger().log(Level.SEVERE, "Exception while trying to run action for click on "
-                    + (element != null ? element.getClass().getSimpleName() : "empty element")
-                    + " in slot " + slot + " of " + getTitle() + " GUI!");
-            t.printStackTrace();
+                    + (element != null ? element.getClass().getSimpleName() : "empty/unknown element")
+                    + " in slot " + slot + " of " + getTitle() + " GUI!", t);
         }
         return null;
     }
@@ -1652,7 +1651,7 @@ public class InventoryGui implements Listener {
                         if (otherStorageItem.getAmount() == 0) {
                             otherStorageItem = null;
                         }
-                        storageElement.setStorageItem(i, otherStorageItem);
+                        storageElement.setStorageItem(click.getWhoClicked(), i, otherStorageItem);
                         if (newCursor.getAmount() == newCursor.getMaxStackSize()) {
                             break;
                         }
