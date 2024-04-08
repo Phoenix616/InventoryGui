@@ -1556,32 +1556,12 @@ public class InventoryGui implements Listener {
      * <code>%nextpage%</code>  - The next page. "none" if there is no next page.<br>
      * <code>%prevpage%</code>  - The previous page. "none" if there is no previous page.<br>
      * <code>%pages%</code>     - The amount of pages that this gui has.
-     * @param text          The text to replace the placeholders in
-     * @param replacements  Additional repplacements. i = placeholder, i+1 = replacements
-     * @return      The text with all placeholders replaced
-     * @deprecated Use {@link #replaceVars(HumanEntity, String, String...)}
-     */
-    @Deprecated
-    public String replaceVars(String text, String... replacements) {
-        return replaceVars(null, text, replacements);
-    }
-
-    /**
-     * Replace some placeholders in the with values regarding the gui's state. Replaced color codes.<br>
-     * The placeholders are:<br>
-     * <code>%plugin%</code>    - The name of the plugin that this gui is from.<br>
-     * <code>%owner%</code>     - The name of the owner of this gui. Will be an empty string when the owner is null.<br>
-     * <code>%title%</code>     - The title of this GUI.<br>
-     * <code>%page%</code>      - The current page that this gui is on.<br>
-     * <code>%nextpage%</code>  - The next page. "none" if there is no next page.<br>
-     * <code>%prevpage%</code>  - The previous page. "none" if there is no previous page.<br>
-     * <code>%pages%</code>     - The amount of pages that this gui has.
      * @param player        The player viewing the GUI
      * @param text          The text to replace the placeholders in
-     * @param replacements  Additional repplacements. i = placeholder, i+1 = replacements
+     * @param replacements  Additional replacements. i = placeholder, i+1 = replacements
      * @return      The text with all placeholders replaced
      */
-    public String replaceVars(HumanEntity player, String text, String... replacements) {
+    public String replaceVars(@NotNull HumanEntity player, @NotNull String text, String... replacements) {
         Map<String, String> map = new LinkedHashMap<>();
         for (int i = 0; i + 1 < replacements.length; i += 2) {
             map.putIfAbsent(replacements[i], replacements[i + 1]);
