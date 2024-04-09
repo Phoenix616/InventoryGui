@@ -53,7 +53,7 @@ import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.material.MaterialData;
-import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.InvocationTargetException;
@@ -98,7 +98,7 @@ public class InventoryGui implements Listener {
 
     private static String DEFAULT_CLICK_SOUND;
 
-    private final JavaPlugin plugin;
+    private final Plugin plugin;
     private final GuiListener listener;
     private InventoryCreator creator;
     private BiConsumer<ItemMeta, String> itemNameSetter;
@@ -169,7 +169,7 @@ public class InventoryGui implements Listener {
      * @param elements          The {@link GuiElement}s that the gui should have. You can also use {@link #addElement(GuiElement)} later.
      * @throws IllegalArgumentException Thrown when the provided rows cannot be matched to an InventoryType
      */
-    public InventoryGui(JavaPlugin plugin, InventoryCreator creator, BiConsumer<ItemMeta, String> itemNameSetter, BiConsumer<ItemMeta, List<String>> itemLoreSetter, InventoryHolder owner, String title, String[] rows, GuiElement... elements) {
+    public InventoryGui(Plugin plugin, InventoryCreator creator, BiConsumer<ItemMeta, String> itemNameSetter, BiConsumer<ItemMeta, List<String>> itemLoreSetter, InventoryHolder owner, String title, String[] rows, GuiElement... elements) {
         this.plugin = plugin;
         this.creator = creator;
         this.itemNameSetter = itemNameSetter;
@@ -232,7 +232,7 @@ public class InventoryGui implements Listener {
      * @param elements  The {@link GuiElement}s that the gui should have. You can also use {@link #addElement(GuiElement)} later.
      * @throws IllegalArgumentException Thrown when the provided rows cannot be matched to an InventoryType
      */
-    public InventoryGui(JavaPlugin plugin, InventoryCreator creator, InventoryHolder owner, String title, String[] rows, GuiElement... elements) {
+    public InventoryGui(Plugin plugin, InventoryCreator creator, InventoryHolder owner, String title, String[] rows, GuiElement... elements) {
         this(plugin, creator, ItemMeta::setDisplayName, ItemMeta::setLore, owner, title, rows, elements);
     }
 
@@ -247,7 +247,7 @@ public class InventoryGui implements Listener {
      * @param elements  The {@link GuiElement}s that the gui should have. You can also use {@link #addElement(GuiElement)} later.
      * @throws IllegalArgumentException Thrown when the provided rows cannot be matched to an InventoryType
      */
-    public InventoryGui(JavaPlugin plugin, InventoryHolder owner, String title, String[] rows, GuiElement... elements) {
+    public InventoryGui(Plugin plugin, InventoryHolder owner, String title, String[] rows, GuiElement... elements) {
         this(plugin, new InventoryCreator(
                 (gui, who, type) -> plugin.getServer().createInventory(new Holder(gui), type, gui.replaceVars(who, gui.getTitle())),
                 (gui, who, size) -> plugin.getServer().createInventory(new Holder(gui), size, gui.replaceVars(who, gui.getTitle()))),
@@ -263,7 +263,7 @@ public class InventoryGui implements Listener {
      * @param elements  The {@link GuiElement}s that the gui should have. You can also use {@link #addElement(GuiElement)} later.
      * @throws IllegalArgumentException Thrown when the provided rows cannot be matched to an InventoryType
      */
-    public InventoryGui(JavaPlugin plugin, String title, String[] rows, GuiElement... elements) {
+    public InventoryGui(Plugin plugin, String title, String[] rows, GuiElement... elements) {
         this(plugin, null, title, rows, elements);
     }
 
@@ -278,7 +278,7 @@ public class InventoryGui implements Listener {
      * @param elements  The {@link GuiElement}s that the gui should have. You can also use {@link #addElement(GuiElement)} later.
      * @throws IllegalArgumentException Thrown when the provided rows cannot be matched to an InventoryType
      */
-    public InventoryGui(JavaPlugin plugin, InventoryHolder owner, String title, String[] rows, Collection<GuiElement> elements) {
+    public InventoryGui(Plugin plugin, InventoryHolder owner, String title, String[] rows, Collection<GuiElement> elements) {
         this(plugin, owner, title, rows);
         addElements(elements);
     }
@@ -859,7 +859,7 @@ public class InventoryGui implements Listener {
      * Get the plugin which owns this GUI. Should be the one who created it.
      * @return The plugin which owns this GUI
      */
-    public JavaPlugin getPlugin() {
+    public Plugin getPlugin() {
         return plugin;
     }
 
