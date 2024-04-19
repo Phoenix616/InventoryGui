@@ -1467,7 +1467,12 @@ public class InventoryGui implements Listener {
             return gui;
         }
     }
-    
+
+    /**
+     * A functional interface for specifying how closing the inventory should be treated
+     * by implementing the {@link #onClose(Close)} method.
+     * The method should return whether the close should go back or not.
+     */
     public static interface CloseAction {
         
         /**

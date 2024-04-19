@@ -144,6 +144,11 @@ public abstract class GuiElement {
         return gui;
     }
 
+    /**
+     * A functional interface for specifying how clicking on the element should be treated
+     * by implementing the {@link #onClick(Click)} method.
+     * The method should return whether the click event should be cancelled or not.
+     */
     public static interface Action {
 
         /**
