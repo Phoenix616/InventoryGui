@@ -42,8 +42,9 @@ public class GuiStorageElement extends GuiElement {
     private final Inventory storage;
     private final int invSlot;
     private Runnable applyStorage;
-    private Function<ValidatorInfo, Boolean> itemValidator;
-    
+    private Function<ValidatorInfo, Boolean> placeValidator;
+    private Function<ValidatorInfo, Boolean> takeValidator;
+
     /**
      * An element used to access an {@link Inventory}.
      * @param slotChar  The character to replace in the gui setup string.
@@ -69,14 +70,29 @@ public class GuiStorageElement extends GuiElement {
      * @param storage       The {@link Inventory} that this element is linked to.
      * @param invSlot       The index of the slot to access in the {@link Inventory}.
      * @param applyStorage  Apply the storage that this element represents.
-     * @param itemValidator Should return <code>false</code> for items that should not work in that slot
+     * @param placeValidator Should return <code>false</code> for items that should not work in that slot
      *                      Can be null if the storage is directly linked.
      */
-    public GuiStorageElement(char slotChar, Inventory storage, int invSlot, Runnable applyStorage, Function<ValidatorInfo, Boolean> itemValidator) {
+    public GuiStorageElement(char slotChar, Inventory storage, int invSlot, Runnable applyStorage, Function<ValidatorInfo, Boolean> placeValidator) {
+        this(slotChar, storage, invSlot, applyStorage, placeValidator, null);
+    }
+
+    /**
+     * An element used to access a specific slot in an {@link Inventory}.
+     * @param slotChar      The character to replace in the gui setup string.
+     * @param storage       The {@link Inventory} that this element is linked to.
+     * @param invSlot       The index of the slot to access in the {@link Inventory}.
+     * @param applyStorage  Apply the storage that this element represents.
+     * @param placeValidator Should return <code>false</code> for items that should not be placeable in that slot
+     *                      Can be null if the storage is directly linked.
+     * @param takeValidator Should return <code>false</code> for items that should not be takeable in that slot
+     *                      Can be null if the storage is directly linked.
+     */
+    public GuiStorageElement(char slotChar, Inventory storage, int invSlot, Runnable applyStorage, Function<ValidatorInfo, Boolean> placeValidator, Function<ValidatorInfo, Boolean> takeValidator) {
         super(slotChar, null);
         this.invSlot = invSlot;
         this.applyStorage = applyStorage;
-        this.itemValidator = itemValidator;
+        this.placeValidator = placeValidator;
         setAction(click -> {
             if (getStorageSlot(click.getWhoClicked(), click.getSlot()) < 0) {
                 return true;
@@ -101,10 +117,14 @@ public class GuiStorageElement extends GuiElement {
             switch (event.getAction()) {
                 case NOTHING:
                 case CLONE_STACK:
-                    return false;
+                    return !validateItemTake(click.getSlot(), slotItem);
                 case MOVE_TO_OTHER_INVENTORY:
-                    if (event.getRawSlot() < click.getRawEvent().getView().getTopInventory().getSize()) {
+                    if (event.getRawSlot() < event.getView().getTopInventory().getSize()) {
                         // Moved from storage
+
+                        if (!validateItemTake(click.getSlot(), slotItem)) {
+                            return true;
+                        }
 
                         // Check if there is actually space (more advanced checks can unfortunately not be supported right now)
                         if (click.getRawEvent().getView().getBottomInventory().firstEmpty() == -1) {
@@ -116,7 +136,7 @@ public class GuiStorageElement extends GuiElement {
                         // Moved to storage
 
                         // Check if there is actually space (more advanced checks can unfortunately not be supported right now)
-                        if (click.getRawEvent().getView().getTopInventory().firstEmpty() == -1) {
+                        if (event.getView().getTopInventory().firstEmpty() == -1) {
                             // No empty slot, cancel
                             return true;
                         }
@@ -127,26 +147,39 @@ public class GuiStorageElement extends GuiElement {
                     break;
                 case HOTBAR_MOVE_AND_READD:
                 case HOTBAR_SWAP:
+                    if (!validateItemTake(click.getSlot(), slotItem)) {
+                        return true;
+                    }
+
                     int button = event.getHotbarButton();
                     if (button < 0) {
                         return true;
                     }
-                    ItemStack hotbarItem = click.getRawEvent().getView().getBottomInventory().getItem(button);
+                    ItemStack hotbarItem = event.getView().getBottomInventory().getItem(button);
                     if (hotbarItem != null) {
                         movedItem = hotbarItem.clone();
                     }
                     break;
                 case PICKUP_ONE:
                 case DROP_ONE_SLOT:
+                    if (!validateItemTake(click.getSlot(), slotItem)) {
+                        return true;
+                    }
                     if (event.getCurrentItem() != null) {
                         movedItem = event.getCurrentItem().clone();
                         movedItem.setAmount(movedItem.getAmount() - 1);
                     }
                     break;
                 case DROP_ALL_SLOT:
+                    if (!validateItemTake(click.getSlot(), slotItem)) {
+                        return true;
+                    }
                     movedItem = null;
                     break;
                 case PICKUP_HALF:
+                    if (!validateItemTake(click.getSlot(), slotItem)) {
+                        return true;
+                    }
                     if (event.getCurrentItem() != null) {
                         movedItem = event.getCurrentItem().clone();
                         movedItem.setAmount(movedItem.getAmount() / 2);
@@ -188,13 +221,19 @@ public class GuiStorageElement extends GuiElement {
                     break;
                 case PICKUP_ALL:
                 case SWAP_WITH_CURSOR:
+                    if (!validateItemTake(click.getSlot(), slotItem)) {
+                        return true;
+                    }
                     if (event.getCursor() != null) {
                         movedItem = event.getCursor().clone();
-                    };
+                    }
                     break;
                 case COLLECT_TO_CURSOR:
                     if (event.getCursor() == null
                             || event.getCurrentItem() != null && event.getCurrentItem().getType() != Material.AIR) {
+                        return true;
+                    }
+                    if (!validateItemTake(click.getSlot(), slotItem)) {
                         return true;
                     }
                     gui.simulateCollectToCursor(click);
@@ -288,7 +327,7 @@ public class GuiStorageElement extends GuiElement {
         if (index == -1) {
             return false;
         }
-        if (!validateItem(slot, item)) {
+        if (!validateItemPlace(slot, item)) {
             return false;
         }
         storage.setItem(index, item);
@@ -316,32 +355,92 @@ public class GuiStorageElement extends GuiElement {
     }
     
     /**
-     * Get the item validator
-     * @return  The item validator
+     * Get the item place validator
+     * @return The item place validator
+     * @deprecated Use {@link #getPlaceValidator()}
      */
+    @Deprecated
     public Function<ValidatorInfo, Boolean> getItemValidator() {
-        return itemValidator;
+        return getPlaceValidator();
     }
-    
+
     /**
-     * Set a function that can validate whether or not an item can fit in the slot
-     * @param itemValidator The item validator that takes a {@link ValidatorInfo} and returns <code>true</code> for items that
-     *                      should and <code>false</code> for items that should not work in that slot
+     * Get the item place validator
+     * @return The item validator
      */
-    public void setItemValidator(Function<ValidatorInfo, Boolean> itemValidator) {
-        this.itemValidator = itemValidator;
+    public Function<ValidatorInfo, Boolean> getPlaceValidator() {
+        return placeValidator;
+    }
+
+    /**
+     * Get the item take validator
+     * @return The item take validator
+     */
+    public Function<ValidatorInfo, Boolean> getTakeValidator() {
+        return takeValidator;
     }
     
     /**
-     * Validate whether or not an item can be put in a slot with the item validator set in {@link #setItemValidator(Function)}
+     * Set a function that can validate whether an item can be placed in the slot
+     * @param placeValidator The item validator that takes a {@link ValidatorInfo} and returns <code>true</code> for items that
+     *                      should and <code>false</code> for items that should not be placeable in that slot
+     * @deprecated Use {@link #setPlaceValidator(Function)}
+     */
+    @Deprecated
+    public void setItemValidator(Function<ValidatorInfo, Boolean> placeValidator) {
+        this.placeValidator = placeValidator;
+    }
+
+    /**
+     * Set a function that can validate whether an item can be placed in the slot
+     * @param placeValidator The item validator that takes a {@link ValidatorInfo} and returns <code>true</code> for items that
+     *                      should and <code>false</code> for items that should not be placeable in that slot
+     */
+    public void setPlaceValidator(Function<ValidatorInfo, Boolean> placeValidator) {
+        this.placeValidator = placeValidator;
+    }
+
+    /**
+     * Set a function that can validate whether an item can be taken from the slot
+     * @param takeValidator The item validator that takes a {@link ValidatorInfo} and returns <code>true</code> for items that
+     *                      should and <code>false</code> for items that should not be taken in that slot
+     */
+    public void setTakeValidator(Function<ValidatorInfo, Boolean> takeValidator) {
+        this.takeValidator = takeValidator;
+    }
+    
+    /**
+     * Validate whether an item can be placed in a slot with the item validator set in {@link #setItemValidator(Function)}
+     * @param slot  The slot the item should be tested for
+     * @param item  The item to test
+     * @return      <code>true</code> for items that should and <code>false</code> for items that should not work in that slot
+     * @deprecated Use {@link #validateItemPlace(int, ItemStack)}
+     */
+    @Deprecated
+    public boolean validateItem(int slot, ItemStack item) {
+        return validateItemPlace(slot, item);
+    }
+
+    /**
+     * Validate whether an item can be placed in a slot with the item validator set in {@link #setItemValidator(Function)}
      * @param slot  The slot the item should be tested for
      * @param item  The item to test
      * @return      <code>true</code> for items that should and <code>false</code> for items that should not work in that slot
      */
-    public boolean validateItem(int slot, ItemStack item) {
-        return itemValidator == null || itemValidator.apply(new ValidatorInfo(this, slot, item));
+    public boolean validateItemPlace(int slot, ItemStack item) {
+        return placeValidator == null || placeValidator.apply(new ValidatorInfo(this, slot, item));
     }
-    
+
+    /**
+     * Validate whether an item can be taken from a slot with the item validator set in {@link #setItemValidator(Function)}
+     * @param slot  The slot the item should be tested for
+     * @param item  The item to test
+     * @return      <code>true</code> for items that should and <code>false</code> for items that should not be taken from that slot
+     */
+    public boolean validateItemTake(int slot, ItemStack item) {
+        return takeValidator == null || takeValidator.apply(new ValidatorInfo(this, slot, item));
+    }
+
     public static class ValidatorInfo {
         private final GuiElement element;
         private final int slot;

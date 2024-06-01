@@ -1632,7 +1632,8 @@ public class InventoryGui implements Listener {
                 if (element instanceof GuiStorageElement) {
                     GuiStorageElement storageElement = (GuiStorageElement) element;
                     ItemStack otherStorageItem = storageElement.getStorageItem(click.getWhoClicked(), i);
-                    if (addToStack(newCursor, otherStorageItem)) {
+                    if (storageElement.validateItemTake(i, otherStorageItem)
+                            && addToStack(newCursor, otherStorageItem)) {
                         if (otherStorageItem.getAmount() == 0) {
                             otherStorageItem = null;
                         }
