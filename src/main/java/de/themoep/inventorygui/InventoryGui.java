@@ -469,6 +469,16 @@ public class InventoryGui implements Listener {
     /**
      * Set the filler element for empty slots
      * @param item  The item for the filler element
+     * @return The GUI instance
+     */
+    public InventoryGui filler(ItemStack item) {
+        setFiller(item);
+        return this;
+    }
+
+    /**
+     * Set the filler element for empty slots
+     * @param item  The item for the filler element
      */
     public void setFiller(ItemStack item) {
         addElement(new StaticGuiElement(' ', item, " "));
