@@ -93,6 +93,7 @@ public class GuiStorageElement extends GuiElement {
         this.invSlot = invSlot;
         this.applyStorage = applyStorage;
         this.placeValidator = placeValidator;
+        this.takeValidator = takeValidator;
         setAction(click -> {
             if (getStorageSlot(click.getWhoClicked(), click.getSlot()) < 0) {
                 return true;
