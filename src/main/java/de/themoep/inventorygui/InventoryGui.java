@@ -1391,7 +1391,7 @@ public class InventoryGui implements Listener {
                     destroy(false);
                 } else {
                     inventory.clear();
-                    for (HumanEntity viewer : inventory.getViewers()) {
+                    for (HumanEntity viewer : new ArrayList<>(inventory.getViewers())) {
                         if (viewer != event.getPlayer()) {
                             viewer.closeInventory();
                         }
