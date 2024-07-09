@@ -25,6 +25,7 @@ package de.themoep.inventorygui;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 /**
@@ -36,23 +37,29 @@ public class GuiStateElement extends GuiElement {
     private boolean silent = false;
     private int currentState;
     private final State[] states;
+    private boolean switchStateOnClick;
 
     /**
      * An element that can switch between certain states.
-     * @param slotChar      The character to replace in the gui setup string.
-     * @param defaultState  The index of the default state.
-     * @param states        The list of different {@link State}s that this element can have.
+     * @param slotChar              The character to replace in the gui setup string.
+     * @param switchStateOnClick    Whether to switch the state when clicked.
+     * @param defaultState          The index of the default state.
+     * @param states                The list of different {@link State}s that this element can have.
      */
-    public GuiStateElement(char slotChar, int defaultState, State... states) {
+    public GuiStateElement(char slotChar, boolean switchStateOnClick, int defaultState, State... states) {
         super(slotChar, null);
         if (states.length == 0) {
             throw new IllegalArgumentException("You need to add at least one State!");
         }
+        this.switchStateOnClick = switchStateOnClick;
         this.currentState = defaultState;
         this.states = states;
 
         setAction(click -> {
-            State next = nextState();
+            if (this.switchStateOnClick) {
+                getState().change.onLeave(click);
+            }
+            State next = this.switchStateOnClick ? nextState() : getState();
             next.change.onChange(click);
             if (!isSilent()) {
                 click.getGui().playClickSound();
@@ -63,24 +70,66 @@ public class GuiStateElement extends GuiElement {
     }
 
     /**
+     * An element that can switch between certain states. It will automatically switch to the next state when clicked.
+     * @param slotChar      The character to replace in the gui setup string.
+     * @param defaultState  The index of the default state.
+     * @param states        The list of different {@link State}s that this element can have.
+     */
+    public GuiStateElement(char slotChar, int defaultState, State... states) {
+        this(slotChar, true, defaultState, states);
+    }
+
+    /**
      * An element that can switch between certain states.
+     * @param slotChar              The character to replace in the gui setup string.
+     * @param switchStateOnClick    Whether to switch the state when clicked.
+     * @param defaultState          The key of the default state.
+     * @param states                The list of different {@link State}s that this element can have.
+     */
+    public GuiStateElement(char slotChar, boolean switchStateOnClick, String defaultState, State... states) {
+        this(slotChar, switchStateOnClick, getStateIndex(defaultState, states), states);
+    }
+
+    /**
+     * An element that can switch between certain states. It will automatically switch to the next state when clicked.
      * @param slotChar      The character to replace in the gui setup string.
      * @param defaultState  The key of the default state.
      * @param states        The list of different {@link State}s that this element can have.
      */
     public GuiStateElement(char slotChar, String defaultState, State... states) {
-        this(slotChar, getStateIndex(defaultState, states), states);
+        this(slotChar, true, defaultState, states);
+    }
+
+    /**
+     * An element that can switch between certain states.
+     * @param slotChar              The character to replace in the gui setup string.
+     * @param switchStateOnClick    Whether to switch the state when clicked.
+     * @param queryState            Supplier for the current state.
+     * @param states                The list of different {@link State}s that this element can have.
+     */
+    public GuiStateElement(char slotChar, boolean switchStateOnClick, Supplier<String> queryState, State... states) {
+        this(slotChar, switchStateOnClick, queryState.get(), states);
+        this.queryState = () -> getStateIndex(queryState.get(), states);
     }
     
     /**
-     * An element that can switch between certain states.
+     * An element that can switch between certain states. It will automatically switch to the next state when clicked.
      * @param slotChar      The character to replace in the gui setup string.
      * @param queryState    Supplier for the current state.
      * @param states        The list of different {@link State}s that this element can have.
      */
     public GuiStateElement(char slotChar, Supplier<String> queryState, State... states) {
-        this(slotChar, queryState.get(), states);
-        this.queryState = () -> getStateIndex(queryState.get(), states);
+        this(slotChar, true, queryState, states);
+    }
+
+    /**
+     * An element that can switch between certain states. The first state will be the default one.
+     * @param slotChar      The character to replace in the gui setup string.
+     * @param switchStateOnClick    Whether to switch the state when clicked.
+     * @param states        The list of different {@link State}s that this element can have.
+     */
+    public GuiStateElement(char slotChar, boolean switchStateOnClick, State... states) {
+        this(slotChar, switchStateOnClick, 0, states);
     }
 
     /**
@@ -89,7 +138,7 @@ public class GuiStateElement extends GuiElement {
      * @param states        The list of different {@link State}s that this element can have.
      */
     public GuiStateElement(char slotChar, State... states) {
-        this(slotChar, 0, states);
+        this(slotChar, true, states);
     }
 
     /**
@@ -148,6 +197,22 @@ public class GuiStateElement extends GuiElement {
      */
     public void setSilent(boolean silent) {
         this.silent = silent;
+    }
+
+    /**
+     * Get whether the state of this element should switch each time it is clicked
+     * @return Whether the state of this element should switch each time it is clicked
+     */
+    public boolean shouldSwitchStateOnClick() {
+        return switchStateOnClick;
+    }
+
+    /**
+     * Set whether the state of this element should switch each time it is clicked
+     * @param switchStateOnClick Whether the state of this element should switch each time it is clicked
+     */
+    public void setSwitchStateOnClick(boolean switchStateOnClick) {
+        this.switchStateOnClick = switchStateOnClick;
     }
     
     /**
@@ -216,7 +281,7 @@ public class GuiStateElement extends GuiElement {
          * Set this element's display text. If this is an empty array the item's name will be displayed
          * @param text  The text to display on this element, placeholders are automatically
          *              replaced, see {@link InventoryGui#replaceVars} for a list of the
-         *              placeholder variables. Empty text strings are also filter out, use
+         *              placeholder variables. Empty text strings are also filtered out, use
          *              a single space if you want to add an empty line!<br>
          *              If it's not set/empty the item's default name will be used
          */
@@ -275,6 +340,46 @@ public class GuiStateElement extends GuiElement {
              * @param click The click that triggered this change
              */
             void onChange(Click click);
+
+            /**
+             * What should happen when the element's state changes away from this state
+             * @param click The click that triggered this change
+             */
+            default void onLeave(Click click) {
+                // Do nothing by default
+            }
+        }
+
+        /**
+         * A simple implementation of the {@link Change} interface that allows for lambda expressions for the state enter and leave methods
+         */
+        public static class ChangeHandler implements Change {
+            private final Consumer<Click> onStateEnter;
+            private final Consumer<Click> onStateLeave;
+
+            /**
+             * A simple implementation of the {@link Change} interface that allows for lambda expressions for the state enter and leave methods
+             * @param onStateEnter The action to run when the state changes to this state
+             * @param onStateLeave The action to run when the state changes away from this state
+             */
+            public ChangeHandler(Consumer<Click> onStateEnter, Consumer<Click> onStateLeave) {
+                this.onStateEnter = onStateEnter;
+                this.onStateLeave = onStateLeave;
+            }
+
+            @Override
+            public void onChange(Click click) {
+                if (onStateEnter != null) {
+                    onStateEnter.accept(click);
+                }
+            }
+
+            @Override
+            public void onLeave(Click click) {
+                if (onStateLeave != null) {
+                    onStateLeave.accept(click);
+                }
+            }
         }
     }
 }
