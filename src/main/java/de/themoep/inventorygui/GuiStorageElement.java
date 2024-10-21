@@ -25,6 +25,7 @@ package de.themoep.inventorygui;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.HumanEntity;
+import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -100,6 +101,15 @@ public class GuiStorageElement extends GuiElement {
             }
             ItemStack storageItem = getStorageItem(click.getWhoClicked(), click.getSlot());
             ItemStack slotItem = click.getRawEvent().getView().getTopInventory().getItem(click.getSlot());
+
+            if (click.getType() == ClickType.RIGHT && (
+                    click.getCursor() != null && click.getCursor().getType().getKey().getKey().contains("bundle")
+                            || storageItem != null && storageItem.getType().getKey().getKey().contains("bundle")
+                            || slotItem != null && slotItem.getType().getKey().getKey().contains("bundle"))) {
+                gui.draw(click.getWhoClicked(), false);
+                return true;
+            }
+
             if (slotItem == null && storageItem != null && storageItem.getType() != Material.AIR
                     || storageItem == null && slotItem != null && slotItem.getType() != Material.AIR
                     || storageItem != null && !storageItem.equals(slotItem)) {
