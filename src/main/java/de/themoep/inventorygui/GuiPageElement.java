@@ -32,6 +32,7 @@ import org.bukkit.inventory.ItemStack;
 public class GuiPageElement extends StaticGuiElement {
     private PageAction pageAction;
     private boolean silent = false;
+    private boolean showNumber = true;
 
     /**
      * An element that allows for controlling the pagination of the gui.
@@ -98,6 +99,31 @@ public class GuiPageElement extends StaticGuiElement {
         this.silent = silent;
     }
 
+    /**
+     * Get whether or not to show the page number
+     * @return Whether or not to show page number
+     */
+    public boolean isNumberShown(){
+        return showNumber;
+    }
+
+    /**
+     * Set whether or not to show the page number
+     * @param numberShown Whether or not to show the page number
+     */
+    public void setNumberShown(boolean numberShown){
+        showNumber = numberShown;
+    }
+
+    /**
+     * builder pattern for simply disable the page number showing
+     * @return self
+     */
+    public GuiPageElement disableShowNumber(){
+        showNumber = false;
+        return this;
+    }
+
     @Override
     public ItemStack getItem(HumanEntity who, int slot) {
         if (((pageAction == PageAction.FIRST || pageAction == PageAction.LAST) && gui.getPageAmount(who) < 3)
@@ -105,12 +131,15 @@ public class GuiPageElement extends StaticGuiElement {
                 || (pageAction == PageAction.PREVIOUS && gui.getPageNumber(who) == 0)) {
             return gui.getFiller() != null ? gui.getFiller().getItem(who, slot) : null;
         }
-        if (pageAction == PageAction.PREVIOUS) {
-            setNumber(gui.getPageNumber(who));
-        } else if (pageAction == PageAction.NEXT) {
-            setNumber(gui.getPageNumber(who) + 2);
-        } else if (pageAction == PageAction.LAST) {
-            setNumber(gui.getPageAmount(who));
+
+        if (showNumber) {
+            if (pageAction == PageAction.PREVIOUS) {
+                setNumber(gui.getPageNumber(who));
+            } else if (pageAction == PageAction.NEXT) {
+                setNumber(gui.getPageNumber(who) + 2);
+            } else if (pageAction == PageAction.LAST) {
+                setNumber(gui.getPageAmount(who));
+            }
         }
         return super.getItem(who, slot).clone();
     }
