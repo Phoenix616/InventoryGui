@@ -1642,14 +1642,16 @@ public class InventoryGui implements Listener {
                 if (element instanceof GuiStorageElement) {
                     GuiStorageElement storageElement = (GuiStorageElement) element;
                     ItemStack otherStorageItem = storageElement.getStorageItem(click.getWhoClicked(), i);
-                    if (storageElement.validateItemTake(i, otherStorageItem)
-                            && addToStack(newCursor, otherStorageItem)) {
-                        if (otherStorageItem.getAmount() == 0) {
-                            otherStorageItem = null;
-                        }
-                        storageElement.setStorageItem(click.getWhoClicked(), i, otherStorageItem);
-                        if (newCursor.getAmount() == newCursor.getMaxStackSize()) {
-                            break;
+                    if (storageElement.validateItemTake(i, otherStorageItem)) {
+                        int resultSize = addToStack(newCursor, otherStorageItem);
+                        if (resultSize > -1) {
+                            if (resultSize == 0) {
+                                otherStorageItem = null;
+                            }
+                            storageElement.setStorageItem(click.getWhoClicked(), i, otherStorageItem);
+                            if (newCursor.getAmount() == newCursor.getMaxStackSize()) {
+                                break;
+                            }
                         }
                     }
                 }
@@ -1658,9 +1660,9 @@ public class InventoryGui implements Listener {
     
         if (itemInGui) {
             event.setCurrentItem(null);
-            click.getRawEvent().setCancelled(true);
-            if (click.getRawEvent().getWhoClicked() instanceof Player) {
-                ((Player) click.getRawEvent().getWhoClicked()).updateInventory();
+            event.setCancelled(true);
+            if (click.getWhoClicked() instanceof Player) {
+                ((Player) click.getWhoClicked()).updateInventory();
             }
         
             if (click.getElement() instanceof GuiStorageElement) {
@@ -1668,9 +1670,14 @@ public class InventoryGui implements Listener {
             }
     
             if (newCursor.getAmount() < newCursor.getMaxStackSize()) {
-                Inventory bottomInventory = click.getRawEvent().getView().getBottomInventory();
-                for (ItemStack bottomIem : bottomInventory) {
-                    if (addToStack(newCursor, bottomIem)) {
+                Inventory bottomInventory = event.getView().getBottomInventory();
+                for (int i = 0; i < bottomInventory.getContents().length; i++) {
+                    ItemStack bottomItem = bottomInventory.getItem(i);
+                    int resultSize = addToStack(newCursor, bottomItem);
+                    if (resultSize > -1) {
+                        if (resultSize == 0) {
+                            bottomInventory.setItem(i, null);
+                        }
                         if (newCursor.getAmount() == newCursor.getMaxStackSize()) {
                             break;
                         }
@@ -1686,21 +1693,22 @@ public class InventoryGui implements Listener {
      * Add items to a stack up to the max stack size
      * @param item  The base item
      * @param add   The item stack to add
-     * @return <code>true</code> if the stack is finished; <code>false</code> if these stacks can't be merged
+     * @return the result amount of the <code>add</code> ItemStack; <code>-1</code> if these stacks can't be merged
      */
-    private static boolean addToStack(ItemStack item, ItemStack add) {
+    private static int addToStack(ItemStack item, ItemStack add) {
         if (item.isSimilar(add)) {
             int newAmount = item.getAmount() + add.getAmount();
-            if (newAmount >= item.getMaxStackSize()) {
+            if (newAmount > item.getMaxStackSize()) {
                 item.setAmount(item.getMaxStackSize());
                 add.setAmount(newAmount - item.getAmount());
+                return add.getAmount();
             } else {
                 item.setAmount(newAmount);
                 add.setAmount(0);
+                return 0;
             }
-            return true;
         }
-        return false;
+        return -1;
     }
 
     public static class InventoryCreator {
