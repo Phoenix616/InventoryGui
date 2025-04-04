@@ -141,7 +141,7 @@ public class InventoryGui implements Listener {
                 // If it does use the sound key
                 clickSound = entry.getValue();
                 break;
-            } catch (IllegalArgumentException ignored) {}
+            } catch (IllegalArgumentException | IncompatibleClassChangeError ignored) {}
         }
         if (clickSound == null) {
             for (Sound sound : Sound.values()) {
@@ -151,6 +151,9 @@ public class InventoryGui implements Listener {
                     break;
                 }
             }
+        }
+        if (clickSound == null) {
+            clickSound = "ui.button.click";
         }
         setDefaultClickSound(clickSound);
     }
