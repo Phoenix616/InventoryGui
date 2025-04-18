@@ -92,7 +92,7 @@ public class InventoryGui implements Listener {
     private final static Map<String, InventoryGui> GUI_MAP = new ConcurrentHashMap<>();
     private final static Map<UUID, ArrayDeque<InventoryGui>> GUI_HISTORY = new ConcurrentHashMap<>();
 
-    private final static Map<String, Pattern> PATTERN_CACHE = new HashMap<>();
+    private final static Map<String, Pattern> PATTERN_CACHE = new ConcurrentHashMap<>();
 
     private final static boolean FOLIA;
 

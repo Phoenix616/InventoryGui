@@ -25,16 +25,16 @@ package de.themoep.inventorygui;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Represents a group of multiple elements. Will be left-aligned by default.
  */
 public class GuiElementGroup extends GuiElement {
-    private List<GuiElement> elements = new ArrayList<>();
+    private List<GuiElement> elements = new CopyOnWriteArrayList<>();
     private GuiElement filler = null;
     private Alignment alignment = Alignment.LEFT;
     
