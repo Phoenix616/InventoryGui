@@ -144,7 +144,13 @@ public class InventoryGui implements Listener {
             } catch (IllegalArgumentException | IncompatibleClassChangeError ignored) {}
         }
         if (clickSound == null) {
-            for (Sound sound : Sound.values()) {
+            Sound[] sounds;
+            try {
+                sounds = (Sound[]) Sound.class.getDeclaredMethod("values").invoke(null);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+            for (Sound sound : sounds) {
                 if (sound.name().contains("CLICK")) {
                     // Convert to sound key under the assumption that the enum name is just using underscores in the place of dots
                     clickSound = sound.name().toLowerCase(Locale.ROOT).replace('_', '.');
