@@ -595,7 +595,7 @@ public class InventoryGui implements Listener {
         // Draw the elements into an inventory, if the title was updated then also force-recreate the inventory if it exists
         draw(player, true, titleUpdated);
         if (titleUpdated || !checkOpen || !this.equals(getOpen(player))) {
-            InventoryType type = player.getOpenInventory().getType();
+            InventoryType type = GuiView.of(player.getOpenInventory()).getType();
             if (type != InventoryType.CRAFTING && type != InventoryType.CREATIVE) {
                 // If the player already has a gui open then we assume that the call was from that gui.
                 // In order to not close it in a InventoryClickEvent listener (which will lead to errors)
@@ -1286,7 +1286,7 @@ public class InventoryGui implements Listener {
             if (event.getInventory().equals(getInventory(event.getWhoClicked()))) {
 
                 int slot = -1;
-                if (event.getRawSlot() < event.getView().getTopInventory().getSize()) {
+                if (event.getRawSlot() < GuiView.of(event.getView()).getTopInventory().getSize()) {
                     slot = event.getRawSlot();
                 } else if (event.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) {
                     slot = event.getInventory().firstEmpty();
@@ -1316,7 +1316,7 @@ public class InventoryGui implements Listener {
                 // Check if we only drag over one slot if so then handle that as a click with the element
                 if (event.getRawSlots().size() == 1) {
                     int slot = event.getRawSlots().iterator().next();
-                    if (slot < event.getView().getTopInventory().getSize()) {
+                    if (slot < GuiView.of(event.getView()).getTopInventory().getSize()) {
                         GuiElement.Click click = handleInteract(
                                 event,
                                 // Map drag type to the button that caused it
@@ -1354,7 +1354,7 @@ public class InventoryGui implements Listener {
                 
                 runTask(event.getWhoClicked(), () -> {
                     for (Map.Entry<Integer, ItemStack> items : resetSlots.entrySet()) {
-                        event.getView().getTopInventory().setItem(items.getKey(), items.getValue());
+                        GuiView.of(event.getView()).getTopInventory().setItem(items.getKey(), items.getValue());
                     }
                 });
                 
@@ -1458,7 +1458,7 @@ public class InventoryGui implements Listener {
             @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
             public void onInventoryMoveItem(PlayerSwapHandItemsEvent event) {
                 Inventory inventory = getInventory(event.getPlayer());
-                if (event.getPlayer().getOpenInventory().getTopInventory().equals(inventory)) {
+                if (GuiView.of(event.getPlayer().getOpenInventory()).getTopInventory().equals(inventory)) {
                     event.setCancelled(true);
                 }
             }
@@ -1637,11 +1637,12 @@ public class InventoryGui implements Listener {
         InventoryClickEvent event = (InventoryClickEvent) click.getRawEvent();
 
         ItemStack newCursor = click.getCursor().clone();
-    
+
+        final Inventory topInventory = GuiView.of(click.getRawEvent().getView()).getTopInventory();
         boolean itemInGui = false;
-        for (int i = 0; i < click.getRawEvent().getView().getTopInventory().getSize(); i++) {
+        for (int i = 0; i < topInventory.getSize(); i++) {
             if (i != event.getRawSlot()) {
-                ItemStack viewItem = click.getRawEvent().getView().getTopInventory().getItem(i);
+                ItemStack viewItem = topInventory.getItem(i);
                 if (newCursor.isSimilar(viewItem)) {
                     itemInGui = true;
                 }
@@ -1677,7 +1678,7 @@ public class InventoryGui implements Listener {
             }
     
             if (newCursor.getAmount() < newCursor.getMaxStackSize()) {
-                Inventory bottomInventory = event.getView().getBottomInventory();
+                Inventory bottomInventory = GuiView.of(event.getView()).getBottomInventory();
                 for (int i = 0; i < bottomInventory.getContents().length; i++) {
                     ItemStack bottomItem = bottomInventory.getItem(i);
                     int resultSize = addToStack(newCursor, bottomItem);
