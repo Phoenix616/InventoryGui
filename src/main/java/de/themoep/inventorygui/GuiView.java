@@ -9,6 +9,7 @@ import org.bukkit.inventory.ItemStack;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
+import java.util.WeakHashMap;
 
 public class GuiView {
 
@@ -28,8 +29,10 @@ public class GuiView {
     private static final MethodHandle SET_PROPERTY = unreflect("setProperty");
     private static final MethodHandle GET_TITLE = unreflect("getTitle");
 
+    private static final WeakHashMap<InventoryView, GuiView> VIEWS = new WeakHashMap<>();
+
     public static GuiView of(InventoryView view) {
-        return new GuiView(view);
+        return VIEWS.computeIfAbsent(view, k -> new GuiView(view));
     }
 
     private final InventoryView view;
