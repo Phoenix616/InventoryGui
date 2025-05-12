@@ -1286,7 +1286,14 @@ public class InventoryGui implements Listener {
             if (event.getInventory().equals(getInventory(event.getWhoClicked()))) {
 
                 int slot = -1;
-                if (event.getRawSlot() < GuiView.of(event.getView()).getTopInventory().getSize()) {
+                int size;
+                try {
+                    size = GuiView.of(event.getView()).getTopInventory().getSize();
+                } catch (Throwable t) {
+                    event.setCancelled(true);
+                    return;
+                }
+                if (event.getRawSlot() < size) {
                     slot = event.getRawSlot();
                 } else if (event.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) {
                     slot = event.getInventory().firstEmpty();
@@ -1316,7 +1323,14 @@ public class InventoryGui implements Listener {
                 // Check if we only drag over one slot if so then handle that as a click with the element
                 if (event.getRawSlots().size() == 1) {
                     int slot = event.getRawSlots().iterator().next();
-                    if (slot < GuiView.of(event.getView()).getTopInventory().getSize()) {
+                    int size;
+                    try {
+                        size = GuiView.of(event.getView()).getTopInventory().getSize();
+                    } catch (Throwable t) {
+                        event.setCancelled(true);
+                        return;
+                    }
+                    if (slot < size) {
                         GuiElement.Click click = handleInteract(
                                 event,
                                 // Map drag type to the button that caused it
@@ -1458,7 +1472,11 @@ public class InventoryGui implements Listener {
             @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
             public void onInventoryMoveItem(PlayerSwapHandItemsEvent event) {
                 Inventory inventory = getInventory(event.getPlayer());
-                if (GuiView.of(event.getPlayer().getOpenInventory()).getTopInventory().equals(inventory)) {
+                try {
+                    if (GuiView.of(event.getPlayer().getOpenInventory()).getTopInventory().equals(inventory)) {
+                        event.setCancelled(true);
+                    }
+                } catch (Throwable t) {
                     event.setCancelled(true);
                 }
             }
