@@ -100,7 +100,7 @@ public class GuiStorageElement extends GuiElement {
                 return true;
             }
             ItemStack storageItem = getStorageItem(click.getWhoClicked(), click.getSlot());
-            ItemStack slotItem = click.getRawEvent().getView().getTopInventory().getItem(click.getSlot());
+            ItemStack slotItem = GuiView.of(click.getRawEvent().getView()).getTopInventory().getItem(click.getSlot());
 
             if (click.getType() == ClickType.RIGHT && (
                     click.getCursor() != null && click.getCursor().getType().getKey().getKey().contains("bundle")
@@ -130,7 +130,8 @@ public class GuiStorageElement extends GuiElement {
                 case CLONE_STACK:
                     return !validateItemTake(click.getSlot(), slotItem);
                 case MOVE_TO_OTHER_INVENTORY:
-                    if (event.getRawSlot() < event.getView().getTopInventory().getSize()) {
+                    final GuiView view = GuiView.of(event.getView());
+                    if (event.getRawSlot() < view.getTopInventory().getSize()) {
                         // Moved from storage
 
                         if (!validateItemTake(click.getSlot(), slotItem)) {
@@ -138,7 +139,7 @@ public class GuiStorageElement extends GuiElement {
                         }
 
                         // Check if there is actually space (more advanced checks can unfortunately not be supported right now)
-                        if (click.getRawEvent().getView().getBottomInventory().firstEmpty() == -1) {
+                        if (GuiView.of(click.getRawEvent().getView()).getBottomInventory().firstEmpty() == -1) {
                             // No empty slot, cancel
                             return true;
                         }
@@ -147,7 +148,7 @@ public class GuiStorageElement extends GuiElement {
                         // Moved to storage
 
                         // Check if there is actually space (more advanced checks can unfortunately not be supported right now)
-                        if (event.getView().getTopInventory().firstEmpty() == -1) {
+                        if (view.getTopInventory().firstEmpty() == -1) {
                             // No empty slot, cancel
                             return true;
                         }
@@ -166,7 +167,7 @@ public class GuiStorageElement extends GuiElement {
                     if (button < 0) {
                         return true;
                     }
-                    ItemStack hotbarItem = event.getView().getBottomInventory().getItem(button);
+                    ItemStack hotbarItem = GuiView.of(event.getView()).getBottomInventory().getItem(button);
                     if (hotbarItem != null) {
                         movedItem = hotbarItem.clone();
                     }
