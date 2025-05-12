@@ -107,16 +107,20 @@ public class GuiView {
     private <T> T invoke(MethodHandle method, Object... args) {
         try {
             return (T) method.invoke(args);
+        } catch (RuntimeException e) {
+            throw e;
         } catch (Throwable t) {
-            throw new RuntimeException(t);
+            throw new AssertionError(t);
         }
     }
 
     private void invokeVoid(MethodHandle method, Object... args) {
         try {
             method.invoke(args);
+        } catch (RuntimeException e) {
+            throw e;
         } catch (Throwable t) {
-            throw new RuntimeException(t);
+            throw new AssertionError(t);
         }
     }
 
