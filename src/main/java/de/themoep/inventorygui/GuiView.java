@@ -5,12 +5,14 @@ import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.ApiStatus;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
 import java.util.WeakHashMap;
 
+@ApiStatus.Internal
 public class GuiView {
 
     private static final MethodHandle GET_TOP_INVENTORY = unreflect("getTopInventory");
