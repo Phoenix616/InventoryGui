@@ -44,69 +44,24 @@ public class GuiView {
     }
 
     public Inventory getTopInventory() {
-        return invoke(GET_TOP_INVENTORY, view);
+        return invoke(GET_TOP_INVENTORY);
     }
 
     public Inventory getBottomInventory() {
-        return invoke(GET_BOTTOM_INVENTORY, view);
+        return invoke(GET_BOTTOM_INVENTORY);
     }
 
     public HumanEntity getPlayer() {
-        return invoke(GET_PLAYER, view);
+        return invoke(GET_PLAYER);
     }
 
     public InventoryType getType() {
-        return invoke(GET_TYPE, view);
+        return invoke(GET_TYPE);
     }
 
     public void setItem(int slot, ItemStack item) {
-        invokeVoid(SET_ITEM, view, slot, item);
-    }
-
-    public ItemStack getItem(int slot) {
-        return invoke(GET_ITEM, view, slot);
-    }
-
-    public void setCursor(ItemStack item) {
-        invokeVoid(SET_CURSOR, view, item);
-    }
-
-    public ItemStack getCursor() {
-        return invoke(GET_CURSOR, view);
-    }
-
-    public Inventory getInventory(int rawSlot) {
-        return invoke(GET_INVENTORY, view, rawSlot);
-    }
-
-    public int convertSlot(int slot) {
-        return invoke(CONVERT_SLOT, view, slot);
-    }
-
-    public InventoryType.SlotType getSlotType(int slot) {
-        return invoke(GET_SLOT_TYPE, view, slot);
-    }
-
-    public void close() {
-        invokeVoid(CLOSE, view);
-    }
-
-    public int countSlots() {
-        return invoke(COUNT_SLOTS, view);
-    }
-
-    public boolean setProperty(InventoryView.Property prop, int value) {
-        return invoke(SET_PROPERTY, view, prop, value);
-    }
-
-    public String getTitle() {
-        return invoke(GET_TITLE, view);
-    }
-
-    @SuppressWarnings("unchecked")
-    private <T> T invoke(MethodHandle method, Object... args) {
         try {
-            return (T) method.invoke(args);
+            SET_ITEM.invoke(view, slot, item);
         } catch (RuntimeException e) {
             throw e;
         } catch (Throwable t) {
@@ -114,9 +69,79 @@ public class GuiView {
         }
     }
 
-    private void invokeVoid(MethodHandle method, Object... args) {
+    public ItemStack getItem(int slot) {
+        return invoke(GET_ITEM, slot);
+    }
+
+    public void setCursor(ItemStack item) {
         try {
-            method.invoke(args);
+            SET_CURSOR.invoke(view, item);
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Throwable t) {
+            throw new AssertionError(t);
+        }
+    }
+
+    public ItemStack getCursor() {
+        return invoke(GET_CURSOR);
+    }
+
+    public Inventory getInventory(int rawSlot) {
+        return invoke(GET_INVENTORY, rawSlot);
+    }
+
+    public int convertSlot(int slot) {
+        return invoke(CONVERT_SLOT, slot);
+    }
+
+    public InventoryType.SlotType getSlotType(int slot) {
+        return invoke(GET_SLOT_TYPE, slot);
+    }
+
+    public void close() {
+        try {
+            CLOSE.invoke(view);
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Throwable t) {
+            throw new AssertionError(t);
+        }
+    }
+
+    public int countSlots() {
+        return invoke(COUNT_SLOTS);
+    }
+
+    public boolean setProperty(InventoryView.Property prop, int value) {
+        try {
+            return (boolean) SET_PROPERTY.invoke(prop, value);
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Throwable t) {
+            throw new AssertionError(t);
+        }
+    }
+
+    public String getTitle() {
+        return invoke(GET_TITLE);
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T> T invoke(MethodHandle method) {
+        try {
+            return (T) method.invoke(view);
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Throwable t) {
+            throw new AssertionError(t);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T> T invoke(MethodHandle method, int slot) {
+        try {
+            return (T) method.invoke(view, slot);
         } catch (RuntimeException e) {
             throw e;
         } catch (Throwable t) {
