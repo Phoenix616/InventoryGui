@@ -27,7 +27,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -106,6 +105,11 @@ public class DynamicGuiElement extends GuiElement {
         GuiElement element = getCachedElement(who);
         return element != null ? element.getAction(who) : null;
     }
+
+    @Override
+    public GuiElement getEffectiveElement(HumanEntity who, int slot) {
+        return getCachedElement(who);
+    }
     
     /**
      * Get the supplier for this element's content
@@ -158,6 +162,9 @@ public class DynamicGuiElement extends GuiElement {
      */
     public GuiElement removeCachedElement(HumanEntity who) {
         CacheEntry cached = cachedElements.remove(who.getUniqueId());
+        if (cached != null && cached.getElement() instanceof DynamicGuiElement) {
+            ((DynamicGuiElement) cached.getElement()).removeCachedElement(who);
+        }
         return cached != null ? cached.getElement() : null;
     }
     

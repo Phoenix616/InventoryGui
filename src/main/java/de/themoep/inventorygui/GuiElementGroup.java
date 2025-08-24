@@ -63,6 +63,15 @@ public class GuiElementGroup extends GuiElement {
         }
         return null;
     }
+
+    @Override
+    public GuiElement getEffectiveElement(HumanEntity who, int slot) {
+        GuiElement element = getElement(slot, gui.getPageNumber(who));
+        if (element != null) {
+            return element.getEffectiveElement(who, slot);
+        }
+        return null;
+    }
     
     @Override
     public void setGui(InventoryGui gui) {

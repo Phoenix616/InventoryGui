@@ -99,20 +99,11 @@ public class GuiStorageElement extends GuiElement {
             if (getStorageSlot(click.getWhoClicked(), click.getSlot()) < 0) {
                 return true;
             }
-            ItemStack storageItem = getStorageItem(click.getWhoClicked(), click.getSlot());
             ItemStack slotItem = GuiView.of(click.getRawEvent().getView()).getTopInventory().getItem(click.getSlot());
 
             if (click.getType() == ClickType.RIGHT && (
                     click.getCursor() != null && click.getCursor().getType().getKey().getKey().contains("bundle")
-                            || storageItem != null && storageItem.getType().getKey().getKey().contains("bundle")
                             || slotItem != null && slotItem.getType().getKey().getKey().contains("bundle"))) {
-                gui.draw(click.getWhoClicked(), false);
-                return true;
-            }
-
-            if (slotItem == null && storageItem != null && storageItem.getType() != Material.AIR
-                    || storageItem == null && slotItem != null && slotItem.getType() != Material.AIR
-                    || storageItem != null && !storageItem.equals(slotItem)) {
                 gui.draw(click.getWhoClicked(), false);
                 return true;
             }
@@ -155,7 +146,7 @@ public class GuiStorageElement extends GuiElement {
                         movedItem = event.getCurrentItem();
                     }
                     // Update GUI to avoid display glitches
-                    gui.runTask(gui::draw);
+                    gui.runTask(() -> gui.draw(false));
                     break;
                 case HOTBAR_MOVE_AND_READD:
                 case HOTBAR_SWAP:
@@ -254,18 +245,14 @@ public class GuiStorageElement extends GuiElement {
                     click.getRawEvent().getWhoClicked().sendMessage(ChatColor.RED + "The action " + event.getAction() + " is not supported! Sorry about that :(");
                     return true;
             }
-            return !setStorageItem(click.getWhoClicked(), click.getSlot(), movedItem);
+            return !validateItemPlace(click.getWhoClicked(), click.getSlot(), movedItem);
         });
         this.storage = storage;
     }
-    
+
     @Override
     public ItemStack getItem(HumanEntity who, int slot) {
-        int index = getStorageSlot(who, slot);
-        if (index > -1 && index < storage.getSize()) {
-            return storage.getItem(index);
-        }
-        return null;
+        return getStorageItem(who, slot);
     }
 
     /**
@@ -309,10 +296,10 @@ public class GuiStorageElement extends GuiElement {
      */
     public ItemStack getStorageItem(HumanEntity player, int slot) {
         int index = getStorageSlot(player, slot);
-        if (index == -1) {
-            return null;
+        if (index > -1 && index < storage.getSize()) {
+            return storage.getItem(index);
         }
-        return storage.getItem(index);
+        return null;
     }
     
     /**
@@ -441,6 +428,17 @@ public class GuiStorageElement extends GuiElement {
      */
     public boolean validateItemPlace(int slot, ItemStack item) {
         return placeValidator == null || placeValidator.apply(new ValidatorInfo(this, slot, item));
+    }
+
+    /**
+     * Check whether someone is allowed to place an item there, both using the storage slot and the validator (if one is set)
+     * @param who   Who wants to place the item
+     * @param slot  The slot to place in
+     * @param item  The item to place
+     * @return      <code>true</code> if the item is allowed to be placed; <code>false</code> if the slot was outside of this storage
+     */
+    public boolean validateItemPlace(HumanEntity who, int slot, ItemStack item) {
+        return getStorageSlot(who, slot) != -1 && validateItemPlace(slot, item);
     }
 
     /**

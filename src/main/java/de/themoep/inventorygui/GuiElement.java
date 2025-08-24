@@ -145,6 +145,16 @@ public abstract class GuiElement {
     }
 
     /**
+     * Get the element which should handle all actions e.g. the resolved element of a DynamicGuiElement
+     * @param who Who is viewing the GUI
+     * @param slot The slot for which to get the effective element
+     * @return The effective element
+     */
+    public GuiElement getEffectiveElement(HumanEntity who, int slot) {
+        return this;
+    }
+
+    /**
      * A functional interface for specifying how clicking on the element should be treated
      * by implementing the {@link #onClick(Click)} method.
      * The method should return whether the click event should be cancelled or not.
