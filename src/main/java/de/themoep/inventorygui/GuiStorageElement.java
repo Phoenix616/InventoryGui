@@ -108,8 +108,15 @@ public class GuiStorageElement extends GuiElement {
                 return true;
             }
 
+            // Handle single-slot drag like click: validate the final item with PlaceValidator
+            if (click.getRawEvent() instanceof InventoryDragEvent) {
+                InventoryDragEvent drag = (InventoryDragEvent) click.getRawEvent();
+                ItemStack movedItem = drag.getNewItems().get(click.getSlot());
+                return !validateItemPlace(click.getWhoClicked(), click.getSlot(), movedItem);
+            }
+
             if (!(click.getRawEvent() instanceof InventoryClickEvent)) {
-                // Only the click event will be handled here, drag event is handled separately
+                // Only the click event will be handled from here, drag event is handled separately
                 return true;
             }
 
