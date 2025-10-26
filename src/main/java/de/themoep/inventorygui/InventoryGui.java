@@ -374,7 +374,9 @@ public class InventoryGui implements Listener {
      *                  placeholder variables. Empty text strings are also filter out, use
      *                  a single space if you want to add an empty line!<br>
      *                  If it's not set/empty the item's default name will be used
+     * @deprecated      Usage of {@link MaterialData} is deprecated
      */
+    @Deprecated
     public void addElement(char slotChar, MaterialData materialData, GuiElement.Action action, String... text) {
         addElement(slotChar, materialData.toItemStack(1), action, text);
     }
@@ -390,7 +392,9 @@ public class InventoryGui implements Listener {
      *                  placeholder variables. Empty text strings are also filter out, use
      *                  a single space if you want to add an empty line!<br>
      *                  If it's not set/empty the item's default name will be used
+     * @deprecated      Usage of byte data
      */
+    @Deprecated
     public void addElement(char slotChar, Material material, byte data, GuiElement.Action action, String... text) {
         addElement(slotChar, new MaterialData(material, data), action, text);
     }
@@ -407,7 +411,7 @@ public class InventoryGui implements Listener {
      *                  If it's not set/empty the item's default name will be used
      */
     public void addElement(char slotChar, Material material, GuiElement.Action action, String... text) {
-        addElement(slotChar, material, (byte) 0, action, text);
+        addElement(slotChar, new ItemStack(material), action, text);
     }
 
     /**
