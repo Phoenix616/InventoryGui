@@ -22,6 +22,7 @@ package de.themoep.inventorygui;
  * SOFTWARE.
  */
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.HumanEntity;
@@ -40,6 +41,8 @@ import java.util.function.Function;
  * accessed by the player then it will translate to the second slot in the inventory.
  */
 public class GuiStorageElement extends GuiElement {
+    private final static String STORAGE_SYSTEM_PROPERTY = GuiStorageElement.class.getName() + ".forceAllow";
+
     private final Inventory storage;
     private final int invSlot;
     private Runnable applyStorage;
@@ -54,7 +57,7 @@ public class GuiStorageElement extends GuiElement {
     public GuiStorageElement(char slotChar, Inventory storage) {
         this(slotChar, storage, -1);
     }
-    
+
     /**
      * An element used to access a specific slot in an {@link Inventory}.
      * @param slotChar  The character to replace in the gui setup string.
@@ -64,7 +67,7 @@ public class GuiStorageElement extends GuiElement {
     public GuiStorageElement(char slotChar, Inventory storage, int invSlot) {
         this(slotChar, storage, invSlot, null, null);
     }
-    
+
     /**
      * An element used to access a specific slot in an {@link Inventory}.
      * @param slotChar      The character to replace in the gui setup string.
@@ -91,6 +94,11 @@ public class GuiStorageElement extends GuiElement {
      */
     public GuiStorageElement(char slotChar, Inventory storage, int invSlot, Runnable applyStorage, Function<ValidatorInfo, Boolean> placeValidator, Function<ValidatorInfo, Boolean> takeValidator) {
         super(slotChar, null);
+        if (Bukkit.getUnsafe().getDataVersion() < 4554 && !Boolean.getBoolean(STORAGE_SYSTEM_PROPERTY)) {
+            throw new UnsupportedOperationException("GuiStorageElements require server version 1.21.9 or later to work properly!"
+                    + " If you understand the risk and only want to use this element for internal use you can disable this check"
+                    + " by setting the system property " + STORAGE_SYSTEM_PROPERTY + "=true");
+        }
         this.invSlot = invSlot;
         this.applyStorage = applyStorage;
         this.placeValidator = placeValidator;
@@ -99,11 +107,20 @@ public class GuiStorageElement extends GuiElement {
             if (getStorageSlot(click.getWhoClicked(), click.getSlot()) < 0) {
                 return true;
             }
+            ItemStack storageItem = getStorageItem(click.getWhoClicked(), click.getSlot());
             ItemStack slotItem = GuiView.of(click.getRawEvent().getView()).getTopInventory().getItem(click.getSlot());
 
             if (click.getType() == ClickType.RIGHT && (
                     click.getCursor() != null && click.getCursor().getType().getKey().getKey().contains("bundle")
+                            || storageItem != null && storageItem.getType().getKey().getKey().contains("bundle")
                             || slotItem != null && slotItem.getType().getKey().getKey().contains("bundle"))) {
+                gui.draw(click.getWhoClicked(), false);
+                return true;
+            }
+
+            if (slotItem == null && storageItem != null && storageItem.getType() != Material.AIR
+                    || storageItem == null && slotItem != null && slotItem.getType() != Material.AIR
+                    || storageItem != null && !storageItem.equals(slotItem)) {
                 gui.draw(click.getWhoClicked(), false);
                 return true;
             }
@@ -245,14 +262,18 @@ public class GuiStorageElement extends GuiElement {
                     click.getRawEvent().getWhoClicked().sendMessage(ChatColor.RED + "The action " + event.getAction() + " is not supported! Sorry about that :(");
                     return true;
             }
-            return !validateItemPlace(click.getWhoClicked(), click.getSlot(), movedItem);
+            return !setStorageItem(click.getWhoClicked(), click.getSlot(), movedItem);
         });
         this.storage = storage;
     }
 
     @Override
     public ItemStack getItem(HumanEntity who, int slot) {
-        return getStorageItem(who, slot);
+        int index = getStorageSlot(who, slot);
+        if (index > -1 && index < storage.getSize()) {
+            return storage.getItem(index);
+        }
+        return null;
     }
 
     /**
@@ -262,7 +283,7 @@ public class GuiStorageElement extends GuiElement {
     public Inventory getStorage() {
         return storage;
     }
-    
+
     /**
      * Get the storage slot index that corresponds to the InventoryGui slot
      * @param player    The player which is using the GUI view
@@ -276,7 +297,7 @@ public class GuiStorageElement extends GuiElement {
         }
         return index;
     }
-    
+
     /**
      * Get the item in the storage that corresponds to the InventoryGui slot
      * @param slot      The slot in the GUI
@@ -301,7 +322,7 @@ public class GuiStorageElement extends GuiElement {
         }
         return null;
     }
-    
+
     /**
      * Set the item in the storage that corresponds to the InventoryGui slot.
      * @param slot  The slot in the GUI
@@ -335,7 +356,7 @@ public class GuiStorageElement extends GuiElement {
         }
         return true;
     }
-    
+
     /**
      * Get the runnable that applies the storage
      * @return The storage applying runnable; might be null
@@ -343,7 +364,7 @@ public class GuiStorageElement extends GuiElement {
     public Runnable getApplyStorage() {
         return applyStorage;
     }
-    
+
     /**
      * Set what should be done to apply the storage.
      * Not necessary if the storage is directly backed by a real inventory.
@@ -352,7 +373,7 @@ public class GuiStorageElement extends GuiElement {
     public void setApplyStorage(Runnable applyStorage) {
         this.applyStorage = applyStorage;
     }
-    
+
     /**
      * Get the item place validator
      * @return The item place validator
@@ -378,7 +399,7 @@ public class GuiStorageElement extends GuiElement {
     public Function<ValidatorInfo, Boolean> getTakeValidator() {
         return takeValidator;
     }
-    
+
     /**
      * Set a function that can validate whether an item can be placed in the slot
      * @param placeValidator The item validator that takes a {@link ValidatorInfo} and returns <code>true</code> for items that
@@ -407,7 +428,7 @@ public class GuiStorageElement extends GuiElement {
     public void setTakeValidator(Function<ValidatorInfo, Boolean> takeValidator) {
         this.takeValidator = takeValidator;
     }
-    
+
     /**
      * Validate whether an item can be placed in a slot with the item validator set in {@link #setItemValidator(Function)}
      * @param slot  The slot the item should be tested for
@@ -455,21 +476,21 @@ public class GuiStorageElement extends GuiElement {
         private final GuiElement element;
         private final int slot;
         private final ItemStack item;
-    
+
         public ValidatorInfo(GuiElement element, int slot, ItemStack item) {
             this.item = item;
             this.slot = slot;
             this.element = element;
         }
-    
+
         public GuiElement getElement() {
             return element;
         }
-    
+
         public int getSlot() {
             return slot;
         }
-    
+
         public ItemStack getItem() {
             return item;
         }

@@ -527,12 +527,8 @@ public class InventoryGui implements Listener {
      * @param pageNumber    The page number to set
      */
     public void setPageNumber(HumanEntity player, int pageNumber) {
-        Inventory inventory = getInventory(player);
-        if (inventory != null) {
-            storeItems(player, inventory);
-        }
         setPageNumberInternal(player, pageNumber);
-        draw(player, false, false, false);
+        draw(player, false, false);
     }
 
     private void setPageNumberInternal(HumanEntity player, int pageNumber) {
@@ -684,18 +680,11 @@ public class InventoryGui implements Listener {
      * @param recreateInventory Recreate the inventory
      */
     public void draw(HumanEntity who, boolean updateDynamic, boolean recreateInventory) {
-        draw(who, updateDynamic, recreateInventory, true);
-    }
-
-    private void draw(HumanEntity who, boolean updateDynamic, boolean recreateInventory, boolean storeItems) {
         if (updateDynamic) {
             updateElements(who, elements.values());
         }
         calculatePageAmount(who);
         Inventory inventory = getInventory(who);
-        if (storeItems && inventory != null) {
-            storeItems(who, inventory);
-        }
         if (inventory == null || recreateInventory) {
             build();
             if (slots.length != inventoryType.getDefaultSize()) {
@@ -714,19 +703,6 @@ public class InventoryGui implements Listener {
             }
             if (element != null) {
                 inventory.setItem(i, element.getItem(who, i));
-            }
-        }
-    }
-
-    private void storeItems(HumanEntity who, Inventory inventory) {
-        for (int i = 0; i < inventory.getSize(); i++) {
-            GuiElement element = getElement(i);
-            if (element != null) {
-                GuiElement effectiveElement = element.getEffectiveElement(who, i);
-                if (effectiveElement instanceof GuiStorageElement) {
-                    GuiStorageElement storageElement = (GuiStorageElement) effectiveElement;
-                    storageElement.setStorageItem(who, i, inventory.getItem(i));
-                }
             }
         }
     }
@@ -1393,7 +1369,7 @@ public class InventoryGui implements Listener {
                     if (items.getKey() < inventory.getSize()) {
                         GuiElement element = getElement(items.getKey());
                         if (!(element instanceof GuiStorageElement)
-                                || !((GuiStorageElement) element).validateItemPlace(event.getWhoClicked(), items.getKey(), items.getValue())) {
+                                || !((GuiStorageElement) element).setStorageItem(event.getWhoClicked(), items.getKey(), items.getValue())) {
                             ItemStack slotItem = event.getInventory().getItem(items.getKey());
                             if (!items.getValue().isSimilar(slotItem)) {
                                 rest += items.getValue().getAmount();
@@ -1440,7 +1416,6 @@ public class InventoryGui implements Listener {
         public void onInventoryClose(InventoryCloseEvent event) {
             Inventory inventory = getInventory(event.getPlayer());
             if (event.getInventory().equals(inventory)) {
-                storeItems(event.getPlayer(), inventory);
                 // go back. that checks if the player is in gui and has history
                 if (InventoryGui.this.equals(getOpen(event.getPlayer()))) {
                     if (closeAction == null || closeAction.onClose(new Close(event.getPlayer(), InventoryGui.this, event))) {
