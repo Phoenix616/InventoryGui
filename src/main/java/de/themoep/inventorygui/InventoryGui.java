@@ -153,7 +153,7 @@ public class InventoryGui implements Listener {
                         break;
                     }
                 }
-            } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException ignored) {
+            } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException | IncompatibleClassChangeError ignored) {
             }
         }
         if (clickSound == null) {
