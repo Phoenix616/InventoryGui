@@ -25,6 +25,8 @@ package de.themoep.inventorygui;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.Nameable;
+import org.bukkit.NamespacedKey;
+import org.bukkit.Registry;
 import org.bukkit.Sound;
 import org.bukkit.block.BlockState;
 import org.bukkit.entity.Entity;
@@ -135,6 +137,14 @@ public class InventoryGui implements Listener {
         clickSounds.put("UI_BUTTON_CLICK", "ui.button.click");
         clickSounds.put("CLICK", "random.click");
         for (Map.Entry<String, String> entry : clickSounds.entrySet()) {
+            try {
+                // Check if sound declaration exists
+                if (Registry.SOUNDS.get(NamespacedKey.minecraft(entry.getKey().toUpperCase(Locale.ROOT))) != null) {
+                    // If it does use the sound key
+                    clickSound = entry.getValue();
+                    break;
+                }
+            } catch (Throwable ignored) {}
             try {
                 // Try to get sound enum to see if it exists
                 Sound.valueOf(entry.getKey().toUpperCase(Locale.ROOT));
