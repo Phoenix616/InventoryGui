@@ -1693,7 +1693,7 @@ public class InventoryGui implements Listener {
                             if (resultSize == 0) {
                                 viewItem = null;
                             }
-                            topInventory.setItem(i, viewItem);
+                            storageElement.setStorageItem(click.getWhoClicked(), i, viewItem);
                             if (newCursor.getAmount() == newCursor.getMaxStackSize()) {
                                 break;
                             }
