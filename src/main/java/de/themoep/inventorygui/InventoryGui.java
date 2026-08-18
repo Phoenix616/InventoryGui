@@ -1673,6 +1673,10 @@ public class InventoryGui implements Listener {
             return;
         }
         InventoryClickEvent event = (InventoryClickEvent) click.getRawEvent();
+        if (event.getCurrentItem() != null && !event.getCurrentItem().getType().isAir() && !event.getCurrentItem().isSimilar(click.getCursor())) {
+            // Ensure the current item isn't some other item type
+            return;
+        }
 
         ItemStack newCursor = click.getCursor().clone();
 
